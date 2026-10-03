@@ -1,0 +1,23 @@
+# --- connectome data: 131 MB, CC BY-NC 4.0, re-downloadable (see data/SOURCES.md) ---
+data/*.parquet
+data/*.csv
+data/*.tsv
+!data/SOURCES.md
+
+# --- simulation output: spike recordings run to several GB ---
+results/
+
+# --- the MLX simulator lives outside this repo; a symlink or clone here is not ours to track ---
+vendor/
+
+# --- game binaries are not part of this project ---
+geometrydash.app/
+Geometry-Dash-SteamRIP.com/
+Geometry-Dash-SteamRIP.com.rar
+*.rar
+
+# --- python / macOS noise ---
+__pycache__/
+*.pyc
+.venv/
+.DS_Store
