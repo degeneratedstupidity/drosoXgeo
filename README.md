@@ -98,6 +98,20 @@ Phase 3 measures this on the actual LPLC2/LC4 drive.
 4. **First experiment:** does DNp01 fire at all when LPLC2 is driven in the model? How long is the delay?
    The answer is the first plot of the project.
 
+**Progress (2026-10-04):** steps 2 and 4 are done; the game player (steps 1 and 3, `brain_player.py`) is next.
+- `brain/stepper.py` advances the brain one frame at a time with input that changes as it goes. It matches the
+  validated engine spike for spike (`tests/test_stepper.py`).
+- **Experiment 1** (`brain/exp_loom.py`): drive LPLC2/LC4 at 0–200 Hz for 300 ms, 10 trials each.
+  - DNp01 fired in every trial once the drive was on.
+  - Its first spike comes 4.3 ms after drive onset at 200 Hz and 22.7 ms at 10 Hz.
+  - LPLC2 alone drives it almost as well as both together; LC4 alone needs a stronger drive.
+  - DNp01 lesioned: 0 spikes.
+  - 5 degree-shuffled brains: 0 spikes, except shuffle 4 at 200 Hz (0.8 Hz, first spike after ~216 ms; real wiring: 201 Hz).
+- **Checklist:** `python -m brain.checks` reruns all 10 checks (published, control, scrambled, consistency) in ~90 s
+  and prints expected vs got with PASS/FAIL. All 10 pass.
+- **Pages:** `docs/explainer.html` (plain-language intro) and `docs/testbench.html` (checklist, test grid, spike replays).
+  Rebuild the test bench page with `python3 docs/build_testbench.py`.
+
 ## Phase 4 – Controls
 - **Shuffled connectome:** same neurons and same connection counts, but rewired at random.
   If it plays just as well, the fly's wiring wasn't doing the work.

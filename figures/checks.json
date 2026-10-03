@@ -1,0 +1,97 @@
+{
+  "when": "2026-10-04 01:07",
+  "machine": "Apple M1 Pro",
+  "trials_per_loom_condition": 5,
+  "checks": [
+    {
+      "phase": "2",
+      "question": "Does our simulator give the published answer?",
+      "kind": "published",
+      "expect": "eating cell (MN9) at 67.0 Hz like Shiu et al.'s own run, within noise (|z| < 3)",
+      "got": "67.3 Hz (z = +0.17)",
+      "passed": true,
+      "why": "if our engine disagrees with the published one, nothing built on it can be trusted"
+    },
+    {
+      "phase": "2",
+      "question": "Does the newer brain map give the same answer?",
+      "kind": "consistent",
+      "expect": "same 20 sugar cells on the old (v630) and new (v783) map: MN9 rates within noise (|z| < 3)",
+      "got": "old 61.9 Hz, new 63.0 Hz (z = +0.86)",
+      "passed": true,
+      "why": "we build on the new map, so it must not change a result the old one got right"
+    },
+    {
+      "phase": "2",
+      "question": "Does scrambled wiring break the sugar \u2192 eating result?",
+      "kind": "scrambled",
+      "expect": "MN9 below 5% of the real wiring's 63.0 Hz",
+      "got": "0.0 Hz",
+      "passed": true,
+      "why": "if a randomly wired brain also 'eats', the fly's wiring isn't what produces it"
+    },
+    {
+      "phase": "2",
+      "question": "Does our frame-by-frame stepper match the validated engine?",
+      "kind": "consistent",
+      "expect": "identical spike counts for every one of the 138,639 neurons, same input",
+      "got": "0 neurons differ (3116 spikes compared)",
+      "passed": true,
+      "why": "the game needs the stepper, so it has to be the same physics, not an approximation"
+    },
+    {
+      "phase": "3",
+      "question": "With no alarm, does the jump cell stay quiet?",
+      "kind": "control",
+      "expect": "0 jump-cell spikes when nothing is shown",
+      "got": "0 spikes in 5 tries",
+      "passed": true,
+      "why": "a jump cell that fires on its own would press jump for no reason"
+    },
+    {
+      "phase": "3",
+      "question": "Do the alarm cells fire at the rate we asked for?",
+      "kind": "consistent",
+      "expect": "LPLC2 cells at 100 per second, within 5%",
+      "got": "98.9 per second",
+      "passed": true,
+      "why": "if the input is wrong, everything measured downstream of it is wrong too"
+    },
+    {
+      "phase": "3",
+      "question": "Does the alarm make the jump cell fire?",
+      "kind": "the main test",
+      "expect": "the jump cell fires in all 5 tries at alarm strength 100",
+      "got": "fired in 5/5 tries, 161 spikes per second",
+      "passed": true,
+      "why": "this is the escape reflex: no response here means no game"
+    },
+    {
+      "phase": "3",
+      "question": "Does a stronger alarm give a faster reaction?",
+      "kind": "consistent",
+      "expect": "time to first jump-cell spike shrinks: strength 25 > 100 > 200",
+      "got": "9.6 ms > 5.7 ms > 4.3 ms",
+      "passed": true,
+      "why": "the game needs timing that follows how close the spike is"
+    },
+    {
+      "phase": "3",
+      "question": "With the jump cell switched off, does it stay silent?",
+      "kind": "control",
+      "expect": "0 jump-cell spikes even at the strongest alarm",
+      "got": "0 spikes",
+      "passed": true,
+      "why": "this is the 'no jump cell' control for the game; the switch has to work"
+    },
+    {
+      "phase": "3",
+      "question": "Does scrambled wiring break the alarm \u2192 jump link?",
+      "kind": "scrambled",
+      "expect": "every one of 5 scrambled brains below 5% of the real wiring's 203 spikes/s at strength 200",
+      "got": "worst scrambled brain: 0.7 spikes/s (0.3% of real)",
+      "passed": true,
+      "why": "if a randomly wired brain also jumps, the fly's wiring isn't what makes it jump"
+    }
+  ]
+}

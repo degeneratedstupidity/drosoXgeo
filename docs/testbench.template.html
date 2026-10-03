@@ -1,0 +1,580 @@
+<title>Jump Circuit Test Bench</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a lab bench. Circuit at the top, the grid of every test, a replay of the selected test, then the results charts. */
+:root {
+  --bg: #eef2f1; --surface: #fcfcfb; --ink: #15232a; --muted: #56676e; --line: #c9d4d4; --dim: #e1e8e8;
+  --lplc2: #eb6834;   /* categorical slot 2 */
+  --lc4: #1baf7a;     /* categorical slot 3 */
+  --both: #2a78d6;    /* categorical slot 1 */
+  --jump: #15232a;    /* the jump cell is drawn in ink */
+  --band: rgba(235, 104, 52, 0.08);
+  --good: #1a7f37; --bad: #c62828;
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1619; --surface: #1a1a19; --ink: #e9efef; --muted: #a3b2b6; --line: #33433f; --dim: #253033;
+    --lplc2: #d95926; --lc4: #199e70; --both: #3987e5; --jump: #ffffff; --band: rgba(217, 89, 38, 0.13); --good: #3fb950; --bad: #ff6b6b; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1619; --surface: #1a1a19; --ink: #e9efef; --muted: #a3b2b6; --line: #33433f; --dim: #253033;
+  --lplc2: #d95926; --lc4: #199e70; --both: #3987e5; --jump: #ffffff; --band: rgba(217, 89, 38, 0.13); --good: #3fb950; --bad: #ff6b6b; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.6; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-inline: 20px; padding-block: 0 64px; display: grid; gap: 0; }
+header.hero { padding-block: 44px 20px; display: grid; gap: 12px; }
+.eyebrow { font: 600 12px/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--lplc2); }
+h1 { font-family: var(--font-display); font-weight: 800; font-size: clamp(34px, 5.6vw, 58px); line-height: 1.03; letter-spacing: -0.02em; margin: 0; text-wrap: balance; max-width: 18ch; }
+.lede { font-size: 19px; margin: 0; max-width: 62ch; }
+section { padding-block: 34px; border-top: 1px solid var(--line); display: grid; gap: 16px; min-width: 0; }
+h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(24px, 3vw, 32px); line-height: 1.15; margin: 0; text-wrap: balance; }
+.sec-num { font: 600 13px/1 var(--font-mono); color: var(--muted); letter-spacing: .06em; }
+section p { margin: 0; max-width: 68ch; }
+.muted { color: var(--muted); }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 14px; min-width: 0; }
+.two { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 28px; align-items: start; }
+.stack { display: grid; gap: 12px; min-width: 0; }
+button:focus-visible, input:focus-visible, .tile:focus-visible { outline: 3px solid var(--both); outline-offset: 2px; }
+
+/* circuit */
+.circuit svg { width: 100%; height: auto; display: block; }
+.circuit text { font-family: var(--font-body); }
+.tests { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.tests li { display: grid; grid-template-columns: 1.6em minmax(0, 1fr); gap: 8px; align-items: baseline; }
+.tests .n { font: 600 13px var(--font-mono); color: var(--muted); }
+.pill { font: 600 11px/1 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; padding: 4px 7px; border-radius: 999px; background: var(--dim); color: var(--muted); white-space: nowrap; }
+
+/* matrix */
+.matrix-scroll { overflow-x: auto; }
+.matrix { display: grid; grid-template-columns: minmax(170px, 1.3fr) repeat(7, minmax(64px, 1fr)); gap: 4px; min-width: 700px; }
+.mh { font: 600 12px var(--font-mono); color: var(--muted); text-align: center; align-self: end; padding-bottom: 4px; }
+.mh.left { text-align: left; }
+.rowname { font-size: 14px; line-height: 1.25; display: flex; flex-direction: column; justify-content: center; gap: 3px; padding-right: 8px; }
+.rowname .pill { align-self: flex-start; }
+.tile {
+  border: 1px solid var(--line); border-radius: 8px; min-height: 54px; padding: 6px 4px; cursor: pointer;
+  display: grid; place-items: center; align-content: center; gap: 1px; text-align: center;
+  background: var(--surface); color: var(--ink); font: inherit;
+}
+.tile .big { font: 600 15px/1.1 var(--font-mono); font-variant-numeric: tabular-nums; }
+.tile .small { font-size: 11px; color: var(--muted); line-height: 1.2; }
+.tile.never .big { color: var(--muted); font-weight: 400; }
+.tile[aria-pressed="true"] { border: 2px solid var(--ink); }
+.tile:hover { border-color: var(--ink); }
+.group-gap { grid-column: 1 / -1; height: 6px; }
+
+/* replay */
+.replay-head { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; justify-content: space-between; }
+.replay-title { font-family: var(--font-display); font-weight: 700; font-size: 20px; }
+.ctrls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.btn { font: 700 14px/1 var(--font-body); border: 1px solid var(--line); border-radius: 999px; padding: 9px 14px; cursor: pointer; background: transparent; color: var(--ink); }
+.btn.primary { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; gap: 3px; }
+.seg button { font: 700 13px/1 var(--font-body); border: 0; border-radius: 999px; padding: 7px 11px; cursor: pointer; background: transparent; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+canvas { display: block; width: 100%; max-width: 100%; }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.stat { border-top: 2px solid var(--line); padding-top: 8px; display: grid; gap: 2px; }
+.stat .v { font: 600 22px/1.1 var(--font-mono); font-variant-numeric: tabular-nums; }
+.stat .k { font-size: 13px; color: var(--muted); line-height: 1.3; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 7px; }
+.key { width: 16px; height: 3px; border-radius: 2px; display: inline-block; }
+.key.dot { width: 9px; height: 9px; border-radius: 50%; }
+
+/* charts */
+.charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.chart { position: relative; min-width: 0; display: grid; gap: 6px; }
+.chart h3 { font-size: 16px; margin: 0; }
+.chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+.chart text { font-family: var(--font-body); }
+.tip {
+  position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
+  padding: 8px 10px; font-size: 13px; line-height: 1.45; box-shadow: 0 4px 16px rgba(0,0,0,.12); min-width: 150px; z-index: 2;
+}
+.tip .row { display: flex; align-items: center; gap: 8px; }
+.tip .row b { font-family: var(--font-mono); font-variant-numeric: tabular-nums; min-width: 4.2em; }
+details { font-size: 15px; }
+summary { cursor: pointer; color: var(--muted); }
+table { border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+th, td { border-bottom: 1px solid var(--line); padding: 5px 10px; text-align: right; font-variant-numeric: tabular-nums; }
+th:first-child, td:first-child { text-align: left; }
+.table-scroll { overflow-x: auto; }
+
+.findings { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.finding { display: grid; gap: 6px; align-content: start; }
+.finding h3 { margin: 0; font-size: 17px; }
+.finding p { font-size: 16px; }
+/* checklist */
+.kinds { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.kind { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: grid; gap: 4px; align-content: start; background: var(--surface); }
+.kind b { font-size: 15px; }
+.kind span { font-size: 13.5px; color: var(--muted); line-height: 1.4; }
+.kind code { font: 600 11px var(--font-mono); color: var(--ink); }
+.checks { display: grid; gap: 10px; }
+.chk { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: grid; grid-template-columns: 86px minmax(0, 1fr); gap: 6px 16px; }
+.verdict { font: 700 13px/1 var(--font-mono); letter-spacing: .06em; display: inline-flex; align-items: center; gap: 6px; align-self: start; padding-top: 3px; }
+.verdict.pass { color: var(--good); } .verdict.fail { color: var(--bad); }
+.verdict svg { width: 16px; height: 16px; }
+.chk-q { font-weight: 700; font-size: 16.5px; display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline; }
+.chk-grid { grid-column: 2; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 4px 18px; font-size: 15px; }
+.chk-grid .lab { font: 600 11px var(--font-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.chk-why { grid-column: 2; font-size: 14px; color: var(--muted); }
+.phase-h { font: 600 12px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding-top: 8px; }
+.terminal { background: #10181b; color: #d7e2e2; border-radius: 12px; padding: 14px 16px; font: 12.5px/1.55 var(--font-mono); overflow-x: auto; white-space: pre; }
+.terminal .ok { color: #3fb950; font-weight: 600; } .terminal .dim { color: #8aa0a6; } .terminal .cmd { color: #ffb37a; }
+.run-yourself { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 24px; align-items: start; }
+@media (max-width: 820px) { .kinds { grid-template-columns: repeat(2, minmax(0, 1fr)); } .run-yourself { grid-template-columns: minmax(0, 1fr); } .chk { grid-template-columns: minmax(0, 1fr); } .chk-grid, .chk-why { grid-column: 1; grid-template-columns: minmax(0, 1fr); } }
+footer { border-top: 1px solid var(--line); padding-block: 26px 0; color: var(--muted); font-size: 14px; display: grid; gap: 6px; }
+footer p { margin: 0; max-width: 80ch; }
+
+@media (max-width: 820px) {
+  .two, .charts, .findings { grid-template-columns: minmax(0, 1fr); }
+  .stats { grid-template-columns: minmax(0, 1fr); }
+}
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">drosoXgeo &middot; phase 3 &middot; experiment 1</div>
+    <h1>Does the alarm make the fly jump?</h1>
+    <p class="lede">A simulation always prints numbers. The hard part is knowing whether they're right. This page shows how we decide: what we expected before running, what we got, and the raw evidence to look at yourself.</p>
+  </header>
+
+
+  <section>
+    <div class="sec-num">0 &middot; how do we know it's right?</div>
+    <h2>Decide what "right" means before you run anything</h2>
+    <p>Every check below was written as a prediction first. "Right" comes from four places. If you know software testing, you already know all four.</p>
+    <div class="kinds">
+      <div class="kind"><b>Published</b><span>Another lab measured it. We must get the same number. <code>like a known expected output</code></span></div>
+      <div class="kind"><b>Control</b><span>The answer is known by construction: no input, or a cell switched off, must give zero. <code>like a negative test</code></span></div>
+      <div class="kind"><b>Scrambled</b><span>Rewire the brain at random. The result must break, or the wiring isn't doing the work. <code>like removing the feature</code></span></div>
+      <div class="kind"><b>Consistent</b><span>Two ways of computing the same thing must agree. <code>like a regression test</code></span></div>
+    </div>
+    <div class="checks" id="checklist"></div>
+    <div class="run-yourself">
+      <div class="stack">
+        <h2 style="font-size:22px">Run it yourself</h2>
+        <p>The whole checklist is one command. It reruns every simulation from scratch, takes about 90 seconds on your M1 Pro, and prints the same verdicts you see above. Run it after any change: if something turns red, you know the change broke the science, not just the code.</p>
+        <p class="muted" style="font-size:14px">From the drosoXgeo folder. The simulator's Python runs our code.</p>
+      </div>
+      <div class="terminal" id="terminal"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-num">1 &middot; what's being tested</div>
+    <div class="two">
+      <div class="stack">
+        <h2>One circuit, five kinds of test</h2>
+        <p>In the fly's map, two kinds of alarm cells are the jump cell's biggest inputs. We switch them on at different strengths, from 0 to 200 times per second, and ask the jump cell two questions: <b>do you fire?</b> and <b>how fast?</b></p>
+        <ol class="tests">
+          <li><span class="n">1</span><span><b>Real wiring, both alarm types.</b> The main test.</span></li>
+          <li><span class="n">2</span><span><b>Only LPLC2.</b> How much does each alarm type do on its own?</span></li>
+          <li><span class="n">3</span><span><b>Only LC4.</b> The other alarm type on its own.</span></li>
+          <li><span class="n">4</span><span><b>Jump cell switched off.</b> <span class="pill">control</span> It should never fire. Checks our off switch works.</span></li>
+          <li><span class="n">5</span><span><b>Scrambled wiring, 5 versions.</b> <span class="pill">control</span> Same cells, same number of connections, random partners. If these still jump, the fly's wiring isn't what's doing it.</span></li>
+        </ol>
+        <p class="muted">Each test runs 400 ms of fly time: 50 ms quiet, 300 ms of alarm, 50 ms quiet. Each one was repeated 10 times with different random timing.</p>
+      </div>
+      <div class="panel circuit">
+        <svg viewBox="0 0 520 300" role="img" aria-label="Circuit: 210 LPLC2 cells and 104 LC4 cells connect to the two giant fiber jump cells, which trigger the jump">
+          <g id="circuitArt"></g>
+        </svg>
+        <p class="muted" style="font-size:14px">Synapse counts are for the right-side jump cell in the FlyWire map: LPLC2 is its biggest input type, LC4 the second biggest. About half of all its inputs are inhibitory, the brakes, so firing is not guaranteed.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-num">2 &middot; every test at a glance</div>
+    <h2>The grid: 9 setups &times; 7 alarm strengths</h2>
+    <p>Each square shows how quickly the jump cell first fired (middle value of 10 tries), and in how many of the 10 tries it fired at all. Darker blue means the jump cell fired more often. <b>Click a square to replay it below.</b></p>
+    <div class="panel matrix-scroll">
+      <div class="matrix" id="matrix" role="grid" aria-label="Test grid"></div>
+    </div>
+  </section>
+
+  <section id="replaySec">
+    <div class="sec-num">3 &middot; replay</div>
+    <div class="panel">
+      <div class="replay-head">
+        <div class="replay-title" id="replayTitle">Real wiring, both alarm types, 50 per second</div>
+        <div class="ctrls">
+          <button type="button" class="btn primary" id="playBtn">Replay</button>
+          <div class="seg" role="group" aria-label="Playback speed">
+            <button type="button" data-speed="40" aria-pressed="true">40&times; slower</button>
+            <button type="button" data-speed="10" aria-pressed="false">10&times; slower</button>
+          </div>
+        </div>
+      </div>
+      <canvas id="raster" aria-label="Spike raster of the selected test: each dot is one spike, rows are cells, time runs left to right"></canvas>
+      <div class="legend">
+        <span><i class="key dot" style="background:var(--lplc2)"></i>16 of the 210 LPLC2 alarm cells</span>
+        <span><i class="key dot" style="background:var(--lc4)"></i>16 of the 104 LC4 alarm cells</span>
+        <span><i class="key" style="background:var(--jump);height:12px;width:3px"></i>the 2 jump cells (left and right)</span>
+      </div>
+      <div class="stats">
+        <div class="stat"><span class="v" id="sLat">-</span><span class="k">from alarm on to the first jump-cell spike</span></div>
+        <div class="stat"><span class="v" id="sGf">-</span><span class="k">jump-cell spikes in this test</span></div>
+        <div class="stat"><span class="v" id="sAct">-</span><span class="k">cells anywhere in the brain that fired (of 138,639)</span></div>
+      </div>
+      <p class="muted" style="font-size:14px">Each dot is one spike: one moment when that cell fired. Time runs left to right. The shaded stretch is when the alarm was on. This is one of the 10 tries for this square.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-num">4 &middot; results</div>
+    <h2>Stronger alarm, faster and harder jump signal</h2>
+    <div class="panel">
+      <div class="charts">
+        <div class="chart" id="chartRate"><h3>How often the jump cell fires</h3></div>
+        <div class="chart" id="chartLat"><h3>How quickly it first fires</h3></div>
+      </div>
+      <div class="legend" id="chartLegend"></div>
+      <details>
+        <summary>Show the numbers as a table</summary>
+        <div class="table-scroll"><table id="dataTable"></table></div>
+      </details>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-num">5 &middot; in plain words</div>
+    <h2>What we learned</h2>
+    <div class="findings" id="findings">
+      <div class="finding"><h3>The alarm reaches the jump cell.</h3><p>With the real wiring, the jump cell fired in every single try once the alarm was on, even at the weakest setting.</p></div>
+      <div class="finding"><h3>Stronger alarm, faster reaction.</h3><p>A strong alarm makes the jump cell fire within about 4 to 6 ms. A faint one takes 20 to 30 ms. One frame of the game is 16.7 ms, so a strong alarm gets a reaction inside a single frame.</p></div>
+      <div class="finding"><h3>LPLC2 matters more than LC4.</h3><p>Either one alone can trigger the jump cell, but LPLC2 alone works almost as well as both together. LC4 alone needs a stronger alarm. That matches the map: LPLC2 has more synapses onto the jump cell.</p></div>
+      <div class="finding"><h3>Scrambled wiring: no jump.</h3><p id="scrFinding">Across 5 scrambled brains, the jump cell essentially never fired, even though hundreds of other cells were busy. So it's the fly's real wiring that carries the alarm to the jump cell.</p></div>
+      <div class="finding"><h3>The off switch works.</h3><p>With the jump cell switched off it never fired, so we can use this as the "no jump cell" control in the game.</p></div>
+      <div class="finding"><h3>What this does not show yet.</h3><p>Here the alarm is simply on or off. In the game, it has to grow as the spike gets closer, and the jump has to land in a window about 45 ms wide. That's the next step. Also, the real jump cell has electrical connections that aren't in this map, so the model may react differently from a living fly.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Data: FlyWire v783 connectome (Dorkenwald et al. 2024; Schlegel et al. 2024), leaky integrate-and-fire model of Shiu et al. 2024, run with drosophila-brain-mlx on an M1 Pro. CC BY-NC 4.0.</p>
+    <p>Regenerate: python -m brain.exp_loom and python -m brain.exp_loom_examples.</p>
+  </footer>
+</div>
+
+<script>
+const SUMMARY = /*SUMMARY*/null;
+const EXAMPLES = /*EXAMPLES*/null;
+const CHECKS = /*CHECKS*/null;
+</script>
+<script>
+(() => {
+"use strict";
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let C = {};
+function readColors() {
+  const s = getComputedStyle(document.documentElement);
+  for (const k of ["bg","surface","ink","muted","line","dim","lplc2","lc4","both","jump","band"]) C[k] = s.getPropertyValue("--" + k).trim();
+  if (typeof drawRaster === "function") drawRaster();
+  if (typeof drawCharts === "function") drawCharts();
+}
+const RATES = [0, 10, 25, 50, 100, 150, 200];
+const SETUPS = [
+  { key: "real_both", wiring: "real", drive: "LPLC2+LC4", name: "Real wiring, both alarm types" },
+  { key: "real_lplc2", wiring: "real", drive: "LPLC2 only", name: "Only LPLC2" },
+  { key: "real_lc4", wiring: "real", drive: "LC4 only", name: "Only LC4" },
+  { key: "lesioned", wiring: "lesioned", drive: "LPLC2+LC4", name: "Jump cell switched off", control: true },
+  ...[0, 1, 2, 3, 4].map(s => ({ key: `shuffled${s}`, wiring: `shuffled${s}`, drive: "LPLC2+LC4", name: `Scrambled wiring #${s + 1}`, control: true })),
+];
+const find = (setup, rate) => SUMMARY.results.find(r => r.wiring === setup.wiring && r.drive === setup.drive && r.input_hz === rate);
+const NS = "http://www.w3.org/2000/svg";
+const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (parent) parent.appendChild(e); return e; };
+
+
+/* ---------- 0. checklist ---------- */
+(function checklist() {
+  const host = document.getElementById("checklist");
+  const tick = '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M4.6 8.2l2.2 2.2 4.6-4.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const cross = '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5.2 5.2l5.6 5.6M10.8 5.2l-5.6 5.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+  const titles = { "2": "Phase 2 · is the simulator right?", "3": "Phase 3 · the jump circuit" };
+  let phase = null;
+  CHECKS.checks.forEach((c, i) => {
+    if (c.phase !== phase) { phase = c.phase; const h = document.createElement("div"); h.className = "phase-h"; h.textContent = titles[phase]; host.appendChild(h); }
+    const card = document.createElement("div"); card.className = "chk";
+    const v = document.createElement("div"); v.className = "verdict " + (c.passed ? "pass" : "fail"); v.innerHTML = (c.passed ? tick : cross) + (c.passed ? "PASS" : "FAIL");
+    const q = document.createElement("div"); q.className = "chk-q";
+    const qt = document.createElement("span"); qt.textContent = `${i + 1}. ${c.question}`;
+    const pill = document.createElement("span"); pill.className = "pill"; pill.textContent = c.kind;
+    q.append(qt, pill);
+    const grid = document.createElement("div"); grid.className = "chk-grid";
+    [["We expected", c.expect], ["We got", c.got]].forEach(([k, val]) => {
+      const d = document.createElement("div"); const l = document.createElement("div"); l.className = "lab"; l.textContent = k;
+      const t = document.createElement("div"); t.textContent = val; d.append(l, t); grid.appendChild(d);
+    });
+    const why = document.createElement("div"); why.className = "chk-why"; why.textContent = "Why it matters: " + c.why;
+    card.append(v, q, grid, why); host.appendChild(card);
+  });
+  const n = CHECKS.checks.filter(c => c.passed).length;
+  const term = document.getElementById("terminal");
+  const esc = t => t.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  let out = `<span class="cmd">$ ../drosophila-brain-mlx/.venv/bin/python -m brain.checks</span>\n\n`;
+  out += `<span class="dim">drosoXgeo checklist · ${esc(CHECKS.when)} · ${esc(CHECKS.machine)}</span>\n\n`;
+  CHECKS.checks.slice(0, 2).forEach((c, i) => {
+    out += ` [<span class="ok">PASS</span>] ${i + 1}. ${esc(c.question)}\n`;
+    out += `         <span class="dim">expect</span>  ${esc(c.expect)}\n         <span class="dim">got</span>     ${esc(c.got)}\n\n`;
+  });
+  out += `<span class="dim">  ... ${CHECKS.checks.length - 2} more ...</span>\n\n${n}/${CHECKS.checks.length} checks passed`;
+  term.innerHTML = out;
+})();
+
+/* ---------- 1. circuit art ---------- */
+(function circuit() {
+  const g = document.getElementById("circuitArt");
+  const cluster = (cx, cy, n, color, seed) => {
+    let s = seed;
+    for (let i = 0; i < n; i++) { s = (s * 9301 + 49297) % 233280; const a = s / 233280 * Math.PI * 2; s = (s * 9301 + 49297) % 233280; const r = Math.sqrt(s / 233280) * 42;
+      el("circle", { cx: cx + Math.cos(a) * r, cy: cy + Math.sin(a) * r * 0.75, r: 3.4, fill: color, opacity: 0.85 }, g); }
+  };
+  el("path", { d: "M150 80 C 240 80, 260 140, 330 145", stroke: "var(--lplc2)", "stroke-width": 9, fill: "none", "stroke-linecap": "round", opacity: 0.55 }, g);
+  el("path", { d: "M150 220 C 240 220, 260 160, 330 155", stroke: "var(--lc4)", "stroke-width": 7, fill: "none", "stroke-linecap": "round", opacity: 0.55 }, g);
+  cluster(95, 80, 34, "var(--lplc2)", 7); cluster(95, 220, 22, "var(--lc4)", 11);
+  const t = (x, y, s, attrs = {}) => { const e = el("text", { x, y, "text-anchor": "middle", fill: "var(--ink)", "font-size": 14, ...attrs }, g); e.textContent = s; return e; };
+  t(95, 22, "LPLC2", { "font-weight": 700 }); t(95, 40, "210 alarm cells", { fill: "var(--muted)", "font-size": 12.5 });
+  t(95, 282, "LC4  ·  104 alarm cells", { "font-weight": 700, "font-size": 13 });
+  t(240, 96, "622 synapses", { fill: "var(--muted)", "font-size": 12 });
+  t(240, 212, "431 synapses", { fill: "var(--muted)", "font-size": 12 });
+  el("circle", { cx: 360, cy: 150, r: 30, fill: "var(--surface)", stroke: "var(--jump)", "stroke-width": 3 }, g);
+  t(360, 146, "jump", { "font-weight": 700, "font-size": 13 }); t(360, 162, "cell", { "font-weight": 700, "font-size": 13 });
+  t(360, 204, "giant fiber (DNp01)", { fill: "var(--muted)", "font-size": 12 }); t(360, 220, "one per side", { fill: "var(--muted)", "font-size": 12 });
+  el("path", { d: "M392 150 L 438 150", stroke: "var(--jump)", "stroke-width": 3, "stroke-linecap": "round" }, g);
+  el("path", { d: "M436 142 L 448 150 L 436 158 z", fill: "var(--jump)" }, g);
+  el("rect", { x: 452, y: 132, width: 62, height: 36, rx: 18, fill: "var(--jump)" }, g);
+  t(483, 155, "JUMP", { fill: "var(--surface)", "font-weight": 700, "font-size": 13 });
+})();
+
+/* ---------- 2. matrix ---------- */
+let selected = { setup: SETUPS[0], rate: 50 };
+const matrix = document.getElementById("matrix");
+function buildMatrix() {
+  const head = document.createElement("div"); head.className = "mh left"; head.textContent = "alarm strength (per second) →"; matrix.appendChild(head);
+  RATES.forEach(r => { const h = document.createElement("div"); h.className = "mh"; h.textContent = r; matrix.appendChild(h); });
+  const maxRate = Math.max(...SUMMARY.results.map(r => r.rate_hz_mean));
+  SETUPS.forEach((setup, i) => {
+    if (i === 3) { const gap = document.createElement("div"); gap.className = "group-gap"; matrix.appendChild(gap); }
+    const name = document.createElement("div"); name.className = "rowname";
+    name.innerHTML = `<span>${setup.name}</span>` + (setup.control ? '<span class="pill">control</span>' : "");
+    matrix.appendChild(name);
+    RATES.forEach(rate => {
+      const r = find(setup, rate);
+      const b = document.createElement("button"); b.type = "button"; b.className = "tile";
+      const fired = r.fired_trials > 0;
+      if (!fired) b.classList.add("never");
+      const tint = fired ? Math.round(8 + 42 * Math.sqrt(r.rate_hz_mean / maxRate)) : 0;
+      b.style.background = fired ? `color-mix(in srgb, var(--both) ${tint}%, var(--surface))` : "var(--surface)";
+      b.innerHTML = fired
+        ? `<span class="big">${r.latency_ms_median.toFixed(r.latency_ms_median < 10 ? 1 : 0)} ms</span><span class="small">fired ${r.fired_trials}/${r.trials}</span>`
+        : `<span class="big">never</span><span class="small">0/${r.trials}</span>`;
+      b.setAttribute("aria-label", `${setup.name}, alarm ${rate} per second: ${fired ? `jump cell fired in ${r.fired_trials} of ${r.trials}, first spike after ${r.latency_ms_median.toFixed(1)} ms` : "jump cell never fired"}. Replay.`);
+      b.dataset.key = setup.key; b.dataset.rate = rate;
+      b.addEventListener("click", () => { select(setup, rate); document.getElementById("replaySec").scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" }); });
+      matrix.appendChild(b);
+    });
+  });
+}
+
+/* ---------- 3. replay ---------- */
+const canvas = document.getElementById("raster"), ctx = canvas.getContext("2d");
+let W = 0, H = 0, trial = null, playT = 0, playing = false, speed = 40;
+const TOTAL_MS = 400;
+function fit() {
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  W = canvas.clientWidth; H = Math.max(300, Math.round(W * 0.48));
+  canvas.style.height = H + "px"; canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); drawRaster();
+}
+function select(setup, rate) {
+  selected = { setup, rate };
+  document.querySelectorAll(".tile").forEach(t => t.setAttribute("aria-pressed", t.dataset.key === setup.key && +t.dataset.rate === rate));
+  trial = EXAMPLES.trials[`${setup.key}@${rate}`];
+  document.getElementById("replayTitle").textContent = `${setup.name}, alarm ${rate} per second`;
+  const gf = trial.trains.slice(-2).flat();
+  const first = gf.filter(t => t >= 500).sort((a, b) => a - b)[0];
+  document.getElementById("sLat").textContent = first !== undefined ? `${((first - 500) / 10).toFixed(1)} ms` : "never";
+  document.getElementById("sGf").textContent = gf.length;
+  document.getElementById("sAct").textContent = trial.active.toLocaleString("en-US");
+  start();
+}
+function start() { playT = reduce ? TOTAL_MS : 0; playing = !reduce; drawRaster(); }
+document.getElementById("playBtn").addEventListener("click", () => { playT = 0; playing = true; });
+document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => {
+  speed = +b.dataset.speed; document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", x === b));
+}));
+function drawRaster() {
+  if (!trial || !W) return;
+  ctx.clearRect(0, 0, W, H);
+  const L = Math.min(110, W * 0.2), R = W - 12, T = 14, B = H - 34;
+  const nL = EXAMPLES.rows.LPLC2, nC = EXAMPLES.rows.LC4;
+  const rowsTop = T, blockH = (B - T - 60) / (nL + nC), gfTop = B - 44;
+  const x = ms => L + (R - L) * ms / TOTAL_MS;
+  // alarm band
+  ctx.fillStyle = C.band; ctx.fillRect(x(50), T - 6, x(350) - x(50), B - T + 6);
+  ctx.fillStyle = C.muted; ctx.font = '600 12px "Atkinson Hyperlegible", Arial, sans-serif'; ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+  ctx.fillText(selected.rate === 0 ? "alarm 'on' at 0 per second" : "alarm on", (x(50) + x(350)) / 2, B + 28);
+  // axis
+  ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(L, B); ctx.lineTo(R, B); ctx.stroke();
+  ctx.fillStyle = C.muted; ctx.font = '12px "JetBrains Mono", monospace';
+  [0, 50, 100, 200, 300, 350, 400].forEach(ms => { ctx.fillText(ms + "", x(ms), B + 14); });
+  ctx.textAlign = "right"; ctx.fillText("ms", R, B + 28);
+  // row labels
+  ctx.textAlign = "right"; ctx.textBaseline = "middle"; ctx.font = '600 12.5px "Atkinson Hyperlegible", Arial, sans-serif';
+  ctx.fillStyle = C.ink;
+  ctx.fillText("LPLC2", L - 10, rowsTop + blockH * nL / 2);
+  ctx.fillText("LC4", L - 10, rowsTop + blockH * (nL + nC / 2) + 8);
+  ctx.fillText("jump cells", L - 10, gfTop + 18);
+  const now = playT * 10;    // in 0.1 ms ticks
+  const recent = { lplc2: 0, lc4: 0, gf: 0 };
+  trial.trains.forEach((train, j) => {
+    let y, color, isGf = j >= nL + nC;
+    if (j < nL) { y = rowsTop + blockH * (j + 0.5); color = C.lplc2; }
+    else if (!isGf) { y = rowsTop + blockH * (j + 0.5) + 8; color = C.lc4; }
+    else { y = gfTop + 10 + (j - nL - nC) * 18; color = C.jump; }
+    for (const t of train) {
+      if (t > now) break;
+      const xx = x(t / 10);
+      if (isGf) { ctx.fillStyle = color; ctx.fillRect(xx - 1.25, y - 7, 2.5, 14); }
+      else { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(xx, y, Math.max(1.6, Math.min(2.6, blockH * 0.32)), 0, Math.PI * 2); ctx.fill(); }
+      if (now - t < 30) recent[j < nL ? "lplc2" : isGf ? "gf" : "lc4"] = 1;
+    }
+  });
+  // playhead
+  if (playT < TOTAL_MS) { ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x(playT), T - 6); ctx.lineTo(x(playT), B); ctx.stroke(); }
+  // jump flash
+  if (recent.gf && playT < TOTAL_MS) {
+    ctx.fillStyle = C.jump; ctx.font = '700 15px "Atkinson Hyperlegible", Arial, sans-serif'; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+    ctx.fillText("JUMP!", Math.min(x(playT) + 8, R - 50), gfTop - 8);
+  }
+}
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (playing) { playT += dt * 1000 / speed; if (playT >= TOTAL_MS) { playT = TOTAL_MS; playing = false; } drawRaster(); }
+  requestAnimationFrame(loop);
+}
+
+/* ---------- 4. charts ---------- */
+const SERIES = [
+  { wiring: "real", drive: "LPLC2+LC4", name: "Both alarm types", color: "both" },
+  { wiring: "real", drive: "LPLC2 only", name: "Only LPLC2", color: "lplc2" },
+  { wiring: "real", drive: "LC4 only", name: "Only LC4", color: "lc4" },
+  { wiring: "scrambled", drive: "LPLC2+LC4", name: "Scrambled (average of 5)", color: "muted", dash: "5 5" },
+];
+function seriesValues(s, field) {
+  return RATES.map(rate => {
+    if (s.wiring === "scrambled") {
+      const rows = SUMMARY.results.filter(r => r.wiring.startsWith("shuffled") && r.input_hz === rate);
+      if (field === "rate_hz_mean") return rows.reduce((a, r) => a + r.rate_hz_mean, 0) / rows.length;
+      return null;
+    }
+    const r = SUMMARY.results.find(r => r.wiring === s.wiring && r.drive === s.drive && r.input_hz === rate);
+    return r[field];
+  });
+}
+function lineChart(host, field, opts) {
+  host.querySelectorAll("svg, .tip").forEach(e => e.remove());
+  const VW = 460, VH = 290, m = { l: 44, r: 92, t: 12, b: 40 };
+  const svg = el("svg", { viewBox: `0 0 ${VW} ${VH}`, role: "img", "aria-label": opts.aria }, host);
+  const X = v => m.l + (VW - m.l - m.r) * v / 200, Y = v => VH - m.b - (VH - m.t - m.b) * v / opts.max;
+  opts.ticks.forEach(v => {
+    el("line", { x1: m.l, x2: VW - m.r, y1: Y(v), y2: Y(v), stroke: "var(--line)", "stroke-width": 1, opacity: v ? 0.6 : 1 }, svg);
+    const t = el("text", { x: m.l - 8, y: Y(v) + 4, "text-anchor": "end", "font-size": 11, fill: "var(--muted)" }, svg); t.textContent = v;
+  });
+  [0, 50, 100, 150, 200].forEach(v => { const t = el("text", { x: X(v), y: VH - m.b + 18, "text-anchor": "middle", "font-size": 11, fill: "var(--muted)" }, svg); t.textContent = v; });
+  const xl = el("text", { x: (m.l + VW - m.r) / 2, y: VH - 4, "text-anchor": "middle", "font-size": 12, fill: "var(--muted)" }, svg); xl.textContent = "alarm strength (times per second each alarm cell fires)";
+  const yl = el("text", { x: 4, y: m.t + 4, "font-size": 12, fill: "var(--muted)" }, svg); yl.textContent = opts.unit;
+  if (opts.ref) {
+    el("line", { x1: m.l, x2: VW - m.r, y1: Y(opts.ref.v), y2: Y(opts.ref.v), stroke: "var(--ink)", "stroke-width": 1, "stroke-dasharray": "2 4" }, svg);
+    const t = el("text", { x: VW - m.r + 6, y: Y(opts.ref.v) + 4, "font-size": 11, fill: "var(--muted)" }, svg); t.textContent = opts.ref.label;
+  }
+  const drawn = [];
+  SERIES.forEach(s => {
+    const vals = seriesValues(s, field);
+    const pts = RATES.map((r, i) => [r, vals[i]]).filter(p => p[1] !== null && p[1] !== undefined && p[1] <= opts.max);
+    if (!pts.length) return;
+    el("polyline", { points: pts.map(p => `${X(p[0])},${Y(p[1])}`).join(" "), fill: "none", stroke: `var(--${s.color})`, "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round", ...(s.dash ? { "stroke-dasharray": s.dash } : {}) }, svg);
+    pts.forEach(p => el("circle", { cx: X(p[0]), cy: Y(p[1]), r: 4, fill: `var(--${s.color})`, stroke: "var(--surface)", "stroke-width": 2 }, svg));
+    const lastP = pts[pts.length - 1];
+    drawn.push({ s, y: Y(lastP[1]), x: X(lastP[0]) });
+  });
+  // direct labels, nudged apart
+  drawn.sort((a, b) => a.y - b.y);
+  for (let i = 1; i < drawn.length; i++) if (drawn[i].y - drawn[i - 1].y < 14) drawn[i].y = drawn[i - 1].y + 14;
+  drawn.forEach(d => { const t = el("text", { x: d.x + 8, y: d.y + 4, "font-size": 11.5, fill: "var(--ink)" }, svg); t.textContent = d.s.name.replace(" (average of 5)", ""); });
+  if (opts.note) { const t = el("text", { x: X(100), y: Y(opts.max) + 14, "text-anchor": "middle", "font-size": 11.5, fill: "var(--muted)" }, svg); t.textContent = opts.note; }
+  // hover: crosshair + tooltip
+  const hair = el("line", { y1: m.t, y2: VH - m.b, stroke: "var(--muted)", "stroke-width": 1, visibility: "hidden" }, svg);
+  const hit = el("rect", { x: m.l, y: m.t, width: VW - m.l - m.r, height: VH - m.t - m.b, fill: "transparent" }, svg);
+  const tip = document.createElement("div"); tip.className = "tip"; tip.hidden = true; host.appendChild(tip);
+  const show = evt => {
+    const pt = svg.createSVGPoint(); pt.x = evt.clientX; pt.y = evt.clientY;
+    const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+    const v = (p.x - m.l) / (VW - m.l - m.r) * 200;
+    const rate = RATES.reduce((a, b) => Math.abs(b - v) < Math.abs(a - v) ? b : a);
+    hair.setAttribute("x1", X(rate)); hair.setAttribute("x2", X(rate)); hair.setAttribute("visibility", "visible");
+    tip.replaceChildren();
+    const h = document.createElement("div"); h.style.color = "var(--muted)"; h.textContent = `alarm ${rate} per second`; tip.appendChild(h);
+    SERIES.forEach(s => {
+      const val = seriesValues(s, field)[RATES.indexOf(rate)];
+      const row = document.createElement("div"); row.className = "row";
+      const k = document.createElement("i"); k.className = "key"; k.style.background = `var(--${s.color})`;
+      const b = document.createElement("b"); b.textContent = val === null || val === undefined ? "never" : `${val.toFixed(1)}`;
+      const n = document.createElement("span"); n.textContent = s.name;
+      row.append(k, b, n); tip.appendChild(row);
+    });
+    const box = host.getBoundingClientRect(), sb = svg.getBoundingClientRect();
+    const px = sb.left - box.left + (X(rate) / VW) * sb.width;
+    tip.hidden = false;
+    tip.style.left = Math.min(px + 12, box.width - tip.offsetWidth - 4) + "px";
+    tip.style.top = (sb.top - box.top + 30) + "px";
+  };
+  hit.addEventListener("pointermove", show);
+  hit.addEventListener("pointerleave", () => { tip.hidden = true; hair.setAttribute("visibility", "hidden"); });
+}
+function drawCharts() {
+  if (!SUMMARY) return;
+  lineChart(document.getElementById("chartRate"), "rate_hz_mean", { max: 220, ticks: [0, 50, 100, 150, 200], unit: "spikes per second", aria: "Line chart: jump cell firing rate rises with alarm strength for real wiring and stays at zero for scrambled wiring" });
+  lineChart(document.getElementById("chartLat"), "latency_ms_median", { max: 50, ticks: [0, 10, 20, 30, 40, 50], unit: "milliseconds", ref: { v: 16.7, label: "1 game frame" }, note: "scrambled never fired · LC4 alone at 10: 202 ms, off the chart", aria: "Line chart: time to the first jump-cell spike falls as alarm strength rises" });
+}
+function buildLegendAndTable() {
+  const lg = document.getElementById("chartLegend");
+  SERIES.forEach(s => { const sp = document.createElement("span"); const k = document.createElement("i"); k.className = "key"; k.style.background = `var(--${s.color})`; sp.append(k, document.createTextNode(s.name)); lg.appendChild(sp); });
+  const tb = document.getElementById("dataTable");
+  const hr = document.createElement("tr");
+  ["setup", "alarm /s", "jump cell spikes/s", "fired (of 10)", "first spike, ms"].forEach(h => { const th = document.createElement("th"); th.textContent = h; hr.appendChild(th); });
+  tb.appendChild(hr);
+  SETUPS.forEach(setup => RATES.forEach(rate => {
+    const r = find(setup, rate), tr = document.createElement("tr");
+    [setup.name, rate, r.rate_hz_mean.toFixed(1), r.fired_trials, r.latency_ms_median === null ? "never" : r.latency_ms_median.toFixed(1)]
+      .forEach(v => { const td = document.createElement("td"); td.textContent = v; tr.appendChild(td); });
+    tb.appendChild(tr);
+  }));
+  const scr = SUMMARY.results.filter(r => r.wiring.startsWith("shuffled"));
+  const fired = scr.reduce((a, r) => a + r.fired_trials, 0), total = scr.reduce((a, r) => a + r.trials, 0);
+  document.getElementById("scrFinding").textContent =
+    `Across 5 scrambled brains the jump cell fired in ${fired} of ${total} tries, even though hundreds of other cells were busy. So it's the fly's real wiring that carries the alarm to the jump cell.`;
+}
+
+/* ---------- boot ---------- */
+readColors();
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", readColors);
+new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+buildMatrix(); buildLegendAndTable(); drawCharts();
+new ResizeObserver(fit).observe(canvas);
+select(SETUPS[0], 50);
+fit();
+requestAnimationFrame(loop);
+})();
+</script>
