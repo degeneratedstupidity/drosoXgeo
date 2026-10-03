@@ -11,7 +11,7 @@ can time jumps well enough to clear levels.
 - [ ] Phase 0 – Orientation reading
 - [x] **Phase 2 – Run the whole-brain model, reproduce a published result** (`brain/`, see results below)
 - [x] **Phase 3 – Wire the escape reflex (no training)** (`brain/player.py`, results below)
-- [ ] Phase 4 – Controls (the part that makes it science, not a meme)
+- [x] **Phase 4 – Controls (the part that makes it science, not a meme)** (`brain/phase4.py`, results below)
 - [ ] Phase 5 – Learning
 - [ ] Phase 6 – Demo video + LinkedIn post
 
@@ -127,14 +127,36 @@ picks the two alarm settings on 6 practice levels, then plays 30 unseen levels p
 - **The one loss** (hard level 117, at 74%): on a triple spike the Giant Fiber fired a single early spike while the alarm
   was still weak (1.4 Hz), 0.94 blocks out, just outside the window, and the fly landed on the third spike. The input
   spikes are random (Poisson), so the jump cell sometimes fires early. That's noise in the model, and it isn't hidden.
-- **What this doesn't show yet:** that the *wiring* matters for playing. The scrambled-brain, jump-cell-off and
-  one-number-baseline comparisons over the same 90 levels are Phase 4.
+- **Does the wiring matter?** Yes; see Phase 4.
 
 ## Phase 4 – Controls
 - **Shuffled connectome:** same neurons and same connection counts, but rewired at random.
   If it plays just as well, the fly's wiring wasn't doing the work.
 - **Silence DNp01:** the brain should lose the ability to jump.
 - **Compare against the one-number baseline** above.
+
+**Result (2026-10-04): the wiring does the work.** Every row used the same protocol: settings picked on the
+6 practice levels, then one pass over the same 30 unseen levels per difficulty (seeds 100–129, 300 blocks).
+The six control brains took 17 min in total (`results/run_phase4.sh`). `python -m brain.phase4` builds the table
+(`figures/phase4_controls.json`).
+
+| setup | easy | normal | hard | median takeoff, hard |
+|---|---|---|---|---|
+| **real FlyWire wiring** | **30/30** | **30/30** | **29/30** | 0.41 blocks |
+| Giant Fiber silenced | 0/30 | 0/30 | 0/30 | never jumps |
+| scrambled wiring, 5 seeds | 0/30 each | 0/30 each | 0/30 each | never jumps |
+| random button mashing (5% of frames) | 0/30 | 0/30 | 0/30 | – |
+| one-number rule (θ > 1.14 rad) | 30/30 | 30/30 | 30/30 | 0.69 blocks |
+
+- **Scrambled and silenced brains never jumped once,** in any of 1,080 levels (90 practice runs over 15 alarm
+  settings plus 90 test levels, for each of the 6 control brains). Their alarm cells fire as usual; the signal doesn't
+  reach the Giant Fiber. They die at the first spike (5% progress).
+- **The real brain matches the one-number rule but doesn't beat it** (89/90 vs 90/90). That rule is the idealised
+  reflex the circuit implements, so it's the ceiling. The brain jumps later (0.41 vs 0.69 blocks), nearer the edge of
+  the safe window, which is how its one noisy early spike cost a level.
+- **Caveat:** the alarm search tops out near 160 Hz (r_ref 12, steep 3). In Experiment 1, scrambled brain 4 gave the
+  Giant Fiber a weak 0.8 Hz at a constant 200 Hz drive, but only after ~216 ms, far too slow to clear a spike.
+  So "never jumps" holds for the alarm range the real brain was tuned in.
 
 ## Phase 5 – "Training" (be precise about what learns)
 The connectome's synapse weights are fixed. Learning can live in only two places:

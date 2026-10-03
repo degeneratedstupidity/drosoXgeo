@@ -1,0 +1,398 @@
+{
+  "practice_seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "test_seeds": [
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127,
+    128,
+    129
+  ],
+  "rows": {
+    "real": {
+      "chosen": {
+        "r_ref": 5,
+        "steep": 2,
+        "progress": 1.0,
+        "won": 6
+      },
+      "test": {
+        "easy": {
+          "won": 30,
+          "levels": 30,
+          "progress": 1.0,
+          "takeoff_blocks": {
+            "p10": 0.27080000000000004,
+            "median": 0.411,
+            "p90": 0.5532000000000001
+          }
+        },
+        "normal": {
+          "won": 30,
+          "levels": 30,
+          "progress": 1.0,
+          "takeoff_blocks": {
+            "p10": 0.279,
+            "median": 0.41,
+            "p90": 0.539
+          }
+        },
+        "hard": {
+          "won": 29,
+          "levels": 30,
+          "progress": 0.9912414814814822,
+          "takeoff_blocks": {
+            "p10": 0.2701,
+            "median": 0.4095,
+            "p90": 0.5498
+          }
+        }
+      }
+    },
+    "lesion": {
+      "chosen": {
+        "r_ref": 2,
+        "steep": 1,
+        "progress": 0.0959111111111113,
+        "won": 0
+      },
+      "test": {
+        "easy": {
+          "won": 0,
+          "levels": 30,
+          "progress": 0.04795555555555567,
+          "takeoff_blocks": {
+            "p10": null,
+            "median": null,
+            "p90": null
+          }
+        },
+        "normal": {
+          "won": 0,
+          "levels": 30,
+          "progress": 0.04795555555555567,
+          "takeoff_blocks": {
+            "p10": null,
+            "median": null,
+            "p90": null
+          }
+        },
+        "hard": {
+          "won": 0,
+          "levels": 30,
+          "progress": 0.04795555555555567,
+          "takeoff_blocks": {
+            "p10": null,
+            "median": null,
+            "p90": null
+          }
+        }
+      }
+    },
+    "shuffled0": {
+      "chosen": {
+        "r_ref": 2,
+        "steep": 1,
+        "progress": 0.0959111111111113,
+        "won": 0
+      },
+      "test": {
+        "easy": {
+          "won": 0,
+          "levels": 30,
+          "progress": 0.04795555555555567,
+          "takeoff_blocks": {
+            "p10": null,
+            "median": null,
+            "p90": null
+          }
+        },
+        "normal": {
+          "won": 0,
+          "levels": 30,
+          "progress": 0.04795555555555567,
+          "takeoff_blocks": {
+            "p10": null,
+            "median": null,
+            "p90": null
+          }
+        },
+        "hard": {
+          "won": 0,
+          "levels": 30,
+          "progress": 0.04795555555555567,
+          "takeoff_blocks": {
+            "p10": null,
+            "median": null,
+            "p90": null
+          }
+        }
+      }
+    },
+    "shuffled1": {
+      "chosen": {
+        "r_ref": 2,
+        "steep": 1,
+        "progress": 0.0959111111111113,
+        "won": 0
+      },
+      "test": {
+        "easy": {
+          "won": 0,
+          "levels": 30,
+          "progress": 0.04795555555555567,
+          "takeoff_blocks": {
+            "p10": null,
+            "median": null,
+            "p90": null
+          }
+        },
+        "normal": {
+          "won": 0,
+          "levels": 30,
+          "progress": 0.04795555555555567,
+          "takeoff_blocks": {
+            "p10": null,
+            "median": null,
+            "p90": null
+          }
+        },
+        "hard": {
+          "won": 0,
+          "levels": 30,
+          "progress": 0.04795555555555567,
+          "takeoff_blocks": {
+            "p10": null,
+            "median": null,
+            "p90": null
+          }
+        }
+      }
+    },
+    "shuffled2": {
+      "chosen": {
+        "r_ref": 2,
+        "steep": 1,
+        "progress": 0.0959111111111113,
+        "won": 0
+      },
+      "test": {
+        "easy": {
+          "won": 0,
+          "levels": 30,
+          "progress": 0.04795555555555567,
+          "takeoff_blocks": {
+            "p10": null,
+            "median": null,
+            "p90": null
+          }
+        },
+        "normal": {
+          "won": 0,
+          "levels": 30,
+          "progress": 0.04795555555555567,
+          "takeoff_blocks": {
+            "p10": null,
+            "median": null,
+            "p90": null
+          }
+        },
+        "hard": {
+          "won": 0,
+          "levels": 30,
+          "progress": 0.04795555555555567,
+          "takeoff_blocks": {
+            "p10": null,
+            "median": null,
+            "p90": null
+          }
+        }
+      }
+    },
+    "shuffled3": {
+      "chosen": {
+        "r_ref": 2,
+        "steep": 1,
+        "progress": 0.0959111111111113,
+        "won": 0
+      },
+      "test": {
+        "easy": {
+          "won": 0,
+          "levels": 30,
+          "progress": 0.04795555555555567,
+          "takeoff_blocks": {
+            "p10": null,
+            "median": null,
+            "p90": null
+          }
+        },
+        "normal": {
+          "won": 0,
+          "levels": 30,
+          "progress": 0.04795555555555567,
+          "takeoff_blocks": {
+            "p10": null,
+            "median": null,
+            "p90": null
+          }
+        },
+        "hard": {
+          "won": 0,
+          "levels": 30,
+          "progress": 0.04795555555555567,
+          "takeoff_blocks": {
+            "p10": null,
+            "median": null,
+            "p90": null
+          }
+        }
+      }
+    },
+    "shuffled4": {
+      "chosen": {
+        "r_ref": 2,
+        "steep": 1,
+        "progress": 0.0959111111111113,
+        "won": 0
+      },
+      "test": {
+        "easy": {
+          "won": 0,
+          "levels": 30,
+          "progress": 0.04795555555555567,
+          "takeoff_blocks": {
+            "p10": null,
+            "median": null,
+            "p90": null
+          }
+        },
+        "normal": {
+          "won": 0,
+          "levels": 30,
+          "progress": 0.04795555555555567,
+          "takeoff_blocks": {
+            "p10": null,
+            "median": null,
+            "p90": null
+          }
+        },
+        "hard": {
+          "won": 0,
+          "levels": 30,
+          "progress": 0.04795555555555567,
+          "takeoff_blocks": {
+            "p10": null,
+            "median": null,
+            "p90": null
+          }
+        }
+      }
+    },
+    "random": {
+      "chosen": {
+        "p": 0.05
+      },
+      "test": {
+        "easy": {
+          "won": 0,
+          "levels": 30,
+          "progress": 0.06401777777777777,
+          "takeoff_blocks": {
+            "p10": 1.693333333333312,
+            "median": 7.04297992527972,
+            "p90": 12.0
+          }
+        },
+        "normal": {
+          "won": 0,
+          "levels": 30,
+          "progress": 0.05829777777777781,
+          "takeoff_blocks": {
+            "p10": 0.34446774698692906,
+            "median": 6.026666666666657,
+            "p90": 12.0
+          }
+        },
+        "hard": {
+          "won": 0,
+          "levels": 30,
+          "progress": 0.05916444444444447,
+          "takeoff_blocks": {
+            "p10": 1.1733333333333107,
+            "median": 6.8933333333333255,
+            "p90": 12.0
+          }
+        }
+      }
+    },
+    "one_number": {
+      "chosen": {
+        "theta_threshold": 1.14
+      },
+      "test": {
+        "easy": {
+          "won": 30,
+          "levels": 30,
+          "progress": 1.0,
+          "takeoff_blocks": {
+            "p10": 0.6227885117200458,
+            "median": 0.6918607386090798,
+            "p90": 0.7612630184001716
+          }
+        },
+        "normal": {
+          "won": 30,
+          "levels": 30,
+          "progress": 1.0,
+          "takeoff_blocks": {
+            "p10": 0.6237311591045938,
+            "median": 0.6906243420508815,
+            "p90": 0.7610648175615324
+          }
+        },
+        "hard": {
+          "won": 30,
+          "levels": 30,
+          "progress": 1.0,
+          "takeoff_blocks": {
+            "p10": 0.6238968134412914,
+            "median": 0.6940868586322608,
+            "p90": 0.7606091100170005
+          }
+        }
+      }
+    }
+  }
+}

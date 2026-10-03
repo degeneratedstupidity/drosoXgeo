@@ -26,7 +26,12 @@ TEST = range(100, 130)
 
 
 def score(pack, idx, lesion, r_ref, steep, seeds, difficulty, length):
-    rows = [play_level(pack, idx, r_ref, steep, s, difficulty, lesion, length) for s in seeds]
+    rows = []
+    for s in seeds:
+        r = play_level(pack, idx, r_ref, steep, s, difficulty, lesion, length)
+        rows.append(r)
+        print(f"    {difficulty:<6} level {s:>3}  r_ref {r_ref:>3} steep {steep}:  "
+              f"{'WON ' if r['won'] else 'died'} at {r['progress']:4.0%}, {r['jumps']:>3} jumps", flush=True)
     return float(np.mean([r["progress"] for r in rows])), int(sum(r["won"] for r in rows)), rows
 
 
