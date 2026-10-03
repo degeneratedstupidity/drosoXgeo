@@ -98,7 +98,8 @@ Phase 3 measures this on the actual LPLC2/LC4 drive.
 4. **First experiment:** does DNp01 fire at all when LPLC2 is driven in the model? How long is the delay?
    The answer is the first plot of the project.
 
-**Progress (2026-10-04):** steps 2 and 4 are done; the game player (steps 1 and 3, `brain_player.py`) is next.
+**Progress (2026-10-04):** all four steps run. The player lives in `brain/player.py` (`--watch` shows it live in the terminal);
+`brain/tune.py` picks the two alarm-shape knobs on practice levels.
 - `brain/stepper.py` advances the brain one frame at a time with input that changes as it goes. It matches the
   validated engine spike for spike (`tests/test_stepper.py`).
 - **Experiment 1** (`brain/exp_loom.py`): drive LPLC2/LC4 at 0–200 Hz for 300 ms, 10 trials each.
@@ -111,6 +112,11 @@ Phase 3 measures this on the actual LPLC2/LC4 drive.
   and prints expected vs got with PASS/FAIL. All 10 pass.
 - **Pages:** `docs/explainer.html` (plain-language intro) and `docs/testbench.html` (checklist, test grid, spike replays).
   Rebuild the test bench page with `python3 docs/build_testbench.py`.
+- **Brain replay** (`docs/brainreplay.html`): watch one hard level frame by frame with all 138,639 neurons drawn
+  from the front, lighting up as they fire. `python -m brain.record_level --difficulty hard --seed 1` records it
+  (real wiring and a scrambled one), `python3 docs/build_brainreplay.py` builds the page.
+  On hard level 1 the real brain wins with 11 jumps and 652 different neurons fire at some point. The scrambled brain's
+  alarm cells fire just the same, but the signal goes nowhere: 0 jumps, crash at 12%.
 
 ## Phase 4 – Controls
 - **Shuffled connectome:** same neurons and same connection counts, but rewired at random.

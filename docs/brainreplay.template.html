@@ -1,0 +1,418 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brain Replay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one level, played back. The game on top, the whole brain seen from the front below it, a timeline to scrub. */
+:root {
+  --bg: #eef2f1; --surface: #fcfcfb; --ink: #15232a; --muted: #56676e; --line: #c9d4d4; --dim: #e1e8e8;
+  --lplc2: #eb6834; --lc4: #1baf7a; --other: #2a78d6; --jump: #15232a; --spike: #56676e;
+  --dots: 21, 35, 42;  /* rgb of the resting-brain dots */
+  --good: #1a7f37; --bad: #c62828;
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1619; --surface: #1a1a19; --ink: #e9efef; --muted: #a3b2b6; --line: #33433f; --dim: #253033;
+    --lplc2: #ff7a45; --lc4: #2bd197; --other: #5aa2ff; --jump: #ffffff; --spike: #a3b2b6; --dots: 210, 225, 228;
+    --good: #3fb950; --bad: #ff6b6b; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1619; --surface: #1a1a19; --ink: #e9efef; --muted: #a3b2b6; --line: #33433f; --dim: #253033;
+  --lplc2: #ff7a45; --lc4: #2bd197; --other: #5aa2ff; --jump: #ffffff; --spike: #a3b2b6; --dots: 210, 225, 228;
+  --good: #3fb950; --bad: #ff6b6b; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.6; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px 64px; display: grid; }
+header.hero { padding-block: 44px 20px; display: grid; gap: 12px; }
+.eyebrow { font: 600 12px/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--lplc2); }
+h1 { font-family: var(--font-display); font-weight: 800; font-size: clamp(34px, 5.6vw, 58px); line-height: 1.03; letter-spacing: -0.02em; margin: 0; text-wrap: balance; max-width: 18ch; }
+.lede { font-size: 19px; margin: 0; max-width: 62ch; }
+section { padding-block: 30px; border-top: 1px solid var(--line); display: grid; gap: 14px; min-width: 0; }
+h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(22px, 3vw, 30px); line-height: 1.15; margin: 0; }
+section p { margin: 0; max-width: 68ch; }
+.muted { color: var(--muted); }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: grid; gap: 10px; min-width: 0; }
+.label { font: 600 11px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+
+.ctrls { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
+.btn { font: 700 14px/1 var(--font-body); border: 1px solid var(--ink); border-radius: 999px; padding: 9px 16px; cursor: pointer; background: var(--ink); color: var(--surface); min-width: 92px; }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); min-width: 0; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; gap: 3px; }
+.seg button { font: 700 13px/1 var(--font-body); border: 0; border-radius: 999px; padding: 7px 11px; cursor: pointer; background: transparent; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+button:focus-visible { outline: 3px solid var(--other); outline-offset: 2px; }
+.clock { font: 600 14px var(--font-mono); font-variant-numeric: tabular-nums; color: var(--muted); margin-left: auto; }
+
+canvas { display: block; width: 100%; max-width: 100%; touch-action: none; }
+#game { height: 150px; }
+#timeline { height: 96px; cursor: pointer; }
+.brainbox { position: relative; }
+.tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
+  padding: 6px 9px; font-size: 13px; line-height: 1.4; box-shadow: 0 4px 16px rgba(0,0,0,.14); z-index: 2; white-space: nowrap; }
+.tip b { font-family: var(--font-mono); }
+
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.stat { border-top: 3px solid var(--line); padding-top: 8px; display: grid; gap: 2px; }
+.stat .v { font: 600 22px/1.1 var(--font-mono); font-variant-numeric: tabular-nums; }
+.stat .k { font-size: 13px; color: var(--muted); line-height: 1.3; }
+.stat.lplc2 { border-color: var(--lplc2); } .stat.lc4 { border-color: var(--lc4); }
+.stat.gf { border-color: var(--jump); } .stat.oth { border-color: var(--other); }
+.busy { font-size: 14px; color: var(--muted); min-height: 1.6em; }
+.busy b { color: var(--ink); font-family: var(--font-mono); font-weight: 600; }
+.verdict { font: 700 14px var(--font-mono); }
+.verdict.won { color: var(--good); } .verdict.died { color: var(--bad); }
+
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 7px; }
+.key { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.key.line { width: 16px; height: 3px; border-radius: 2px; }
+
+.explain { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.explain h3 { margin: 0 0 4px; font-size: 17px; }
+.explain p { font-size: 15.5px; }
+footer { border-top: 1px solid var(--line); padding-block: 26px 0; color: var(--muted); font-size: 14px; display: grid; gap: 6px; }
+footer p { margin: 0; max-width: 80ch; }
+code { font: 13px var(--font-mono); }
+@media (max-width: 820px) {
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .explain { grid-template-columns: minmax(0, 1fr); }
+  .clock { margin-left: 0; }
+}
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">drosoXgeo &middot; phase 3 &middot; brain replay</div>
+    <h1>Watch the fly brain play one level</h1>
+    <p class="lede">Every dot is one of the fly's 138,639 neurons, drawn where its cell body sits, seen from the front of the head. When a neuron fires, its dot lights up. Press play and watch the alarm cells light up as a spike gets close, then the jump cell fires and the square jumps.</p>
+  </header>
+
+  <section>
+    <div class="ctrls">
+      <button class="btn" id="play">Play</button>
+      <button class="btn ghost" id="restart" aria-label="Back to the start">&#8634; Start</button>
+      <div class="seg" id="setupSeg" role="group" aria-label="Which wiring"></div>
+      <div class="seg" id="speedSeg" role="group" aria-label="Playback speed"></div>
+      <span class="clock" id="clock"></span>
+    </div>
+
+    <div class="panel">
+      <div class="label">The game &middot; <span id="levelName"></span> &middot; <span class="verdict" id="verdict"></span></div>
+      <canvas id="game" aria-label="Fly Dash, the player and the spikes ahead"></canvas>
+    </div>
+
+    <div class="panel">
+      <div class="label">The brain, seen from the front &middot; last 100 ms of firing</div>
+      <div class="brainbox">
+        <canvas id="brain" aria-label="Front view of the fly brain; neurons light up when they fire"></canvas>
+        <div class="tip" id="tip" hidden></div>
+      </div>
+      <div class="legend">
+        <span><i class="key" style="background:var(--lplc2)"></i>LPLC2 alarm cells (210)</span>
+        <span><i class="key" style="background:var(--lc4)"></i>LC4 alarm cells (104)</span>
+        <span><i class="key" style="background:var(--jump);outline:2px solid var(--lplc2)"></i>Giant Fiber, the jump cell (2)</span>
+        <span><i class="key" style="background:var(--other)"></i>Every other neuron the alarm wakes up</span>
+      </div>
+      <div class="stats">
+        <div class="stat lplc2"><span class="v" id="sLplc2">0</span><span class="k">LPLC2 cells firing this frame</span></div>
+        <div class="stat lc4"><span class="v" id="sLc4">0</span><span class="k">LC4 cells firing this frame</span></div>
+        <div class="stat gf"><span class="v" id="sGf">0</span><span class="k">Giant Fiber spikes this frame (any spike = jump)</span></div>
+        <div class="stat oth"><span class="v" id="sOther">0</span><span class="k">other neurons firing this frame</span></div>
+      </div>
+      <div class="busy" id="busy"></div>
+    </div>
+
+    <div class="panel">
+      <div class="label">The whole level &middot; click or drag to jump to a moment</div>
+      <canvas id="timeline" aria-label="Alarm strength and jump cell spikes over the whole level"></canvas>
+      <div class="legend">
+        <span><i class="key line" style="background:var(--lplc2)"></i>alarm strength (how hard the game drives the alarm cells)</span>
+        <span><i class="key line" style="background:var(--jump)"></i>Giant Fiber spikes</span>
+        <span><i class="key line" style="background:var(--spike);opacity:.4"></i>a spike arrives</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What you're looking at</h2>
+    <div class="explain">
+      <div><h3>The eye</h3><p>The game tells the brain how fast the next spike is growing in view. That's what "looming" means: something getting bigger fast is about to hit you. Far away the alarm cells (orange, green) stay almost quiet. Up close they fire hard.</p></div>
+      <div><h3>The wiring</h3><p>Nothing in our code says "jump now". The alarm spreads through the real FlyWire wiring, waking up a few hundred neurons (blue) along the way. If enough of it reaches the Giant Fiber, the fly's escape neuron, the Giant Fiber fires. That spike is the button press.</p></div>
+      <div><h3>The scrambled brain</h3><p>Switch to <b>Scrambled wiring</b>. It has the same neurons and the same number of connections per neuron, but who connects to whom is shuffled at random. The alarm cells fire just the same, yet the signal never reaches the jump cell, and the square runs straight into the first spike.</p></div>
+    </div>
+    <p class="muted">Recorded run, played back. The model takes about as long as the fly would to work through each 1/60 s frame (the game waits for it), so we record every spike once and replay it at any speed. 100% of the level is the brain's own decision; the only numbers we set are how the alarm grows with looming (r_ref, steep).</p>
+  </section>
+
+  <footer>
+    <p>Connectome-constrained leaky integrate-and-fire model (Shiu et al. 2024) on FlyWire FAFB v783 (Dorkenwald et al. 2024; Schlegel et al. 2024). Data CC BY-NC 4.0. Positions are FlyWire soma locations where known, otherwise a point on the neuron.</p>
+    <p>Regenerate: <code>python -m brain.record_level --difficulty hard --seed 1</code>, then <code>python3 docs/build_brainreplay.py</code>.</p>
+  </footer>
+</div>
+
+<script>
+const REPLAY = /*REPLAY*/null;
+</script>
+<script>
+(() => {
+"use strict";
+const D = REPLAY;
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const $ = id => document.getElementById(id);
+const dec = (s, T) => { const b = atob(s), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return new T(u.buffer); };
+
+/* ---------- data ---------- */
+const N = D.brain.n;
+const QX = dec(D.brain.x, Uint16Array), QY = dec(D.brain.y, Uint16Array);
+const ACT = dec(D.active.index, Uint32Array), GROUP = dec(D.active.group, Uint8Array);   // 0 other, 1 LPLC2, 2 LC4, 3 DNp01
+const RUNS = {};
+for (const [name, r] of Object.entries(D.runs)) {
+  RUNS[name] = { ...r, ids: dec(r.fired_ids, Uint16Array), cnt: dec(r.fired_counts, Uint8Array), offs: dec(r.frame_offsets, Uint32Array),
+                 n: r.px.length, takeoffSet: new Set(r.takeoff) };
+}
+const SETUP_NAMES = { real: "Real wiring", lesion: "Jump cell switched off" };
+const setupName = k => SETUP_NAMES[k] || (k.startsWith("shuffled") ? `Scrambled wiring${k === "shuffled0" ? "" : " #" + (+k.slice(8) + 1)}` : k);
+const MAXF = Math.max(...Object.values(RUNS).map(r => r.n));
+const SPF = D.level.speed * D.level.dt;          // blocks per frame
+$("levelName").textContent = `${D.level.difficulty} level ${D.level.seed}, ${D.level.length} blocks`;
+
+/* ---------- state ---------- */
+let run = RUNS.real || Object.values(RUNS)[0], runKey = Object.keys(RUNS).find(k => RUNS[k] === run);
+let t = 0, playing = false, speed = 0.25, last = 0;
+const frame = () => Math.min(run.n - 1, Math.floor(t));
+
+/* ---------- colors ---------- */
+let C = {};
+function readColors() {
+  const s = getComputedStyle(document.documentElement);
+  for (const k of ["bg", "surface", "ink", "muted", "line", "dim", "lplc2", "lc4", "other", "jump", "spike", "dots", "good", "bad"]) C[k] = s.getPropertyValue("--" + k).trim();
+  bgCache = null; draw();
+}
+const groupColor = g => [C.other, C.lplc2, C.lc4, C.jump][g];
+
+/* ---------- canvas sizing ---------- */
+function fitCanvas(cv, h) {
+  const dpr = devicePixelRatio || 1, w = cv.clientWidth;
+  const H = h ?? cv.clientHeight;
+  if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(H * dpr); }
+  const ctx = cv.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return [ctx, w, H];
+}
+
+/* ---------- the game strip ---------- */
+function drawGame() {
+  const [ctx, w, h] = fitCanvas($("game"));
+  ctx.clearRect(0, 0, w, h);
+  const f = frame(), px = run.px[f], py = run.py[f];
+  const view = Math.max(12, w / 48), bs = w / (view + 4);        // blocks visible, pixels per block
+  const ground = h - 26, X = x => (x - px + 3) * bs, Y = y => ground - y * bs;
+  ctx.strokeStyle = C.line; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(0, ground + 1); ctx.lineTo(w, ground + 1); ctx.stroke();
+  // finish line
+  if (X(D.level.length) < w) { ctx.fillStyle = C.good; ctx.fillRect(X(D.level.length), ground - 3.2 * bs, 3, 3.2 * bs); }
+  // spikes
+  ctx.fillStyle = C.spike;
+  for (const sx of D.level.spikes) {
+    if (X(sx + 1) < 0 || X(sx) > w) continue;
+    ctx.beginPath(); ctx.moveTo(X(sx), ground); ctx.lineTo(X(sx + 0.5), Y(1)); ctx.lineTo(X(sx + 1), ground); ctx.closePath(); ctx.fill();
+  }
+  // alarm glow ahead of the player: how hard the alarm cells are being driven
+  const a = Math.min(1, Math.log10(1 + run.alarm[f]) / Math.log10(301));
+  if (a > 0.02) {
+    const g = ctx.createRadialGradient(X(px + 1), Y(py + 0.5), 0, X(px + 1), Y(py + 0.5), bs * (1 + 2.5 * a));
+    g.addColorStop(0, hexA(C.lplc2, 0.55 * a)); g.addColorStop(1, hexA(C.lplc2, 0));
+    ctx.fillStyle = g; ctx.fillRect(X(px + 1) - bs * 4, Y(py + 0.5) - bs * 4, bs * 8, bs * 8);
+  }
+  // player: flashes when the Giant Fiber fires
+  const crashed = f === run.n - 1 && !run.won;
+  ctx.fillStyle = crashed ? C.bad : C.ink;
+  ctx.fillRect(X(px), Y(py + 1), bs, bs);
+  if (run.gf[f] > 0) { ctx.strokeStyle = C.lplc2; ctx.lineWidth = 3; ctx.strokeRect(X(px) - 4, Y(py + 1) - 4, bs + 8, bs + 8); }
+  ctx.font = `600 12px ${getComputedStyle(document.body).getPropertyValue("--font-mono")}`;
+  ctx.fillStyle = C.muted; ctx.textBaseline = "top";
+  ctx.fillText(`distance to next spike ${run.distance[f].toFixed(2)} blocks`, 8, 8);
+  if (run.takeoffSet.has(f)) { ctx.fillStyle = C.lplc2; ctx.fillText("JUMP", X(px), Y(py + 1) - 20); }
+  if (crashed) { ctx.fillStyle = C.bad; ctx.fillText("CRASHED", X(px) + bs + 8, Y(py + 1)); }
+  if (f === run.n - 1 && run.won) { ctx.fillStyle = C.good; ctx.fillText("LEVEL COMPLETE", X(px) + bs + 8, Y(py + 1)); }
+}
+function hexA(c, a) {
+  if (c.startsWith("#")) { const n = parseInt(c.slice(1), 16); return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})`; }
+  return c;
+}
+
+/* ---------- the brain ---------- */
+let bgCache = null, brainW = 0, brainH = 0, placed = [];
+function brainSize() {
+  const cv = $("brain"), w = cv.clientWidth;
+  return [w, Math.round(w * D.brain.height_um / D.brain.width_um)];
+}
+function background(w, h) {
+  // density of all 138,639 cell bodies: the resting brain, drawn once
+  const dpr = devicePixelRatio || 1, W = Math.round(w * dpr), H = Math.round(h * dpr);
+  const off = document.createElement("canvas"); off.width = W; off.height = H;
+  const dens = new Float32Array(W * H);
+  for (let i = 0; i < N; i++) {
+    if (QX[i] === 0 && QY[i] === 0) continue;
+    const x = Math.min(W - 1, (QX[i] / 65535 * (W - 1)) | 0), y = Math.min(H - 1, (QY[i] / 65535 * (H - 1)) | 0);
+    dens[y * W + x] += 1;
+  }
+  const [r, g, b] = C.dots.split(",").map(Number);
+  const img = off.getContext("2d").createImageData(W, H), d = img.data;
+  const k = 0.10 * (1 + 2 / dpr);
+  for (let p = 0; p < dens.length; p++) if (dens[p]) { const q = p * 4; d[q] = r; d[q + 1] = g; d[q + 2] = b; d[q + 3] = 255 * Math.min(0.55, 1 - Math.exp(-k * dens[p])); }
+  off.getContext("2d").putImageData(img, 0, 0);
+  return off;
+}
+const WINDOW = 6;                                  // frames of afterglow, 6 x 16.7 ms = 100 ms
+function heat(f) {
+  // how recently each active neuron fired, 1 = this frame, fading over 100 ms
+  const h = new Float32Array(ACT.length), spikes = new Uint16Array(ACT.length);
+  for (let k = Math.max(0, f - WINDOW + 1); k <= f; k++) {
+    const fade = 1 - (f - k) / WINDOW;
+    for (let j = run.offs[k]; j < run.offs[k + 1]; j++) { const i = run.ids[j]; h[i] = Math.max(h[i], fade); if (k === f) spikes[i] = run.cnt[j]; }
+  }
+  return [h, spikes];
+}
+function drawBrain() {
+  const [w, h] = brainSize();
+  const [ctx] = fitCanvas($("brain"), h);
+  if (!bgCache || brainW !== w || brainH !== h) { bgCache = background(w, h); brainW = w; brainH = h; }
+  ctx.clearRect(0, 0, w, h);
+  ctx.drawImage(bgCache, 0, 0, w, h);
+  const f = frame(), [hv, now] = heat(f);
+  const counts = [0, 0, 0, 0];
+  placed = [];
+  const typeCount = new Map();
+  for (const pass of [0, 1, 2, 3]) {                 // others first, the jump cell last so it's on top
+    for (let i = 0; i < ACT.length; i++) {
+      if (GROUP[i] !== pass || hv[i] <= 0) continue;
+      const g = ACT[i], x = QX[g] / 65535 * w, y = QY[g] / 65535 * h;
+      if (now[i]) counts[pass] += pass === 3 ? now[i] : 1;
+      if (pass === 0) { const ty = D.active.type[i] || "unnamed"; typeCount.set(ty, (typeCount.get(ty) || 0) + 1); }
+      placed.push([x, y, i]);
+      ctx.globalAlpha = 0.25 + 0.75 * hv[i];
+      ctx.fillStyle = groupColor(pass);
+      const r = pass === 3 ? 6 + 4 * hv[i] : 1.6 + 2.2 * hv[i];
+      ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill();
+      if (pass === 3) { ctx.strokeStyle = C.lplc2; ctx.lineWidth = 2.5; ctx.stroke(); }
+    }
+  }
+  ctx.globalAlpha = 1;
+  // the jump cell's resting outline, so you can find it before it fires
+  for (let i = 0; i < ACT.length; i++) if (GROUP[i] === 3 && hv[i] <= 0) {
+    const g = ACT[i]; ctx.strokeStyle = C.muted; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(QX[g] / 65535 * w, QY[g] / 65535 * h, 6, 0, 7); ctx.stroke();
+  }
+  $("sLplc2").textContent = counts[1]; $("sLc4").textContent = counts[2];
+  $("sGf").textContent = counts[3]; $("sOther").textContent = counts[0];
+  const top = [...typeCount.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
+  $("busy").innerHTML = top.length ? "Busiest other cell types right now: " + top.map(([ty, n]) => `<b>${esc(ty)}</b>&nbsp;${n}`).join(", ") : "";
+}
+const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+/* ---------- the timeline ---------- */
+function drawTimeline() {
+  const [ctx, w, h] = fitCanvas($("timeline"));
+  ctx.clearRect(0, 0, w, h);
+  const X = f => f / (MAXF - 1) * (w - 2) + 1, top = 6, mid = h - 30, bottom = h - 4;
+  // spike arrivals: frame when the player's front edge reaches each spike
+  ctx.fillStyle = hexA(C.spike, 0.18);
+  for (const sx of D.level.spikes) { const f = (sx - 1) / SPF; if (f < MAXF) ctx.fillRect(X(f) - 1, top, 2, bottom - top); }
+  // alarm, log scale so both the faint far-away and the strong close-up alarm show
+  const maxA = Math.log10(301), YA = a => mid - Math.log10(1 + a) / maxA * (mid - top);
+  ctx.strokeStyle = C.lplc2; ctx.lineWidth = 1.6; ctx.beginPath();
+  run.alarm.forEach((a, f) => f ? ctx.lineTo(X(f), YA(a)) : ctx.moveTo(X(f), YA(a))); ctx.stroke();
+  // Giant Fiber spikes as ticks
+  ctx.fillStyle = C.jump;
+  run.gf.forEach((g, f) => { if (g) ctx.fillRect(X(f) - 0.75, mid + 6, 1.5, Math.min(18, 5 + 3 * g)); });
+  ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, mid + 3); ctx.lineTo(w, mid + 3); ctx.stroke();
+  // where the run ended
+  if (!run.won) {
+    ctx.fillStyle = hexA(C.bad, 0.08); ctx.fillRect(X(run.n - 1), top, w - X(run.n - 1), bottom - top);
+    ctx.fillStyle = C.bad; ctx.font = `600 12px ${getComputedStyle(document.body).getPropertyValue("--font-mono")}`;
+    ctx.textBaseline = "top"; ctx.fillText("crashed here", X(run.n - 1) + 6, top + 2);
+  }
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X(t), 0); ctx.lineTo(X(t), h); ctx.stroke();
+}
+function scrub(e) {
+  const cv = $("timeline"), r = cv.getBoundingClientRect();
+  t = Math.max(0, Math.min(run.n - 1, (e.clientX - r.left) / r.width * (MAXF - 1)));
+  draw();
+}
+let dragging = false;
+$("timeline").addEventListener("pointerdown", e => { dragging = true; $("timeline").setPointerCapture(e.pointerId); scrub(e); });
+$("timeline").addEventListener("pointermove", e => dragging && scrub(e));
+$("timeline").addEventListener("pointerup", () => dragging = false);
+
+/* ---------- hover a lit neuron to see its name ---------- */
+$("brain").addEventListener("pointermove", e => {
+  const r = $("brain").getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
+  let best = null, bd = 64;
+  for (const p of placed) { const d = (p[0] - mx) ** 2 + (p[1] - my) ** 2; if (d < bd) { bd = d; best = p; } }
+  const tip = $("tip");
+  if (!best) { tip.hidden = true; return; }
+  const i = best[2], name = ["", "LPLC2 alarm cell", "LC4 alarm cell", "Giant Fiber (DNp01), the jump cell"][GROUP[i]];
+  tip.innerHTML = `<b>${esc(D.active.type[i] || "unnamed")}</b> ${D.active.side[i] ? "&middot; " + esc(D.active.side[i]) + " side" : ""}<br>${name || esc(D.active.super[i].replace(/_/g, " ")) + " neuron"}`;
+  tip.hidden = false;
+  tip.style.left = Math.min(r.width - tip.offsetWidth, best[0] + 12) + "px"; tip.style.top = Math.max(0, best[1] - 44) + "px";
+});
+$("brain").addEventListener("pointerleave", () => $("tip").hidden = true);
+
+/* ---------- controls ---------- */
+function draw() {
+  if (!C.ink) return;
+  drawGame(); drawBrain(); drawTimeline();
+  const f = frame();
+  $("clock").textContent = `frame ${f + 1}/${run.n} · ${(f * D.level.dt).toFixed(2)} s · ${Math.round(run.px[f] / D.level.length * 100)}%`;
+  $("verdict").textContent = run.won ? `won · ${run.jumps} jumps` : `crashed at ${Math.round(run.progress * 100)}% · ${run.jumps} jumps`;
+  $("verdict").className = "verdict " + (run.won ? "won" : "died");
+}
+function setPlaying(p) {
+  if (p && frame() >= run.n - 1) t = 0;
+  playing = p; $("play").textContent = p ? "Pause" : "Play";
+  if (p) { last = performance.now(); requestAnimationFrame(loop); }
+}
+function loop(now) {
+  if (!playing) return;
+  t += (now - last) / 1000 / D.level.dt * speed; last = now;
+  if (t >= run.n - 1) { t = run.n - 1; draw(); setPlaying(false); return; }
+  draw(); requestAnimationFrame(loop);
+}
+function seg(host, items, current, onPick) {
+  host.innerHTML = "";
+  for (const [val, label] of items) {
+    const b = document.createElement("button"); b.textContent = label; b.setAttribute("aria-pressed", val === current);
+    b.onclick = () => { host.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); onPick(val); };
+    host.appendChild(b);
+  }
+}
+seg($("setupSeg"), Object.keys(RUNS).map(k => [k, setupName(k)]), runKey, k => { run = RUNS[k]; runKey = k; t = Math.min(t, run.n - 1); draw(); });
+seg($("speedSeg"), [[0.1, "0.1×"], [0.25, "¼×"], [0.5, "½×"], [1, "1×"]], speed, v => speed = v);
+$("play").onclick = () => setPlaying(!playing);
+$("restart").onclick = () => { t = 0; draw(); };
+addEventListener("keydown", e => {
+  if (e.target.closest && e.target.closest("button") && e.key === " ") return;
+  if (e.key === " ") { e.preventDefault(); setPlaying(!playing); }
+  else if (e.key === "ArrowRight") { setPlaying(false); t = Math.min(run.n - 1, frame() + 1); draw(); }
+  else if (e.key === "ArrowLeft") { setPlaying(false); t = Math.max(0, frame() - 1); draw(); }
+});
+
+/* ---------- boot ---------- */
+readColors();
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", readColors);
+new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+let rz; new ResizeObserver(() => { clearTimeout(rz); rz = setTimeout(() => { bgCache = null; draw(); }, 60); }).observe($("brain").parentElement);
+// open just before the first jump, so the first thing you see is the alarm building
+const firstJump = run.takeoff[0];
+t = firstJump !== undefined ? Math.max(0, firstJump - 25) : 0;
+draw();
+if (!reduce) setPlaying(true);
+})();
+</script>
