@@ -10,7 +10,7 @@ can time jumps well enough to clear levels.
 - [x] **Phase 1 – Fly Dash game** (`flydash.py`): headless GD-style runner, lock-step, looming signals
 - [ ] Phase 0 – Orientation reading
 - [x] **Phase 2 – Run the whole-brain model, reproduce a published result** (`brain/`, see results below)
-- [ ] Phase 3 – Wire the escape reflex (no training)
+- [x] **Phase 3 – Wire the escape reflex (no training)** (`brain/player.py`, results below)
 - [ ] Phase 4 – Controls (the part that makes it science, not a meme)
 - [ ] Phase 5 – Learning
 - [ ] Phase 6 – Demo video + LinkedIn post
@@ -117,6 +117,18 @@ Phase 3 measures this on the actual LPLC2/LC4 drive.
   (real wiring and a scrambled one), `python3 docs/build_brainreplay.py` builds the page.
   On hard level 1 the real brain wins with 11 jumps and 652 different neurons fire at some point. The scrambled brain's
   alarm cells fire just the same, but the signal goes nowhere: 0 jumps, crash at 12%.
+
+**Result: the escape circuit plays Fly Dash (2026-10-04).** `python -m brain.tune --setup real` (54 min on the M1 Pro)
+picks the two alarm settings on 6 practice levels, then plays 30 unseen levels per difficulty with them, once.
+- **Chosen on practice:** r_ref 5 Hz, steep 2.
+- **Unseen levels:** easy 30/30 won, normal 30/30, hard 29/30 (mean progress 99%). Results: `figures/phase3_play_real.json`.
+- **Timing:** the brain takes off a median 0.41 blocks from the spike (10th–90th percentile 0.27–0.55), on every
+  difficulty. On hard that's inside the ~45 ms window.
+- **The one loss** (hard level 117, at 74%): on a triple spike the Giant Fiber fired a single early spike while the alarm
+  was still weak (1.4 Hz), 0.94 blocks out, just outside the window, and the fly landed on the third spike. The input
+  spikes are random (Poisson), so the jump cell sometimes fires early. That's noise in the model, and it isn't hidden.
+- **What this doesn't show yet:** that the *wiring* matters for playing. The scrambled-brain, jump-cell-off and
+  one-number-baseline comparisons over the same 90 levels are Phase 4.
 
 ## Phase 4 – Controls
 - **Shuffled connectome:** same neurons and same connection counts, but rewired at random.
