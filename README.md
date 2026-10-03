@@ -15,6 +15,8 @@ can time jumps well enough to clear levels.
 - [ ] Phase 5 – Learning
 - [ ] Phase 6 – Demo video + LinkedIn post
 
+**Paused 2026-10-04 before Phase 5.** Next up: 5A, a trained readout on the fixed brain, with the shuffled control. Open decisions are listed in `AGENTS.md`.
+
 Baselines from `python3 flydash.py` (30 levels each):
 
 | policy | easy | normal | hard |
