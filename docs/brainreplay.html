@@ -409,10 +409,21 @@ readColors();
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", readColors);
 new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 let rz; new ResizeObserver(() => { clearTimeout(rz); rz = setTimeout(() => { bgCache = null; draw(); }, 60); }).observe($("brain").parentElement);
-// open just before the first jump, so the first thing you see is the alarm building
-const firstJump = run.takeoff[0];
-t = firstJump !== undefined ? Math.max(0, firstJump - 25) : 0;
-draw();
-if (!reduce) setPlaying(true);
+// a link like brainreplay.html#frame=80&setup=shuffled0 opens paused on that moment
+const hash = new URLSearchParams(location.hash.slice(1));
+if (hash.has("setup") && RUNS[hash.get("setup")]) {
+  run = RUNS[hash.get("setup")]; runKey = hash.get("setup");
+  $("setupSeg").querySelectorAll("button").forEach((b, i) => b.setAttribute("aria-pressed", Object.keys(RUNS)[i] === runKey));
+}
+if (hash.has("frame")) {
+  t = Math.max(0, Math.min(run.n - 1, +hash.get("frame") || 0));
+  draw();
+} else {
+  // open just before the first jump, so the first thing you see is the alarm building
+  const firstJump = run.takeoff[0];
+  t = firstJump !== undefined ? Math.max(0, firstJump - 25) : 0;
+  draw();
+  if (!reduce) setPlaying(true);
+}
 })();
 </script>
