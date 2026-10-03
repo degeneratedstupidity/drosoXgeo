@@ -30,7 +30,9 @@ into arbitrary neurons. What sets this project apart is the specific circuit plu
 | `data/neuron_annotations.tsv` | Cell types (column `cell_type`), keyed by v783 `root_id`. |
 | `data/SOURCES.md` | Sources, citations, license (CC BY-NC 4.0). |
 | `shiu_model/` | Reference Brian2 code from Shiu et al. 2024 (`model.py`, `utils.py`, `example.ipynb`). |
-| `_to_delete/` | A failed git clone. Safe to delete. |
+| `brain/` | ✅ Phase 2. `build_pack.py` compiles our v783 data into an MLX pack labelled `flywire-v783` (`data/pack/v783`, gitignored). `validate_sugar.py` runs sugar→MN9 on v630, v783 and 5 shuffles. `paths.py` holds the locations. |
+| `figures/` | Committed results: `phase2_sugar_mn9.{svg,json}`, `bench_m1pro_*.json`. |
+| `../drosophila-brain-mlx/` | The simulator, a sibling checkout. **Its `.venv/bin/python` runs our `brain` modules** (`-m brain.xxx` from this repo root). Packs: v630 in its `data/pack/`. |
 
 **Fly Dash facts**
 - Speed 10.4 blocks/s, 60 fps (`DT = 1/60`), jump apex 2.1 blocks, airtime 0.45 s.
@@ -48,24 +50,18 @@ into arbitrary neurons. What sets this project apart is the specific circuit plu
 - LC4: 104 neurons
 - DNp01 (Giant Fiber): `720575940632499757`, `720575940622838154`
 
-## Next task: Phase 2, get the brain running and validate it
-1. Set up `Kisame76/drosophila-brain-mlx` (needs Python ≥ 3.11):
-   ```
-   uv venv --python 3.13 && uv pip install -e '.[dev]'
-   ./tools/fetch_upstream.sh
-   python -m lif.compile_pack
-   ```
-   Clone it **next to** this repo or into `vendor/`, and keep it out of our source files.
-2. **Version gotcha:** the MLX repo's default pack is FlyWire **v630**. Our data and neuron IDs are
-   **v783**, and the root IDs differ between versions. Either build a pack from
-   `data/Connectivity_783.parquet` (check whether the repo supports this) or map IDs by cell type.
-   Never mix v630 and v783 IDs.
-3. **Validation:** reproduce the sugar-neuron → MN9 result with `run_exp("sugarR", ...)`
-   (see that repo's README). Also run its benchmark and record the speed on the M1 Pro,
-   which decides whether the real game can run in real time later.
-4. Commit results and plots, then tick Phase 2 in `README.md`.
+## Phase 2: done (2026-10-03). Results are in `README.md`.
+- The MLX engine matches the published Brian2 results on v630 (`lif.validate_notebook`: 15/15 comparisons, |z| < 2).
+- **v783:** sugar→MN9 at 63.0 Hz (v630 on the same inputs: 61.9 Hz). All 5 degree-shuffled packs: MN9 at 0 Hz.
+- **Speed on the M1 Pro:**
+  - 0.45 s per biological s with a sparse drive (2.2× faster than real time)
+  - 1.20 s with a dense hub drive (too slow for real time)
+- **Version gotcha, solved:** our pack is genuine v783, built by `brain.build_pack`. The vendored code
+  hardcodes v630 sugar IDs in `lif.stimulus_flybrain` and `lif.control_demo`, and the benchmark's `sugar`
+  stimulus also assumes them; one of those IDs is missing on v783, so use our scripts or `--stimulus hubs` there.
+  A v630 ID exists in v783 only if that neuron is unedited, so it's the same neuron. Never mix versions otherwise.
 
-**After that, Phase 3:**
+## Next task: Phase 3
 - Write `brain_player.py`.
 - Encode `theta`/`theta_dot` as Poisson rates on LPLC2 and LC4.
 - Step the brain 1/60 s per Fly Dash tick.

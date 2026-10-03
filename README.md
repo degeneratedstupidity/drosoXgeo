@@ -9,7 +9,7 @@ can time jumps well enough to clear levels.
 ## Status
 - [x] **Phase 1 – Fly Dash game** (`flydash.py`): headless GD-style runner, lock-step, looming signals
 - [ ] Phase 0 – Orientation reading
-- [ ] Phase 2 – Run the whole-brain model, reproduce a published result
+- [x] **Phase 2 – Run the whole-brain model, reproduce a published result** (`brain/`, see results below)
 - [ ] Phase 3 – Wire the escape reflex (no training)
 - [ ] Phase 4 – Controls (the part that makes it science, not a meme)
 - [ ] Phase 5 – Learning
@@ -39,12 +39,57 @@ test for a spiking network.
 Why a clone and not the real game: the brain simulation doesn't run in real time, so the game has to
 **wait for the brain** each tick. You also get ground truth for plots and thousands of fast runs.
 
-## Phase 2 – Run the fly brain
+## Phase 2 – Run the fly brain ✅
 - **Simulator for the M1 Pro:** `Kisame76/drosophila-brain-mlx` (Apple Silicon / Metal). No Colab needed.
   The original `philshiu/Drosophila_brain_model` (Brian2, CPU) is the reference to check results against.
 - The data is already downloaded in `data/`; see `data/SOURCES.md`.
 - **Validation:** reproduce one result from the paper (sugar-sensing neurons → feeding motor neuron MN9).
   If you can't reproduce it, nothing later can be trusted.
+
+**Setup** (the simulator is a sibling checkout, `../drosophila-brain-mlx`, and its venv runs our code):
+```
+cd ../drosophila-brain-mlx
+uv venv --python 3.13 && uv pip install -e '.[dev,reference]'
+./tools/fetch_upstream.sh && python -m lif.compile_pack        # v630 pack, for the reference check
+cd ../drosoXgeo
+PY=../drosophila-brain-mlx/.venv/bin/python
+$PY -m brain.build_pack                                          # data/pack/v783, labelled flywire-v783
+for s in 0 1 2 3 4; do $PY -m lif.shuffle_pack --pack data/pack/v783 --seed $s; done
+$PY -m brain.validate_sugar                                      # figures/phase2_sugar_mn9.{svg,json}
+```
+
+**Result 1: the MLX engine matches the published Brian2 model (v630).** `python -m lif.validate_notebook`
+reran Shiu's example notebook and compared it with the published result files: 15 comparisons, all within |z| < 2.
+MN9 at 100 Hz sugar input: 67.0 Hz published vs 67.3 / 67.7 Hz here (two seeds).
+
+**Result 2: it holds on our v783 connectome, and the wiring is what produces it.** 30 trials × 1 s, same input spikes everywhere:
+
+| run | sugar GRNs | MN9 | spikes/trial | neurons active |
+|---|---|---|---|---|
+| v630 (published setup) | 21 | 67.3 Hz | 9,699 | 408 |
+| v630, same 20 GRNs as v783 | 20 | 61.9 Hz | 9,062 | 403 |
+| **v783** | 20 | **63.0 Hz** | 9,091 | 402 |
+| v783 degree-shuffled, 5 seeds | 20 | **0.0 Hz** (all 5) | ~2,330 | ~100 |
+
+- **Version bridge:** a root ID names one exact segmentation, so an ID present in both v630 and v783 is the same, unedited neuron.
+  20 of the 21 sugar GRNs and MN9 keep their IDs. `720575940620900446` was proofread after v630 and is dropped. No mapping by cell type was needed.
+- **v630 → v783 on the same 20 GRNs:** 61.9 → 63.0 Hz, within trial noise.
+- **Shuffled control:** the sugar GRNs still fire at 99.5 Hz, but activity dies out after ~100 neurons and MN9 never spikes.
+
+![MN9 on real vs shuffled v783](figures/phase2_sugar_mn9.svg)
+
+**Speed on the M1 Pro** (fused lane, the fastest of 3 runs; `figures/bench_m1pro_*.json`):
+
+| pack, drive | s per biological s | ms per tick | vs real time |
+|---|---|---|---|
+| v630, 21 sugar GRNs @ 150 Hz (sparse; M4 Pro gets 0.29) | **0.45** | 0.045 | 2.2× faster |
+| v783, 100 top hubs @ 150 Hz (dense, 2,241 neurons active) | **1.20** | 0.120 | 0.83×, too slow |
+
+The real game's verdict depends on how much of the brain the looming drive wakes up:
+- A sparse drive keeps up with 60 fps.
+- A hub-like drive doesn't.
+
+Phase 3 measures this on the actual LPLC2/LC4 drive.
 
 ## Phase 3 – Wire the reflex (no training)
 1. **Encode.** Map the looming signal (`theta`, `theta_dot`) to Poisson firing rates on LPLC2/LC4 neurons.

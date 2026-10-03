@@ -1,0 +1,62 @@
+{
+  "device": "Apple M1 Pro",
+  "dataset": "flywire-v783",
+  "neurons": 138639,
+  "edges": 15091983,
+  "ticks": 10000,
+  "stimulus": "top_out_degree_hubs",
+  "rate_hz": 150.0,
+  "seed": 20260816,
+  "total_spikes": 52680,
+  "spike_counts_sha256": "45930413968bf4bb58f5bb73d76c5223312809c888771d8a355802b7e6e88cfc",
+  "lanes": {
+    "naive dense (eval/tick)": {
+      "seconds_per_biological_second": 70.63449408300221,
+      "ms_per_tick": 7.0634494083002215,
+      "peak_bytes": 339625636,
+      "parity": "baseline",
+      "edge_split": null,
+      "run_seconds": [
+        70.86940570799925,
+        70.63449408300221,
+        73.29913675000716
+      ]
+    },
+    "chunked dense": {
+      "seconds_per_biological_second": 66.73671612500038,
+      "ms_per_tick": 6.673671612500039,
+      "peak_bytes": 860462204,
+      "parity": "PASS",
+      "edge_split": null,
+      "run_seconds": [
+        66.73671612500038,
+        67.93730187499023,
+        71.49740849999944
+      ]
+    },
+    "sparse metal kernel": {
+      "seconds_per_biological_second": 2.3697702500066953,
+      "ms_per_tick": 0.23697702500066953,
+      "peak_bytes": 286814768,
+      "parity": "PASS",
+      "edge_split": 8,
+      "run_seconds": [
+        2.4880555840063607,
+        2.466332666997914,
+        2.3697702500066953
+      ]
+    },
+    "fused, 2 dispatches": {
+      "seconds_per_biological_second": 1.1994809579919092,
+      "ms_per_tick": 0.11994809579919093,
+      "peak_bytes": 721636640,
+      "parity": "PASS",
+      "edge_split": 8,
+      "run_seconds": [
+        1.2421552909945603,
+        1.1994809579919092,
+        1.239826582997921
+      ]
+    }
+  }
+}

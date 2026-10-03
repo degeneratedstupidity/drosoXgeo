@@ -21,3 +21,7 @@ __pycache__/
 *.pyc
 .venv/
 .DS_Store
+
+# --- compiled connectome packs (~120 MB each), rebuilt by python -m brain.build_pack ---
+data/pack/
+figures/*.parquet

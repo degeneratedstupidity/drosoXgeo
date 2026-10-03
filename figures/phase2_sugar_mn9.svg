@@ -1,0 +1,260 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="784" height="632" viewBox="0 0 784 632" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#222222">
+<rect width="784" height="632" fill="#ffffff"/>
+<text x="56" y="24" font-size="15" font-weight="bold">MN9 while 20 sugar GRNs receive 100 Hz input</text>
+<text transform="translate(16 173.00) rotate(-90)" text-anchor="middle">MN9 rate (Hz)</text>
+<text x="56" y="58" font-weight="bold">Real wiring: FlyWire v783</text>
+<text x="56" y="76" fill="#555555">MN9 63.0 Hz; brain: 9,091 spikes/trial</text>
+<line x1="56" x2="386" y1="258.00" y2="258.00" stroke="#e5e5e5"/>
+<text x="50" y="262.00" text-anchor="end">0</text>
+<line x1="56" x2="386" y1="173.00" y2="173.00" stroke="#e5e5e5"/>
+<text x="50" y="177.00" text-anchor="end">100</text>
+<line x1="56" x2="386" y1="88.00" y2="88.00" stroke="#e5e5e5"/>
+<text x="50" y="92.00" text-anchor="end">200</text>
+<rect class="bar" x="56.00" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="62.60" y="238.17" width="6.60" height="19.83" fill="#3b6ea5"/>
+<rect class="bar" x="69.20" y="156.00" width="6.60" height="102.00" fill="#3b6ea5"/>
+<rect class="bar" x="75.80" y="195.67" width="6.60" height="62.33" fill="#3b6ea5"/>
+<rect class="bar" x="82.40" y="214.08" width="6.60" height="43.92" fill="#3b6ea5"/>
+<rect class="bar" x="89.00" y="205.58" width="6.60" height="52.42" fill="#3b6ea5"/>
+<rect class="bar" x="95.60" y="197.08" width="6.60" height="60.92" fill="#3b6ea5"/>
+<rect class="bar" x="102.20" y="198.50" width="6.60" height="59.50" fill="#3b6ea5"/>
+<rect class="bar" x="108.80" y="201.33" width="6.60" height="56.67" fill="#3b6ea5"/>
+<rect class="bar" x="115.40" y="218.33" width="6.60" height="39.67" fill="#3b6ea5"/>
+<rect class="bar" x="122.00" y="211.25" width="6.60" height="46.75" fill="#3b6ea5"/>
+<rect class="bar" x="128.60" y="207.00" width="6.60" height="51.00" fill="#3b6ea5"/>
+<rect class="bar" x="135.20" y="199.92" width="6.60" height="58.08" fill="#3b6ea5"/>
+<rect class="bar" x="141.80" y="204.17" width="6.60" height="53.83" fill="#3b6ea5"/>
+<rect class="bar" x="148.40" y="204.17" width="6.60" height="53.83" fill="#3b6ea5"/>
+<rect class="bar" x="155.00" y="202.75" width="6.60" height="55.25" fill="#3b6ea5"/>
+<rect class="bar" x="161.60" y="209.83" width="6.60" height="48.17" fill="#3b6ea5"/>
+<rect class="bar" x="168.20" y="204.17" width="6.60" height="53.83" fill="#3b6ea5"/>
+<rect class="bar" x="174.80" y="214.08" width="6.60" height="43.92" fill="#3b6ea5"/>
+<rect class="bar" x="181.40" y="191.42" width="6.60" height="66.58" fill="#3b6ea5"/>
+<rect class="bar" x="188.00" y="207.00" width="6.60" height="51.00" fill="#3b6ea5"/>
+<rect class="bar" x="194.60" y="209.83" width="6.60" height="48.17" fill="#3b6ea5"/>
+<rect class="bar" x="201.20" y="192.83" width="6.60" height="65.17" fill="#3b6ea5"/>
+<rect class="bar" x="207.80" y="201.33" width="6.60" height="56.67" fill="#3b6ea5"/>
+<rect class="bar" x="214.40" y="201.33" width="6.60" height="56.67" fill="#3b6ea5"/>
+<rect class="bar" x="221.00" y="204.17" width="6.60" height="53.83" fill="#3b6ea5"/>
+<rect class="bar" x="227.60" y="222.58" width="6.60" height="35.42" fill="#3b6ea5"/>
+<rect class="bar" x="234.20" y="199.92" width="6.60" height="58.08" fill="#3b6ea5"/>
+<rect class="bar" x="240.80" y="207.00" width="6.60" height="51.00" fill="#3b6ea5"/>
+<rect class="bar" x="247.40" y="192.83" width="6.60" height="65.17" fill="#3b6ea5"/>
+<rect class="bar" x="254.00" y="194.25" width="6.60" height="63.75" fill="#3b6ea5"/>
+<rect class="bar" x="260.60" y="207.00" width="6.60" height="51.00" fill="#3b6ea5"/>
+<rect class="bar" x="267.20" y="209.83" width="6.60" height="48.17" fill="#3b6ea5"/>
+<rect class="bar" x="273.80" y="211.25" width="6.60" height="46.75" fill="#3b6ea5"/>
+<rect class="bar" x="280.40" y="194.25" width="6.60" height="63.75" fill="#3b6ea5"/>
+<rect class="bar" x="287.00" y="197.08" width="6.60" height="60.92" fill="#3b6ea5"/>
+<rect class="bar" x="293.60" y="202.75" width="6.60" height="55.25" fill="#3b6ea5"/>
+<rect class="bar" x="300.20" y="192.83" width="6.60" height="65.17" fill="#3b6ea5"/>
+<rect class="bar" x="306.80" y="202.75" width="6.60" height="55.25" fill="#3b6ea5"/>
+<rect class="bar" x="313.40" y="202.75" width="6.60" height="55.25" fill="#3b6ea5"/>
+<rect class="bar" x="320.00" y="207.00" width="6.60" height="51.00" fill="#3b6ea5"/>
+<rect class="bar" x="326.60" y="199.92" width="6.60" height="58.08" fill="#3b6ea5"/>
+<rect class="bar" x="333.20" y="208.42" width="6.60" height="49.58" fill="#3b6ea5"/>
+<rect class="bar" x="339.80" y="204.17" width="6.60" height="53.83" fill="#3b6ea5"/>
+<rect class="bar" x="346.40" y="211.25" width="6.60" height="46.75" fill="#3b6ea5"/>
+<rect class="bar" x="353.00" y="191.42" width="6.60" height="66.58" fill="#3b6ea5"/>
+<rect class="bar" x="359.60" y="192.83" width="6.60" height="65.17" fill="#3b6ea5"/>
+<rect class="bar" x="366.20" y="211.25" width="6.60" height="46.75" fill="#3b6ea5"/>
+<rect class="bar" x="372.80" y="209.83" width="6.60" height="48.17" fill="#3b6ea5"/>
+<rect class="bar" x="379.40" y="199.92" width="6.60" height="58.08" fill="#3b6ea5"/>
+<path d="M56 88V258H386" fill="none" stroke="#222222"/>
+<text x="56.00" y="274" text-anchor="middle">0</text>
+<text x="221.00" y="274" text-anchor="middle">500</text>
+<text x="386.00" y="274" text-anchor="middle">1000</text>
+<text x="221.00" y="290" text-anchor="middle">time (ms)</text>
+<text x="426" y="58" font-weight="bold">Shuffled wiring, same degrees (seed 0)</text>
+<text x="426" y="76" fill="#555555">MN9 0.0 Hz; brain: 2,352 spikes/trial</text>
+<line x1="426" x2="756" y1="258.00" y2="258.00" stroke="#e5e5e5"/>
+<text x="420" y="262.00" text-anchor="end">0</text>
+<line x1="426" x2="756" y1="173.00" y2="173.00" stroke="#e5e5e5"/>
+<text x="420" y="177.00" text-anchor="end">100</text>
+<line x1="426" x2="756" y1="88.00" y2="88.00" stroke="#e5e5e5"/>
+<text x="420" y="92.00" text-anchor="end">200</text>
+<rect class="bar" x="426.00" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="432.60" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="439.20" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="445.80" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="452.40" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="459.00" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="465.60" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="472.20" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="478.80" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="485.40" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="492.00" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="498.60" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="505.20" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="511.80" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="518.40" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="525.00" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="531.60" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="538.20" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="544.80" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="551.40" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="558.00" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="564.60" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="571.20" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="577.80" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="584.40" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="591.00" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="597.60" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="604.20" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="610.80" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="617.40" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="624.00" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="630.60" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="637.20" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="643.80" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="650.40" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="657.00" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="663.60" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="670.20" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="676.80" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="683.40" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="690.00" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="696.60" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="703.20" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="709.80" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="716.40" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="723.00" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="729.60" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="736.20" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="742.80" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<rect class="bar" x="749.40" y="258.00" width="6.60" height="0.00" fill="#3b6ea5"/>
+<text x="591.00" y="165.00" text-anchor="middle" fill="#555555">no MN9 spike in 30 trials</text>
+<path d="M426 88V258H756" fill="none" stroke="#222222"/>
+<text x="426.00" y="274" text-anchor="middle">0</text>
+<text x="591.00" y="274" text-anchor="middle">500</text>
+<text x="756.00" y="274" text-anchor="middle">1000</text>
+<text x="591.00" y="290" text-anchor="middle">time (ms)</text>
+<text transform="translate(16 439.00) rotate(-90)" text-anchor="middle">sugar GRN rate (Hz)</text>
+<text x="56" y="342" fill="#555555">the 20 sugar GRNs: 99.5 Hz each</text>
+<line x1="56" x2="386" y1="524.00" y2="524.00" stroke="#e5e5e5"/>
+<text x="50" y="528.00" text-anchor="end">0</text>
+<line x1="56" x2="386" y1="439.00" y2="439.00" stroke="#e5e5e5"/>
+<text x="50" y="443.00" text-anchor="end">100</text>
+<line x1="56" x2="386" y1="354.00" y2="354.00" stroke="#e5e5e5"/>
+<text x="50" y="358.00" text-anchor="end">200</text>
+<rect class="bar" x="56.00" y="442.61" width="6.60" height="81.39" fill="#3b6ea5"/>
+<rect class="bar" x="62.60" y="439.57" width="6.60" height="84.43" fill="#3b6ea5"/>
+<rect class="bar" x="69.20" y="437.94" width="6.60" height="86.06" fill="#3b6ea5"/>
+<rect class="bar" x="75.80" y="438.50" width="6.60" height="85.50" fill="#3b6ea5"/>
+<rect class="bar" x="82.40" y="438.43" width="6.60" height="85.57" fill="#3b6ea5"/>
+<rect class="bar" x="89.00" y="440.56" width="6.60" height="83.44" fill="#3b6ea5"/>
+<rect class="bar" x="95.60" y="438.86" width="6.60" height="85.14" fill="#3b6ea5"/>
+<rect class="bar" x="102.20" y="439.57" width="6.60" height="84.43" fill="#3b6ea5"/>
+<rect class="bar" x="108.80" y="438.79" width="6.60" height="85.21" fill="#3b6ea5"/>
+<rect class="bar" x="115.40" y="434.04" width="6.60" height="89.96" fill="#3b6ea5"/>
+<rect class="bar" x="122.00" y="442.75" width="6.60" height="81.25" fill="#3b6ea5"/>
+<rect class="bar" x="128.60" y="439.00" width="6.60" height="85.00" fill="#3b6ea5"/>
+<rect class="bar" x="135.20" y="441.55" width="6.60" height="82.45" fill="#3b6ea5"/>
+<rect class="bar" x="141.80" y="435.74" width="6.60" height="88.26" fill="#3b6ea5"/>
+<rect class="bar" x="148.40" y="439.99" width="6.60" height="84.01" fill="#3b6ea5"/>
+<rect class="bar" x="155.00" y="437.87" width="6.60" height="86.13" fill="#3b6ea5"/>
+<rect class="bar" x="161.60" y="439.50" width="6.60" height="84.50" fill="#3b6ea5"/>
+<rect class="bar" x="168.20" y="442.97" width="6.60" height="81.03" fill="#3b6ea5"/>
+<rect class="bar" x="174.80" y="441.69" width="6.60" height="82.31" fill="#3b6ea5"/>
+<rect class="bar" x="181.40" y="441.20" width="6.60" height="82.80" fill="#3b6ea5"/>
+<rect class="bar" x="188.00" y="438.43" width="6.60" height="85.57" fill="#3b6ea5"/>
+<rect class="bar" x="194.60" y="442.90" width="6.60" height="81.10" fill="#3b6ea5"/>
+<rect class="bar" x="201.20" y="440.70" width="6.60" height="83.30" fill="#3b6ea5"/>
+<rect class="bar" x="207.80" y="435.46" width="6.60" height="88.54" fill="#3b6ea5"/>
+<rect class="bar" x="214.40" y="438.65" width="6.60" height="85.35" fill="#3b6ea5"/>
+<rect class="bar" x="221.00" y="442.40" width="6.60" height="81.60" fill="#3b6ea5"/>
+<rect class="bar" x="227.60" y="443.68" width="6.60" height="80.33" fill="#3b6ea5"/>
+<rect class="bar" x="234.20" y="439.71" width="6.60" height="84.29" fill="#3b6ea5"/>
+<rect class="bar" x="240.80" y="438.79" width="6.60" height="85.21" fill="#3b6ea5"/>
+<rect class="bar" x="247.40" y="438.93" width="6.60" height="85.07" fill="#3b6ea5"/>
+<rect class="bar" x="254.00" y="438.50" width="6.60" height="85.50" fill="#3b6ea5"/>
+<rect class="bar" x="260.60" y="441.27" width="6.60" height="82.73" fill="#3b6ea5"/>
+<rect class="bar" x="267.20" y="441.76" width="6.60" height="82.24" fill="#3b6ea5"/>
+<rect class="bar" x="273.80" y="436.45" width="6.60" height="87.55" fill="#3b6ea5"/>
+<rect class="bar" x="280.40" y="440.35" width="6.60" height="83.65" fill="#3b6ea5"/>
+<rect class="bar" x="287.00" y="437.37" width="6.60" height="86.63" fill="#3b6ea5"/>
+<rect class="bar" x="293.60" y="439.43" width="6.60" height="84.58" fill="#3b6ea5"/>
+<rect class="bar" x="300.20" y="439.85" width="6.60" height="84.15" fill="#3b6ea5"/>
+<rect class="bar" x="306.80" y="439.21" width="6.60" height="84.79" fill="#3b6ea5"/>
+<rect class="bar" x="313.40" y="440.20" width="6.60" height="83.80" fill="#3b6ea5"/>
+<rect class="bar" x="320.00" y="439.57" width="6.60" height="84.43" fill="#3b6ea5"/>
+<rect class="bar" x="326.60" y="439.50" width="6.60" height="84.50" fill="#3b6ea5"/>
+<rect class="bar" x="333.20" y="440.06" width="6.60" height="83.94" fill="#3b6ea5"/>
+<rect class="bar" x="339.80" y="440.20" width="6.60" height="83.80" fill="#3b6ea5"/>
+<rect class="bar" x="346.40" y="436.45" width="6.60" height="87.55" fill="#3b6ea5"/>
+<rect class="bar" x="353.00" y="439.71" width="6.60" height="84.29" fill="#3b6ea5"/>
+<rect class="bar" x="359.60" y="438.36" width="6.60" height="85.64" fill="#3b6ea5"/>
+<rect class="bar" x="366.20" y="438.93" width="6.60" height="85.07" fill="#3b6ea5"/>
+<rect class="bar" x="372.80" y="439.57" width="6.60" height="84.43" fill="#3b6ea5"/>
+<rect class="bar" x="379.40" y="435.39" width="6.60" height="88.61" fill="#3b6ea5"/>
+<path d="M56 354V524H386" fill="none" stroke="#222222"/>
+<text x="56.00" y="540" text-anchor="middle">0</text>
+<text x="221.00" y="540" text-anchor="middle">500</text>
+<text x="386.00" y="540" text-anchor="middle">1000</text>
+<text x="221.00" y="556" text-anchor="middle">time (ms)</text>
+<text x="426" y="342" fill="#555555">the 20 sugar GRNs: 99.5 Hz each</text>
+<line x1="426" x2="756" y1="524.00" y2="524.00" stroke="#e5e5e5"/>
+<text x="420" y="528.00" text-anchor="end">0</text>
+<line x1="426" x2="756" y1="439.00" y2="439.00" stroke="#e5e5e5"/>
+<text x="420" y="443.00" text-anchor="end">100</text>
+<line x1="426" x2="756" y1="354.00" y2="354.00" stroke="#e5e5e5"/>
+<text x="420" y="358.00" text-anchor="end">200</text>
+<rect class="bar" x="426.00" y="442.61" width="6.60" height="81.39" fill="#3b6ea5"/>
+<rect class="bar" x="432.60" y="439.57" width="6.60" height="84.43" fill="#3b6ea5"/>
+<rect class="bar" x="439.20" y="437.94" width="6.60" height="86.06" fill="#3b6ea5"/>
+<rect class="bar" x="445.80" y="438.50" width="6.60" height="85.50" fill="#3b6ea5"/>
+<rect class="bar" x="452.40" y="438.43" width="6.60" height="85.57" fill="#3b6ea5"/>
+<rect class="bar" x="459.00" y="440.56" width="6.60" height="83.44" fill="#3b6ea5"/>
+<rect class="bar" x="465.60" y="438.86" width="6.60" height="85.14" fill="#3b6ea5"/>
+<rect class="bar" x="472.20" y="439.57" width="6.60" height="84.43" fill="#3b6ea5"/>
+<rect class="bar" x="478.80" y="438.79" width="6.60" height="85.21" fill="#3b6ea5"/>
+<rect class="bar" x="485.40" y="434.04" width="6.60" height="89.96" fill="#3b6ea5"/>
+<rect class="bar" x="492.00" y="442.75" width="6.60" height="81.25" fill="#3b6ea5"/>
+<rect class="bar" x="498.60" y="439.00" width="6.60" height="85.00" fill="#3b6ea5"/>
+<rect class="bar" x="505.20" y="441.55" width="6.60" height="82.45" fill="#3b6ea5"/>
+<rect class="bar" x="511.80" y="435.81" width="6.60" height="88.19" fill="#3b6ea5"/>
+<rect class="bar" x="518.40" y="439.99" width="6.60" height="84.01" fill="#3b6ea5"/>
+<rect class="bar" x="525.00" y="437.87" width="6.60" height="86.13" fill="#3b6ea5"/>
+<rect class="bar" x="531.60" y="439.50" width="6.60" height="84.50" fill="#3b6ea5"/>
+<rect class="bar" x="538.20" y="442.97" width="6.60" height="81.03" fill="#3b6ea5"/>
+<rect class="bar" x="544.80" y="441.69" width="6.60" height="82.31" fill="#3b6ea5"/>
+<rect class="bar" x="551.40" y="441.20" width="6.60" height="82.80" fill="#3b6ea5"/>
+<rect class="bar" x="558.00" y="438.43" width="6.60" height="85.57" fill="#3b6ea5"/>
+<rect class="bar" x="564.60" y="442.90" width="6.60" height="81.10" fill="#3b6ea5"/>
+<rect class="bar" x="571.20" y="440.70" width="6.60" height="83.30" fill="#3b6ea5"/>
+<rect class="bar" x="577.80" y="435.46" width="6.60" height="88.54" fill="#3b6ea5"/>
+<rect class="bar" x="584.40" y="438.65" width="6.60" height="85.35" fill="#3b6ea5"/>
+<rect class="bar" x="591.00" y="442.40" width="6.60" height="81.60" fill="#3b6ea5"/>
+<rect class="bar" x="597.60" y="443.68" width="6.60" height="80.33" fill="#3b6ea5"/>
+<rect class="bar" x="604.20" y="439.71" width="6.60" height="84.29" fill="#3b6ea5"/>
+<rect class="bar" x="610.80" y="438.79" width="6.60" height="85.21" fill="#3b6ea5"/>
+<rect class="bar" x="617.40" y="438.93" width="6.60" height="85.07" fill="#3b6ea5"/>
+<rect class="bar" x="624.00" y="438.50" width="6.60" height="85.50" fill="#3b6ea5"/>
+<rect class="bar" x="630.60" y="441.27" width="6.60" height="82.73" fill="#3b6ea5"/>
+<rect class="bar" x="637.20" y="441.83" width="6.60" height="82.17" fill="#3b6ea5"/>
+<rect class="bar" x="643.80" y="436.52" width="6.60" height="87.48" fill="#3b6ea5"/>
+<rect class="bar" x="650.40" y="440.35" width="6.60" height="83.65" fill="#3b6ea5"/>
+<rect class="bar" x="657.00" y="437.37" width="6.60" height="86.63" fill="#3b6ea5"/>
+<rect class="bar" x="663.60" y="439.43" width="6.60" height="84.58" fill="#3b6ea5"/>
+<rect class="bar" x="670.20" y="439.85" width="6.60" height="84.15" fill="#3b6ea5"/>
+<rect class="bar" x="676.80" y="439.21" width="6.60" height="84.79" fill="#3b6ea5"/>
+<rect class="bar" x="683.40" y="440.20" width="6.60" height="83.80" fill="#3b6ea5"/>
+<rect class="bar" x="690.00" y="439.57" width="6.60" height="84.43" fill="#3b6ea5"/>
+<rect class="bar" x="696.60" y="439.50" width="6.60" height="84.50" fill="#3b6ea5"/>
+<rect class="bar" x="703.20" y="440.06" width="6.60" height="83.94" fill="#3b6ea5"/>
+<rect class="bar" x="709.80" y="440.20" width="6.60" height="83.80" fill="#3b6ea5"/>
+<rect class="bar" x="716.40" y="436.52" width="6.60" height="87.48" fill="#3b6ea5"/>
+<rect class="bar" x="723.00" y="439.71" width="6.60" height="84.29" fill="#3b6ea5"/>
+<rect class="bar" x="729.60" y="438.36" width="6.60" height="85.64" fill="#3b6ea5"/>
+<rect class="bar" x="736.20" y="438.93" width="6.60" height="85.07" fill="#3b6ea5"/>
+<rect class="bar" x="742.80" y="439.57" width="6.60" height="84.43" fill="#3b6ea5"/>
+<rect class="bar" x="749.40" y="435.39" width="6.60" height="88.61" fill="#3b6ea5"/>
+<path d="M426 354V524H756" fill="none" stroke="#222222"/>
+<text x="426.00" y="540" text-anchor="middle">0</text>
+<text x="591.00" y="540" text-anchor="middle">500</text>
+<text x="756.00" y="540" text-anchor="middle">1000</text>
+<text x="591.00" y="556" text-anchor="middle">time (ms)</text>
+<text x="56" y="576" fill="#555555">30 trials of 1 s per pack, identical input spikes (seed 0). v630 reference MN9: 67.3 Hz.</text>
+<text x="56" y="592" fill="#555555">All 5 shuffles: MN9 0.0, 0.0, 0.0, 0.0, 0.0 Hz. Bars: 20 ms bins.</text>
+<text x="56" y="608" fill="#555555">Regenerate with python -m brain.validate_sugar.</text>
+</svg>
