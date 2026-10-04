@@ -88,9 +88,14 @@ class BrainPlayer:
         return gf > 0
 
 
-def play_level(pack, idx, r_ref, steep, seed, difficulty, lesion=(), length=300.0, record=False, on_frame=None):
+NOISE_STRIDE = 1_000_000                     # noise seed k plays level s with input-spike seed s + k * NOISE_STRIDE
+
+
+def play_level(pack, idx, r_ref, steep, seed, difficulty, lesion=(), length=300.0, record=False, on_frame=None,
+               noise=0):
+    """noise picks a different random draw of the alarm cells' input spikes; 0 is the draw every earlier run used."""
     env = flydash.FlyDash(seed, difficulty, length)
-    player = BrainPlayer(pack, idx, r_ref, steep, lesion, seed=seed, record=record)
+    player = BrainPlayer(pack, idx, r_ref, steep, lesion, seed=seed + noise * NOISE_STRIDE, record=record)
     obs, done = env.reset(), False
     jump_d = []                                   # distance to the spike at each takeoff
     while not done:
@@ -100,7 +105,7 @@ def play_level(pack, idx, r_ref, steep, seed, difficulty, lesion=(), length=300.
         if on_frame:
             on_frame(env, obs, player, jump)
         obs, _, done = env.step(jump)
-    return {"seed": seed, "progress": obs["progress"], "won": env.won, "jumps": env.jumps,
+    return {"seed": seed, "noise": noise, "progress": obs["progress"], "won": env.won, "jumps": env.jumps,
             "jump_distances": [round(d, 3) for d in jump_d], "trace": player.trace}
 
 
