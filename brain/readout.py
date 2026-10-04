@@ -109,9 +109,8 @@ def train(setup: str) -> dict:
     alarm = parts[0]["alarm"]
     frames_ids, frames_counts, dist, ground, group, newlevel = [], [], [], [], [], []
     for p, d in zip(parts, DIFFS):
-        o = p["offsets"]
-        for f in range(len(o) - 1):
-            frames_ids.append(p["ids"][o[f]:o[f + 1]]); frames_counts.append(p["counts"][o[f]:o[f + 1]])
+        o, ids, cnt = p["offsets"], p["ids"], p["counts"]       # read each array from disk once
+        frames_ids += np.split(ids, o[1:-1]); frames_counts += np.split(cnt, o[1:-1])
         dist.append(p["distance"]); ground.append(p["ground"])
         group.append(np.array([f"{d}{s}" for s in p["level"]]))
         newlevel.append(np.r_[True, p["level"][1:] != p["level"][:-1]])
@@ -221,13 +220,14 @@ def run(setups, workers):
     logs = OUT / "logs"
     with ThreadPoolExecutor(workers) as pool:
         print(f"{stamp()} recording practice levels for {', '.join(setups)}", flush=True)
-        list(pool.map(lambda j: _job(["record", *j], logs / f"record_{j[0]}_{j[1]}.log"),
-                      [(s, d) for s in setups for d in DIFFS]))
+        todo = [(s, d) for s in setups for d in DIFFS if not (OUT / "train" / f"{s}_{d}.npz").exists()]
+        list(pool.map(lambda j: _job(["record", *j], logs / f"record_{j[0]}_{j[1]}.log"), todo))   # keeps earlier recordings
         for setup in setups:
             _job(["train", setup], logs / f"train_{setup}.log")
             print(f"{stamp()} " + "; ".join(open(logs / f"train_{setup}.log").read().strip().splitlines()), flush=True)
         chunks = [list(TEST)[i:i + 10] for i in range(0, len(TEST), 10)]
-        jobs = [(s, r, d, c) for s in setups for r in READERS for d in DIFFS for c in chunks]
+        jobs = [(s, r, d, c) for s in setups for r in READERS for d in DIFFS for c in chunks
+                if not (OUT / "test" / f"{s}_{r}_{d}_{c[0]}-{c[-1]}.json").exists()]      # resume: skip finished batches
         print(f"{stamp()} testing: {len(jobs)} jobs of 10 levels, {workers} at a time", flush=True)
 
         def one(j):
