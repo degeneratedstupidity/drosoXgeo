@@ -18,6 +18,7 @@ Same protocol as every other setup: tune (r_ref, steep, contacts) on practice se
 then play the 90 unseen levels once.
 
     python -m brain.standin            # CPU only, a few minutes; -> figures/phase3_play_standin.json
+    python -m brain.standin noise      # replay the 90 levels with noise seeds 1-4 -> figures/noise_seeds_standin.json
 """
 
 from __future__ import annotations
@@ -32,7 +33,7 @@ import numpy as np
 import flydash
 from lif import core
 from brain.paths import FIGURES
-from brain.player import MAX_RATE, REF_LOOM, TICKS_PER_FRAME
+from brain.player import MAX_RATE, NOISE_STRIDE, REF_LOOM, TICKS_PER_FRAME
 from brain.tune import PRACTICE, R_REF, STEEP, TEST
 
 N_ALARM = 210 + 104
@@ -76,9 +77,9 @@ class StandIn:
         return spiked
 
 
-def play(r_ref, steep, contacts, seed, difficulty, length):
+def play(r_ref, steep, contacts, seed, difficulty, length, noise=0):
     env = flydash.FlyDash(seed, difficulty, length)
-    neuron = StandIn(r_ref, steep, contacts, seed)
+    neuron = StandIn(r_ref, steep, contacts, seed + noise * NOISE_STRIDE)
     obs, done, jd = env.reset(), False, []
     while not done:
         jump = neuron(obs)
@@ -88,7 +89,31 @@ def play(r_ref, steep, contacts, seed, difficulty, length):
     return {"seed": seed, "progress": obs["progress"], "won": env.won, "jumps": env.jumps, "jump_distances": jd}
 
 
+def noise_repeats():
+    """Same treatment the brain got (brain.noise_seeds): the 90 unseen levels with 4 more input draws."""
+    from brain.noise_seeds import wilson
+    best = json.loads((FIGURES / "phase3_play_standin.json").read_text())
+    plays = {(0, d, r["seed"]): r["won"] for d, v in best["test"].items() for r in v["per_level"]}
+    b = best["chosen"]
+    for n in (1, 2, 3, 4):
+        for d in ("easy", "normal", "hard"):
+            for s in TEST:
+                plays[(n, d, s)] = play(b["r_ref"], b["steep"], b["contacts"], s, d, 300.0, noise=n)["won"]
+        print(f"noise {n}: won {sum(w for (nn, _, _), w in plays.items() if nn == n)}/90", flush=True)
+    k, total = sum(plays.values()), len(plays)
+    lo, hi = wilson(k, total)
+    print(f"all plays: won {k}/{total} = {k / total:.1%}, 95% interval {lo:.1%}-{hi:.1%}")
+    out = FIGURES / "noise_seeds_standin.json"
+    out.write_text(json.dumps({"setting": b, "won": k, "plays": total, "win_rate": k / total, "ci95": [lo, hi],
+                               "per_noise": {n: sum(w for (nn, _, _), w in plays.items() if nn == n) for n in range(5)}},
+                              indent=2) + "\n")
+    print(f"wrote {out.relative_to(FIGURES.parent)}")
+
+
 def main() -> int:
+    if sys.argv[1:] == ["noise"]:
+        noise_repeats()
+        return 0
     t0 = time.perf_counter()
     grid = []
     for r_ref, steep, c in itertools.product(R_REF, STEEP, CONTACTS):
