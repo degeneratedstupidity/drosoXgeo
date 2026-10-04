@@ -15,7 +15,7 @@ can time jumps well enough to clear levels.
 - [ ] Phase 5 – Learning (**5A done**, `brain/readout.py`; 5B not started)
 - [ ] Phase 6 – Demo video + LinkedIn post
 
-**Next:** decide between 5B (mushroom-body learning) and Phase 6 (demo); see `AGENTS.md`.
+**Next:** remaining controls before Phase 6: a targeted lesion (cut only LPLC2/LC4 → Giant Fiber), a check that scrambled brains aren't just quieter, a sensory-delay sweep, and frame-time percentiles. 5B is future work (see Phase 4b).
 
 Baselines from `python3 flydash.py` (30 levels each):
 
