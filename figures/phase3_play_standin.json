@@ -1,0 +1,1155 @@
+{
+  "setup": "standin",
+  "practice_seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "test_seeds": [
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127,
+    128,
+    129
+  ],
+  "practice_grid": [
+    {
+      "r_ref": 2,
+      "steep": 1,
+      "contacts": 1,
+      "progress": 0.0959111111111113,
+      "won": 0
+    },
+    {
+      "r_ref": 2,
+      "steep": 1,
+      "contacts": 2,
+      "progress": 0.0959111111111113,
+      "won": 0
+    },
+    {
+      "r_ref": 2,
+      "steep": 1,
+      "contacts": 3,
+      "progress": 0.0959111111111113,
+      "won": 0
+    },
+    {
+      "r_ref": 2,
+      "steep": 1,
+      "contacts": 4,
+      "progress": 0.10554074074074087,
+      "won": 0
+    },
+    {
+      "r_ref": 2,
+      "steep": 1,
+      "contacts": 6,
+      "progress": 0.907599999999999,
+      "won": 4
+    },
+    {
+      "r_ref": 2,
+      "steep": 2,
+      "contacts": 1,
+      "progress": 0.0959111111111113,
+      "won": 0
+    },
+    {
+      "r_ref": 2,
+      "steep": 2,
+      "contacts": 2,
+      "progress": 0.0959111111111113,
+      "won": 0
+    },
+    {
+      "r_ref": 2,
+      "steep": 2,
+      "contacts": 3,
+      "progress": 0.6483407407407379,
+      "won": 1
+    },
+    {
+      "r_ref": 2,
+      "steep": 2,
+      "contacts": 4,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 2,
+      "steep": 2,
+      "contacts": 6,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 2,
+      "steep": 3,
+      "contacts": 1,
+      "progress": 0.0959111111111113,
+      "won": 0
+    },
+    {
+      "r_ref": 2,
+      "steep": 3,
+      "contacts": 2,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 2,
+      "steep": 3,
+      "contacts": 3,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 2,
+      "steep": 3,
+      "contacts": 4,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 2,
+      "steep": 3,
+      "contacts": 6,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 3,
+      "steep": 1,
+      "contacts": 1,
+      "progress": 0.0959111111111113,
+      "won": 0
+    },
+    {
+      "r_ref": 3,
+      "steep": 1,
+      "contacts": 2,
+      "progress": 0.0959111111111113,
+      "won": 0
+    },
+    {
+      "r_ref": 3,
+      "steep": 1,
+      "contacts": 3,
+      "progress": 0.10554074074074087,
+      "won": 0
+    },
+    {
+      "r_ref": 3,
+      "steep": 1,
+      "contacts": 4,
+      "progress": 0.9259703703703698,
+      "won": 5
+    },
+    {
+      "r_ref": 3,
+      "steep": 1,
+      "contacts": 6,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 3,
+      "steep": 2,
+      "contacts": 1,
+      "progress": 0.0959111111111113,
+      "won": 0
+    },
+    {
+      "r_ref": 3,
+      "steep": 2,
+      "contacts": 2,
+      "progress": 0.7332296296296285,
+      "won": 3
+    },
+    {
+      "r_ref": 3,
+      "steep": 2,
+      "contacts": 3,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 3,
+      "steep": 2,
+      "contacts": 4,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 3,
+      "steep": 2,
+      "contacts": 6,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 3,
+      "steep": 3,
+      "contacts": 1,
+      "progress": 0.4279407407407385,
+      "won": 0
+    },
+    {
+      "r_ref": 3,
+      "steep": 3,
+      "contacts": 2,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 3,
+      "steep": 3,
+      "contacts": 3,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 3,
+      "steep": 3,
+      "contacts": 4,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 3,
+      "steep": 3,
+      "contacts": 6,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 5,
+      "steep": 1,
+      "contacts": 1,
+      "progress": 0.0959111111111113,
+      "won": 0
+    },
+    {
+      "r_ref": 5,
+      "steep": 1,
+      "contacts": 2,
+      "progress": 0.18257777777777737,
+      "won": 0
+    },
+    {
+      "r_ref": 5,
+      "steep": 1,
+      "contacts": 3,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 5,
+      "steep": 1,
+      "contacts": 4,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 5,
+      "steep": 1,
+      "contacts": 6,
+      "progress": 0.5232296296296287,
+      "won": 2
+    },
+    {
+      "r_ref": 5,
+      "steep": 2,
+      "contacts": 1,
+      "progress": 0.15696296296296275,
+      "won": 0
+    },
+    {
+      "r_ref": 5,
+      "steep": 2,
+      "contacts": 2,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 5,
+      "steep": 2,
+      "contacts": 3,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 5,
+      "steep": 2,
+      "contacts": 4,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 5,
+      "steep": 2,
+      "contacts": 6,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 5,
+      "steep": 3,
+      "contacts": 1,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 5,
+      "steep": 3,
+      "contacts": 2,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 5,
+      "steep": 3,
+      "contacts": 3,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 5,
+      "steep": 3,
+      "contacts": 4,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 5,
+      "steep": 3,
+      "contacts": 6,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 8,
+      "steep": 1,
+      "contacts": 1,
+      "progress": 0.0959111111111113,
+      "won": 0
+    },
+    {
+      "r_ref": 8,
+      "steep": 1,
+      "contacts": 2,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 8,
+      "steep": 1,
+      "contacts": 3,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 8,
+      "steep": 1,
+      "contacts": 4,
+      "progress": 0.521229629629628,
+      "won": 1
+    },
+    {
+      "r_ref": 8,
+      "steep": 1,
+      "contacts": 6,
+      "progress": 0.16851851851851826,
+      "won": 0
+    },
+    {
+      "r_ref": 8,
+      "steep": 2,
+      "contacts": 1,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 8,
+      "steep": 2,
+      "contacts": 2,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 8,
+      "steep": 2,
+      "contacts": 3,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 8,
+      "steep": 2,
+      "contacts": 4,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 8,
+      "steep": 2,
+      "contacts": 6,
+      "progress": 0.8529777777777778,
+      "won": 5
+    },
+    {
+      "r_ref": 8,
+      "steep": 3,
+      "contacts": 1,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 8,
+      "steep": 3,
+      "contacts": 2,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 8,
+      "steep": 3,
+      "contacts": 3,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 8,
+      "steep": 3,
+      "contacts": 4,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 8,
+      "steep": 3,
+      "contacts": 6,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 12,
+      "steep": 1,
+      "contacts": 1,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 12,
+      "steep": 1,
+      "contacts": 2,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 12,
+      "steep": 1,
+      "contacts": 3,
+      "progress": 0.23977777777777698,
+      "won": 0
+    },
+    {
+      "r_ref": 12,
+      "steep": 1,
+      "contacts": 4,
+      "progress": 0.16851851851851826,
+      "won": 0
+    },
+    {
+      "r_ref": 12,
+      "steep": 1,
+      "contacts": 6,
+      "progress": 0.16697777777777753,
+      "won": 0
+    },
+    {
+      "r_ref": 12,
+      "steep": 2,
+      "contacts": 1,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 12,
+      "steep": 2,
+      "contacts": 2,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 12,
+      "steep": 2,
+      "contacts": 3,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 12,
+      "steep": 2,
+      "contacts": 4,
+      "progress": 0.8529777777777778,
+      "won": 5
+    },
+    {
+      "r_ref": 12,
+      "steep": 2,
+      "contacts": 6,
+      "progress": 0.2594222222222213,
+      "won": 0
+    },
+    {
+      "r_ref": 12,
+      "steep": 3,
+      "contacts": 1,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 12,
+      "steep": 3,
+      "contacts": 2,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 12,
+      "steep": 3,
+      "contacts": 3,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 12,
+      "steep": 3,
+      "contacts": 4,
+      "progress": 1.0,
+      "won": 6
+    },
+    {
+      "r_ref": 12,
+      "steep": 3,
+      "contacts": 6,
+      "progress": 1.0,
+      "won": 6
+    }
+  ],
+  "chosen": {
+    "r_ref": 3,
+    "steep": 1,
+    "contacts": 6,
+    "progress": 1.0,
+    "won": 6
+  },
+  "test": {
+    "easy": {
+      "progress": 1.0,
+      "won": 30,
+      "levels": 30,
+      "takeoff_blocks": {
+        "p10": 0.2964519722994538,
+        "median": 0.4235499692466078,
+        "p90": 0.5548083268792141
+      },
+      "per_level": [
+        {
+          "seed": 100,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 27
+        },
+        {
+          "seed": 101,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 29
+        },
+        {
+          "seed": 102,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 25
+        },
+        {
+          "seed": 103,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 26
+        },
+        {
+          "seed": 104,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 26
+        },
+        {
+          "seed": 105,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 26
+        },
+        {
+          "seed": 106,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 28
+        },
+        {
+          "seed": 107,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 27
+        },
+        {
+          "seed": 108,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 27
+        },
+        {
+          "seed": 109,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 26
+        },
+        {
+          "seed": 110,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 28
+        },
+        {
+          "seed": 111,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 26
+        },
+        {
+          "seed": 112,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 28
+        },
+        {
+          "seed": 113,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 28
+        },
+        {
+          "seed": 114,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 28
+        },
+        {
+          "seed": 115,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 27
+        },
+        {
+          "seed": 116,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 28
+        },
+        {
+          "seed": 117,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 28
+        },
+        {
+          "seed": 118,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 27
+        },
+        {
+          "seed": 119,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 27
+        },
+        {
+          "seed": 120,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 28
+        },
+        {
+          "seed": 121,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 28
+        },
+        {
+          "seed": 122,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 27
+        },
+        {
+          "seed": 123,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 27
+        },
+        {
+          "seed": 124,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 27
+        },
+        {
+          "seed": 125,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 27
+        },
+        {
+          "seed": 126,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 28
+        },
+        {
+          "seed": 127,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 28
+        },
+        {
+          "seed": 128,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 28
+        },
+        {
+          "seed": 129,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 29
+        }
+      ]
+    },
+    "normal": {
+      "progress": 1.0,
+      "won": 30,
+      "levels": 30,
+      "takeoff_blocks": {
+        "p10": 0.29414361387784993,
+        "median": 0.41853656500884995,
+        "p90": 0.5514342264579852
+      },
+      "per_level": [
+        {
+          "seed": 100,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 28
+        },
+        {
+          "seed": 101,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 30
+        },
+        {
+          "seed": 102,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 27
+        },
+        {
+          "seed": 103,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 27
+        },
+        {
+          "seed": 104,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 28
+        },
+        {
+          "seed": 105,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 26
+        },
+        {
+          "seed": 106,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 30
+        },
+        {
+          "seed": 107,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 29
+        },
+        {
+          "seed": 108,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 29
+        },
+        {
+          "seed": 109,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 27
+        },
+        {
+          "seed": 110,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 28
+        },
+        {
+          "seed": 111,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 28
+        },
+        {
+          "seed": 112,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 28
+        },
+        {
+          "seed": 113,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 28
+        },
+        {
+          "seed": 114,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 28
+        },
+        {
+          "seed": 115,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 27
+        },
+        {
+          "seed": 116,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 29
+        },
+        {
+          "seed": 117,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 29
+        },
+        {
+          "seed": 118,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 28
+        },
+        {
+          "seed": 119,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 28
+        },
+        {
+          "seed": 120,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 29
+        },
+        {
+          "seed": 121,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 31
+        },
+        {
+          "seed": 122,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 28
+        },
+        {
+          "seed": 123,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 30
+        },
+        {
+          "seed": 124,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 28
+        },
+        {
+          "seed": 125,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 28
+        },
+        {
+          "seed": 126,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 29
+        },
+        {
+          "seed": 127,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 29
+        },
+        {
+          "seed": 128,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 28
+        },
+        {
+          "seed": 129,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 29
+        }
+      ]
+    },
+    "hard": {
+      "progress": 1.0,
+      "won": 30,
+      "levels": 30,
+      "takeoff_blocks": {
+        "p10": 0.2902705021643186,
+        "median": 0.413654056838233,
+        "p90": 0.5470674370312054
+      },
+      "per_level": [
+        {
+          "seed": 100,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 31
+        },
+        {
+          "seed": 101,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 32
+        },
+        {
+          "seed": 102,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 31
+        },
+        {
+          "seed": 103,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 32
+        },
+        {
+          "seed": 104,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 32
+        },
+        {
+          "seed": 105,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 31
+        },
+        {
+          "seed": 106,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 31
+        },
+        {
+          "seed": 107,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 32
+        },
+        {
+          "seed": 108,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 33
+        },
+        {
+          "seed": 109,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 31
+        },
+        {
+          "seed": 110,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 32
+        },
+        {
+          "seed": 111,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 31
+        },
+        {
+          "seed": 112,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 33
+        },
+        {
+          "seed": 113,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 32
+        },
+        {
+          "seed": 114,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 33
+        },
+        {
+          "seed": 115,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 31
+        },
+        {
+          "seed": 116,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 33
+        },
+        {
+          "seed": 117,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 32
+        },
+        {
+          "seed": 118,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 32
+        },
+        {
+          "seed": 119,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 32
+        },
+        {
+          "seed": 120,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 32
+        },
+        {
+          "seed": 121,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 32
+        },
+        {
+          "seed": 122,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 32
+        },
+        {
+          "seed": 123,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 32
+        },
+        {
+          "seed": 124,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 32
+        },
+        {
+          "seed": 125,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 32
+        },
+        {
+          "seed": 126,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 33
+        },
+        {
+          "seed": 127,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 33
+        },
+        {
+          "seed": 128,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 31
+        },
+        {
+          "seed": 129,
+          "progress": 1.0,
+          "won": true,
+          "jumps": 33
+        }
+      ]
+    }
+  }
+}

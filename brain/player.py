@@ -17,6 +17,8 @@ Setups (the controls of Phase 4 use the same code):
   real        FlyWire v783 wiring
   shuffledN   degree-preserving rewiring, seed N
   lesion      real wiring, both DNp01 unable to spike
+  wire        real wiring, but every neuron except LPLC2, LC4 and DNp01 is silenced (its synapses
+              deliver nothing): the Giant Fiber hears only its direct inputs from the alarm cells
 
     python -m brain.player --difficulty hard --seeds 0-4 --r-ref 5 --steep 2
     python -m brain.player --difficulty hard --seeds 3 --r-ref 2 --steep 3 --watch   # see it play
@@ -54,16 +56,27 @@ def load(setup: str):
         pack = core.load_pack(shuffled(PACK_V783, int(setup[len("shuffled"):])))
         neurons.check_same_neurons(real, pack)
         return pack, ()
+    if setup == "wire":
+        return real, ()
     raise ValueError(f"unknown setup {setup!r}")
+
+
+def silence_for(setup: str, pack, idx) -> np.ndarray:
+    """Neurons whose synapses deliver nothing in this setup (only 'wire' silences any)."""
+    if setup != "wire":
+        return np.array([], dtype=np.int64)
+    keep = np.concatenate([idx["LPLC2"], idx["LC4"], idx["DNp01"]])
+    return np.setdiff1d(np.arange(pack.n_neurons), keep)
 
 
 class BrainPlayer:
     """One brain for one level. Call it with an observation, get a jump decision."""
 
-    def __init__(self, pack, idx, r_ref: float, steep: float, lesion=(), seed: int = 0, record: bool = False):
+    def __init__(self, pack, idx, r_ref: float, steep: float, lesion=(), seed: int = 0, record: bool = False,
+                 silence=()):
         self.r_ref, self.steep = r_ref, steep
         self.brain = Brain(pack, {"LPLC2": idx["LPLC2"], "LC4": idx["LC4"]},
-                           monitor=idx["DNp01"], lesion=lesion, seed=seed)
+                           monitor=idx["DNp01"], lesion=lesion, silence=silence, seed=seed)
         self.frame = 0
         self.trace = [] if record else None
         self.last_rate, self.last_gf = 0.0, 0
@@ -92,10 +105,11 @@ NOISE_STRIDE = 1_000_000                     # noise seed k plays level s with i
 
 
 def play_level(pack, idx, r_ref, steep, seed, difficulty, lesion=(), length=300.0, record=False, on_frame=None,
-               noise=0):
+               noise=0, silence=()):
     """noise picks a different random draw of the alarm cells' input spikes; 0 is the draw every earlier run used."""
     env = flydash.FlyDash(seed, difficulty, length)
-    player = BrainPlayer(pack, idx, r_ref, steep, lesion, seed=seed + noise * NOISE_STRIDE, record=record)
+    player = BrainPlayer(pack, idx, r_ref, steep, lesion, seed=seed + noise * NOISE_STRIDE, record=record,
+                         silence=silence)
     obs, done = env.reset(), False
     jump_d = []                                   # distance to the spike at each takeoff
     while not done:
@@ -164,7 +178,7 @@ def parse_seeds(text: str) -> list[int]:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--setup", default="real", help="real, lesion, or shuffledN")
+    ap.add_argument("--setup", default="real", help="real, lesion, wire, or shuffledN")
     ap.add_argument("--difficulty", default="easy", choices=list(flydash.DIFFICULTY))
     ap.add_argument("--seeds", default="0-4", help="level seeds, e.g. 0-29 or 1,5,7")
     ap.add_argument("--r-ref", type=float, default=5.0, help="alarm rate (Hz) with the spike 0.6 blocks away")
@@ -177,13 +191,14 @@ def main() -> int:
 
     pack, lesion = load(args.setup)
     idx = neurons.indices(pack)
+    silence = silence_for(args.setup, pack, idx)
     t0 = time.perf_counter()
     rows = []
     for seed in parse_seeds(args.seeds):
         watcher = (Watcher(f"setup {args.setup} · {args.difficulty} · level {seed} · "
                            f"alarm r_ref {args.r_ref:g} Hz, steep {args.steep:g}", args.slow) if args.watch else None)
         r = play_level(pack, idx, args.r_ref, args.steep, seed, args.difficulty, lesion, args.length,
-                       args.record, on_frame=watcher)
+                       args.record, on_frame=watcher, silence=silence)
         if watcher:
             watcher.finish(r)
         rows.append(r)

@@ -17,7 +17,7 @@ import numpy as np
 
 from brain import neurons
 from brain.paths import FIGURES
-from brain.player import load, play_level
+from brain.player import load, play_level, silence_for
 
 R_REF = [2, 3, 5, 8, 12]
 STEEP = [1, 2, 3]
@@ -25,10 +25,10 @@ PRACTICE = range(0, 6)
 TEST = range(100, 130)
 
 
-def score(pack, idx, lesion, r_ref, steep, seeds, difficulty, length):
+def score(pack, idx, lesion, r_ref, steep, seeds, difficulty, length, silence=()):
     rows = []
     for s in seeds:
-        r = play_level(pack, idx, r_ref, steep, s, difficulty, lesion, length)
+        r = play_level(pack, idx, r_ref, steep, s, difficulty, lesion, length, silence=silence)
         rows.append(r)
         print(f"    {difficulty:<6} level {s:>3}  r_ref {r_ref:>3} steep {steep}:  "
               f"{'WON ' if r['won'] else 'died'} at {r['progress']:4.0%}, {r['jumps']:>3} jumps", flush=True)
@@ -43,10 +43,11 @@ def main() -> int:
 
     pack, lesion = load(args.setup)
     idx = neurons.indices(pack)
+    silence = silence_for(args.setup, pack, idx)
     t0 = time.perf_counter()
     grid = []
     for r_ref, steep in itertools.product(R_REF, STEEP):
-        prog, won, _ = score(pack, idx, lesion, r_ref, steep, PRACTICE, args.practice_difficulty, 150.0)
+        prog, won, _ = score(pack, idx, lesion, r_ref, steep, PRACTICE, args.practice_difficulty, 150.0, silence)
         grid.append({"r_ref": r_ref, "steep": steep, "progress": prog, "won": won})
         print(f"practice  r_ref {r_ref:>4} Hz  steep {steep}:  won {won}/{len(PRACTICE)}  progress {prog:4.0%}", flush=True)
     best = max(grid, key=lambda g: (g["progress"], g["won"], -g["steep"]))
@@ -54,7 +55,7 @@ def main() -> int:
 
     test = {}
     for diff in ("easy", "normal", "hard"):
-        prog, won, rows = score(pack, idx, lesion, best["r_ref"], best["steep"], TEST, diff, 300.0)
+        prog, won, rows = score(pack, idx, lesion, best["r_ref"], best["steep"], TEST, diff, 300.0, silence)
         jd = [d for r in rows for d in r["jump_distances"]]
         test[diff] = {"progress": prog, "won": won, "levels": len(rows),
                       "takeoff_blocks": {"p10": float(np.percentile(jd, 10)) if jd else None,
