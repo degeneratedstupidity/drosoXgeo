@@ -1,0 +1,433 @@
+{
+  "train_seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "test_seeds": [
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127,
+    128,
+    129
+  ],
+  "jump_at_blocks": 0.6,
+  "readers": {
+    "A": "all neurons that fire",
+    "B": "downstream only (no LPLC2/LC4)"
+  },
+  "models": {
+    "lesion": {
+      "A": {
+        "alpha": 1000,
+        "n_frames": 6230,
+        "train_mae_near": 0.25435311285401685,
+        "n_neurons": 660
+      },
+      "B": {
+        "alpha": 100,
+        "n_frames": 6230,
+        "train_mae_near": 0.3330545532929517,
+        "n_neurons": 346
+      }
+    },
+    "real": {
+      "A": {
+        "alpha": 1000,
+        "n_frames": 6230,
+        "train_mae_near": 0.25252938022910515,
+        "n_neurons": 661
+      },
+      "B": {
+        "alpha": 100,
+        "n_frames": 6230,
+        "train_mae_near": 0.3326304661986472,
+        "n_neurons": 347
+      }
+    },
+    "shuffled0": {
+      "A": {
+        "alpha": 10000,
+        "n_frames": 6230,
+        "train_mae_near": 0.5127736876097193,
+        "n_neurons": 444
+      },
+      "B": {
+        "alpha": 1,
+        "n_frames": 6230,
+        "train_mae_near": 0.9494218693451291,
+        "n_neurons": 130
+      }
+    },
+    "shuffled1": {
+      "A": {
+        "alpha": 10000,
+        "n_frames": 6230,
+        "train_mae_near": 0.5126196504629964,
+        "n_neurons": 454
+      },
+      "B": {
+        "alpha": 1,
+        "n_frames": 6230,
+        "train_mae_near": 0.9498677507869805,
+        "n_neurons": 140
+      }
+    },
+    "shuffled2": {
+      "A": {
+        "alpha": 10000,
+        "n_frames": 6230,
+        "train_mae_near": 0.5130832997020488,
+        "n_neurons": 469
+      },
+      "B": {
+        "alpha": 1,
+        "n_frames": 6230,
+        "train_mae_near": 0.9500267563275164,
+        "n_neurons": 155
+      }
+    },
+    "shuffled3": {
+      "A": {
+        "alpha": 10000,
+        "n_frames": 6230,
+        "train_mae_near": 0.5127746210259,
+        "n_neurons": 445
+      },
+      "B": {
+        "alpha": 1,
+        "n_frames": 6230,
+        "train_mae_near": 0.9493804570741883,
+        "n_neurons": 131
+      }
+    },
+    "shuffled4": {
+      "A": {
+        "alpha": 10000,
+        "n_frames": 6230,
+        "train_mae_near": 0.5126888943674527,
+        "n_neurons": 444
+      },
+      "B": {
+        "alpha": 1,
+        "n_frames": 6230,
+        "train_mae_near": 0.9493683959013034,
+        "n_neurons": 130
+      }
+    }
+  },
+  "test": {
+    "real/A": {
+      "easy": {
+        "won": 27,
+        "levels": 30,
+        "progress": 0.9444696296296305,
+        "takeoff_median": 0.57
+      },
+      "normal": {
+        "won": 27,
+        "levels": 30,
+        "progress": 0.9605896296296308,
+        "takeoff_median": 0.5555000000000001
+      },
+      "hard": {
+        "won": 26,
+        "levels": 30,
+        "progress": 0.956183703703706,
+        "takeoff_median": 0.571
+      }
+    },
+    "real/B": {
+      "easy": {
+        "won": 11,
+        "levels": 30,
+        "progress": 0.6896829629629697,
+        "takeoff_median": 0.523
+      },
+      "normal": {
+        "won": 12,
+        "levels": 30,
+        "progress": 0.6440725925925964,
+        "takeoff_median": 0.517
+      },
+      "hard": {
+        "won": 11,
+        "levels": 30,
+        "progress": 0.649084444444449,
+        "takeoff_median": 0.5385
+      }
+    },
+    "lesion/A": {
+      "easy": {
+        "won": 29,
+        "levels": 30,
+        "progress": 0.970634074074074,
+        "takeoff_median": 0.569
+      },
+      "normal": {
+        "won": 25,
+        "levels": 30,
+        "progress": 0.9340400000000024,
+        "takeoff_median": 0.557
+      },
+      "hard": {
+        "won": 26,
+        "levels": 30,
+        "progress": 0.956183703703706,
+        "takeoff_median": 0.569
+      }
+    },
+    "lesion/B": {
+      "easy": {
+        "won": 13,
+        "levels": 30,
+        "progress": 0.6937377777777821,
+        "takeoff_median": 0.523
+      },
+      "normal": {
+        "won": 12,
+        "levels": 30,
+        "progress": 0.6464607407407453,
+        "takeoff_median": 0.521
+      },
+      "hard": {
+        "won": 5,
+        "levels": 30,
+        "progress": 0.5995377777777855,
+        "takeoff_median": 0.544
+      }
+    },
+    "shuffled0/A": {
+      "easy": {
+        "won": 30,
+        "levels": 30,
+        "progress": 1.0,
+        "takeoff_median": 0.362
+      },
+      "normal": {
+        "won": 30,
+        "levels": 30,
+        "progress": 1.0,
+        "takeoff_median": 0.358
+      },
+      "hard": {
+        "won": 30,
+        "levels": 30,
+        "progress": 1.0,
+        "takeoff_median": 0.365
+      }
+    },
+    "shuffled0/B": {
+      "easy": {
+        "won": 0,
+        "levels": 30,
+        "progress": 0.055081481481481544,
+        "takeoff_median": 0.05
+      },
+      "normal": {
+        "won": 0,
+        "levels": 30,
+        "progress": 0.05494666666666673,
+        "takeoff_median": 0.05
+      },
+      "hard": {
+        "won": 0,
+        "levels": 30,
+        "progress": 0.05756592592592598,
+        "takeoff_median": 0.05
+      }
+    },
+    "shuffled1/A": {
+      "easy": {
+        "won": 30,
+        "levels": 30,
+        "progress": 1.0,
+        "takeoff_median": 0.363
+      },
+      "normal": {
+        "won": 30,
+        "levels": 30,
+        "progress": 1.0,
+        "takeoff_median": 0.358
+      },
+      "hard": {
+        "won": 30,
+        "levels": 30,
+        "progress": 1.0,
+        "takeoff_median": 0.365
+      }
+    },
+    "shuffled1/B": {
+      "easy": {
+        "won": 0,
+        "levels": 30,
+        "progress": 0.053925925925926,
+        "takeoff_median": 0.05
+      },
+      "normal": {
+        "won": 0,
+        "levels": 30,
+        "progress": 0.054022222222222284,
+        "takeoff_median": 0.05
+      },
+      "hard": {
+        "won": 0,
+        "levels": 30,
+        "progress": 0.05872148148148152,
+        "takeoff_median": 0.05
+      }
+    },
+    "shuffled2/A": {
+      "easy": {
+        "won": 30,
+        "levels": 30,
+        "progress": 1.0,
+        "takeoff_median": 0.362
+      },
+      "normal": {
+        "won": 30,
+        "levels": 30,
+        "progress": 1.0,
+        "takeoff_median": 0.358
+      },
+      "hard": {
+        "won": 30,
+        "levels": 30,
+        "progress": 1.0,
+        "takeoff_median": 0.365
+      }
+    },
+    "shuffled2/B": {
+      "easy": {
+        "won": 0,
+        "levels": 30,
+        "progress": 0.053925925925926,
+        "takeoff_median": 0.05
+      },
+      "normal": {
+        "won": 0,
+        "levels": 30,
+        "progress": 0.054022222222222284,
+        "takeoff_median": 0.05
+      },
+      "hard": {
+        "won": 0,
+        "levels": 30,
+        "progress": 0.05669925925925932,
+        "takeoff_median": 0.05
+      }
+    },
+    "shuffled3/A": {
+      "easy": {
+        "won": 30,
+        "levels": 30,
+        "progress": 1.0,
+        "takeoff_median": 0.362
+      },
+      "normal": {
+        "won": 30,
+        "levels": 30,
+        "progress": 1.0,
+        "takeoff_median": 0.358
+      },
+      "hard": {
+        "won": 30,
+        "levels": 30,
+        "progress": 1.0,
+        "takeoff_median": 0.365
+      }
+    },
+    "shuffled3/B": {
+      "easy": {
+        "won": 0,
+        "levels": 30,
+        "progress": 0.055100740740740804,
+        "takeoff_median": 0.05
+      },
+      "normal": {
+        "won": 0,
+        "levels": 30,
+        "progress": 0.05506222222222228,
+        "takeoff_median": 0.05
+      },
+      "hard": {
+        "won": 0,
+        "levels": 30,
+        "progress": 0.05768148148148153,
+        "takeoff_median": 0.05
+      }
+    },
+    "shuffled4/A": {
+      "easy": {
+        "won": 30,
+        "levels": 30,
+        "progress": 1.0,
+        "takeoff_median": 0.361
+      },
+      "normal": {
+        "won": 30,
+        "levels": 30,
+        "progress": 1.0,
+        "takeoff_median": 0.358
+      },
+      "hard": {
+        "won": 30,
+        "levels": 30,
+        "progress": 1.0,
+        "takeoff_median": 0.366
+      }
+    },
+    "shuffled4/B": {
+      "easy": {
+        "won": 0,
+        "levels": 30,
+        "progress": 0.05483111111111118,
+        "takeoff_median": 0.05
+      },
+      "normal": {
+        "won": 0,
+        "levels": 30,
+        "progress": 0.05492740740740747,
+        "takeoff_median": 0.05
+      },
+      "hard": {
+        "won": 0,
+        "levels": 30,
+        "progress": 0.05764296296296301,
+        "takeoff_median": 0.05
+      }
+    }
+  }
+}

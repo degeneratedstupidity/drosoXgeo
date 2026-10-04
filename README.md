@@ -12,10 +12,10 @@ can time jumps well enough to clear levels.
 - [x] **Phase 2 – Run the whole-brain model, reproduce a published result** (`brain/`, see results below)
 - [x] **Phase 3 – Wire the escape reflex (no training)** (`brain/player.py`, results below)
 - [x] **Phase 4 – Controls (the part that makes it science, not a meme)** (`brain/phase4.py`, results below)
-- [ ] Phase 5 – Learning
+- [ ] Phase 5 – Learning (**5A done**, `brain/readout.py`; 5B not started)
 - [ ] Phase 6 – Demo video + LinkedIn post
 
-**Paused 2026-10-04 before Phase 5.** Next up: 5A, a trained readout on the fixed brain, with the shuffled control. Open decisions are listed in `AGENTS.md`.
+**Next:** decide between 5B (mushroom-body learning) and Phase 6 (demo); see `AGENTS.md`.
 
 Baselines from `python3 flydash.py` (30 levels each):
 
@@ -166,6 +166,38 @@ The connectome's synapse weights are fixed. Learning can live in only two places
   (e.g. logistic regression from neuron rates to jump). Run the shuffled control again.
 - **B. Dopamine-gated plasticity.** Let a small set of mushroom-body synapses (Kenyon cell → MBON) change,
   with reward or punishment delivered through dopamine neurons (PPL1). Flies actually learn this way.
+
+**Result 5A (2026-10-04): a trained readout doesn't beat the fly's own jump neuron, and a readout that can see
+the input fools the controls.** `python -m brain.readout run --setups real,lesion,shuffled0,...,shuffled4` then
+`python -m brain.readout summary` (`figures/phase5a_readout.json`). About 3.5 h on the M1 Pro, 4 jobs at a time.
+- **Method.** The brain stays fixed. It watches 30 practice levels (seeds 0–9, all difficulties) while a teacher plays.
+  A ridge regression learns the spike's distance from the neurons' spike counts (this frame and the last), with the
+  strength picked by cross-validation across practice levels. On the 90 unseen levels it jumps when its estimate
+  drops below 0.6 blocks (the middle of the safe window). Every brain trains its own readers the same way, with the same eye.
+- **Reader A** reads every neuron that fires, including the LPLC2/LC4 alarm cells we drive. **Reader B** reads only
+  neurons downstream of them.
+
+| brain | untrained Giant Fiber (Phase 3–4) | Reader A, all neurons | Reader B, downstream only |
+|---|---|---|---|
+| real FlyWire wiring | **89/90** | 80/90 | 34/90 |
+| Giant Fiber silenced | 0/90 | 80/90 | 30/90 |
+| scrambled wiring, 5 seeds | 0/90 each | **90/90 each** | **0/90 each** |
+
+- **The fly's Giant Fiber beats every reader we trained** (89 vs 80 on the real brain). The readers aim well (median
+  takeoff 0.57 blocks, right where we pointed them, vs 0.41 for the Giant Fiber), but about 7% of their jumps come far
+  too late (< 0.3 blocks): better aim, worse reliability. They estimate distance from one noisy 1/60 s frame; the
+  Giant Fiber effectively adds up the alarm over time.
+- **Reader A plays perfectly on every scrambled brain.** It decodes the alarm cells, whose firing *is* our input
+  signal, so it measures the input, not the wiring. A likely reason the scrambled brains do even better (not
+  tested): without the real wiring, nothing feeds extra activity back into the alarm cells. **Lesson: a readout that
+  can see the driven neurons is not a test of the connectome.**
+- **Reader B is the fair test, and it supports the wiring claim.** Downstream of the alarm cells, the real brain
+  carries enough to win 34/90. The scrambled brains carry nothing: their Reader B training error (0.78 blocks) equals
+  always guessing the average (0.79), and they win 0/90.
+- **With a reader, the Giant Fiber isn't needed** (silenced brain: 80/90 and 30/90). The looming information reaches
+  other downstream neurons as well.
+- **Takeaway for the demo:** the honest showcase stays the untrained escape circuit. Learning a readout added nothing
+  to performance, and its controls show why readouts need care.
 
 **Not recommended:** PPO or backprop on all 50M connectome weights.
 - Spikes aren't differentiable.

@@ -23,7 +23,7 @@ into arbitrary neurons. What sets this project apart is the specific circuit plu
 - Google Chrome is installed. Headless Chrome screenshots work for checking pages locally:
   `"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --screenshot=out.png --window-size=1200,1400 "file://$PWD/docs/<page>.html"`
 
-## Current state (2026-10-04: Phases 1–4 done, paused before Phase 5)
+## Current state (2026-10-04: Phases 1–4 and 5A done)
 | Path | What it is |
 |---|---|
 | `flydash.py` | ✅ Dependency-free, headless Geometry Dash clone, lock-step (waits for the brain). `python3 flydash.py` prints baselines. |
@@ -37,6 +37,7 @@ into arbitrary neurons. What sets this project apart is the specific circuit plu
 | `brain/player.py` | ✅ The brain plays Fly Dash. Setups `real`, `lesion`, `shuffledN`. `--watch` draws it live in the terminal. |
 | `brain/tune.py` | Picks the two alarm knobs (r_ref, steep) on practice seeds 0–5, then scores once on unseen seeds 100–129 × 3 difficulties. Prints every level. |
 | `brain/phase4.py` | ✅ Phase 4 table: real vs lesion vs 5 shuffles vs random vs one-number rule → `figures/phase4_controls.json`. |
+| `brain/readout.py` | ✅ Phase 5A: record practice activity, train ridge readers A (all) / B (downstream), test on 90 levels, 4 jobs at a time, resumable. `summary` → `figures/phase5a_readout.json`. |
 | `brain/record_level.py` | Records one level (real + scrambled), every neuron's firing per frame → `results/replay/*.json`. |
 | `docs/` | Pages: `explainer.html` (plain intro), `testbench.html` (Phase 3 checks; `build_testbench.py`), `brainreplay.html` (whole brain lighting up as it plays; `build_brainreplay.py`, link option `#frame=80&setup=shuffled0`). |
 | `figures/` | Committed results JSON/SVG for Phases 2–4. |
@@ -64,17 +65,18 @@ into arbitrary neurons. What sets this project apart is the specific circuit plu
   idealised reflex with nothing hand-coded, and scrambling it destroys it. It does **not** beat the one-number rule.
 - **Speed:** game play ran ~1.2× faster than real time on the M1 Pro (54 min compute for ~65 min of play).
 
-## Next task: Phase 5A (agreed plan, not started)
-- **Trained readout:** the brain stays fixed; learn a small mapping (e.g. logistic regression) from the activity of the
-  neurons the alarm wakes up to "jump now", trained on practice seeds only, scored on seeds 100–129.
-- Goal: better jump timing (closer to the middle of the safe window) than "any DNp01 spike".
-- **Run the shuffled control with the same readout.** Expected risk: shuffled brains' alarm cells still fire normally,
-  so a readout may make them play well too. If so, report it honestly. Train only on non-alarm neurons, or report both,
-  so the result says what the wiring adds.
-- Estimate given to Rajan: ~1–2 h of work + 1–4 h of background compute on the M1 Pro.
+- **Phase 5A:** trained readouts on the fixed brain. Real: Reader A (all neurons) 80/90, Reader B (downstream only)
+  34/90, both below the untrained Giant Fiber's 89/90. Scrambled brains: A 90/90 each (it decodes the driven alarm
+  cells, i.e. the input), B 0/90 each (training error = guessing the average). Silenced Giant Fiber: A 80/90, B 30/90.
+  Lesson: readouts must exclude driven neurons and be run on shuffled brains.
+- **Parallel runs:** 3–4 processes at once give ~2× throughput on the M1 Pro (6.0 → 2.7–3.0 s per short level).
+  Background tasks are cut off at 2 h, so keep a run under that or make it resumable (`brain.readout run` is).
+
+## Next task: not chosen yet
+Ask Rajan: 5B, Phase 6, or the real-time feasibility test for the real game (see below).
 
 ## Open decisions (ask Rajan)
-- After 5A: do **5B** (dopamine-gated KC→MBON plasticity; several sessions, uncertain, since the mushroom body
+- Now that 5A is done: do **5B** (dopamine-gated KC→MBON plasticity; several sessions, uncertain, since the mushroom body
   doesn't wire directly to DNp01) or go to **Phase 6** (video + post) and the real game.
 - **Real game (Stretch B):** Rajan wants it at the very end. Told Rajan it's feasible: key presses (Quartz, Accessibility
   permission) are certain, and spike detection from screen capture is very likely. Real time is borderline (~1.2×),

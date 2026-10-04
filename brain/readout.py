@@ -245,7 +245,7 @@ def summary():
         setup, reader, diff, _ = f.stem.split("_")
         rows.setdefault((setup, reader), {}).setdefault(diff, []).extend(json.loads(f.read_text()))
     out = {}
-    print(f"{'setup':<11}{'reader':<26}" + "".join(f"{d:>12}" for d in DIFFS) + "   median takeoff (hard)")
+    print(f"{'setup':<11}{'reader':<34}" + "".join(f"{d:>12}" for d in DIFFS) + "   median takeoff (hard)")
     for (setup, reader), by in sorted(rows.items(), key=lambda kv: (kv[0][0] != "real", kv[0])):
         cell = {}
         for d in DIFFS:
@@ -256,7 +256,7 @@ def summary():
                        "takeoff_median": float(np.median(jd)) if jd else None}
         out[f"{setup}/{reader}"] = cell
         med = cell["hard"]["takeoff_median"]
-        print(f"{setup:<11}{reader + ' ' + READERS[reader][:22]:<26}"
+        print(f"{setup:<11}{reader + ' ' + READERS[reader]:<34}"
               + "".join(f"{cell[d]['won']:>5}/{cell[d]['levels']:<3}{(cell[d]['progress'] or 0):>4.0%}" for d in DIFFS)
               + f"   {'-' if med is None else f'{med:.2f} blocks'}")
     models = {p.stem: {r: {k: v for k, v in json.loads(p.read_text())[r].items() if k in ("alpha", "n_frames", "train_mae_near")}
