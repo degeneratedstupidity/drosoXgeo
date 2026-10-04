@@ -11,7 +11,7 @@ an experienced developer **new to computational neuroscience**: explain in plain
 ## Where things stand (2026-10-04)
 Phases 1–4 and 5A are done (results in `README.md`). Headline: real wiring wins 89/90 unseen levels untrained;
 Giant Fiber silenced and 5 scrambled brains win 0/90; trained readouts don't beat the Giant Fiber.
-**Now:** working through `SUGGESTIONS.md` (an external review) before Phase 6. Done: #11, #3, #1, #7 (README
+**Now:** working through `SUGGESTIONS.md` (an external review; local only, Rajan keeps it out of git) before Phase 6. Done: #11, #3, #1, #7 (README
 "Phase 4b": escape pathway alone beats the full brain, 99.6% vs 96.4%; 5B → future work). Next: #2 shuffle activity
 check + targeted lesion → #5 delay sweep (real fly ≈ 19 ms stimulus→GF, so add ~17 ms) → #6 frame-time
 percentiles → Phase 6 post. Headline wording: "the fly's escape pathway", not "the whole brain".
@@ -29,7 +29,7 @@ percentiles → Phase 6 post. Headline wording: "the fly's escape pathway", not 
 - M1 Pro: 3–4 processes at once ≈ 2× throughput. Background tasks are cut off at 2 h: keep runs shorter or resumable.
 
 ## Open decisions (ask Rajan)
-- 5B (mushroom-body learning): likely skip; run the MBON→DNp01 path check first (SUGGESTIONS #7).
+- 5B (mushroom-body learning): future work; the MBON→DNp01 path check showed only weak 2-step routes (README Phase 4b).
 - Real game (Stretch B) comes last, run by Rajan. Feasible; real time is borderline, and a game slow-down mod is the
   honest fallback. Undecided: whether Claude builds the screen/keyboard connector. Don't touch the game binary until then.
 

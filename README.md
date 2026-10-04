@@ -161,7 +161,7 @@ The six control brains took 17 min in total (`results/run_phase4.sh`). `python -
   So "never jumps" holds for the alarm range the real brain was tuned in.
 
 ## Phase 4b – How much of the brain does the work? (review follow-ups, 2026-10-05)
-An outside review (`SUGGESTIONS.md`) asked whether the whole brain plays, or just one wire. Every row below used
+An outside review asked whether the whole brain plays, or just one wire. Every row below used
 the same protocol: settings tuned on practice seeds 0–5, then the 90 unseen levels played with **5 draws of the
 random input spikes** (450 plays), with a 95% interval (Wilson).
 
