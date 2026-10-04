@@ -11,9 +11,10 @@ an experienced developer **new to computational neuroscience**: explain in plain
 ## Where things stand (2026-10-04)
 Phases 1–4 and 5A are done (results in `README.md`). Headline: real wiring wins 89/90 unseen levels untrained;
 Giant Fiber silenced and 5 scrambled brains win 0/90; trained readouts don't beat the Giant Fiber.
-**Now:** working through `SUGGESTIONS.md` (an external review) before Phase 6. Order agreed with Rajan:
-#11 trim this file → #3 noise-seed repeats → #1 direct-wire / one-neuron stand-ins → #2 shuffle activity check +
-targeted lesion → #5 delay sweep → #6 frame-time percentiles → Phase 6 post.
+**Now:** working through `SUGGESTIONS.md` (an external review) before Phase 6. Done: #11, #3, #1, #7 (README
+"Phase 4b": escape pathway alone beats the full brain, 99.6% vs 96.4%; 5B → future work). Next: #2 shuffle activity
+check + targeted lesion → #5 delay sweep (real fly ≈ 19 ms stimulus→GF, so add ~17 ms) → #6 frame-time
+percentiles → Phase 6 post. Headline wording: "the fly's escape pathway", not "the whole brain".
 
 ## How to run
 - Simulator: sibling checkout `../drosophila-brain-mlx/`; its `.venv/bin/python` runs our modules from this repo

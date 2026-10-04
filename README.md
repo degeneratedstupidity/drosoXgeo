@@ -160,6 +160,40 @@ The six control brains took 17 min in total (`results/run_phase4.sh`). `python -
   Giant Fiber a weak 0.8 Hz at a constant 200 Hz drive, but only after ~216 ms, far too slow to clear a spike.
   So "never jumps" holds for the alarm range the real brain was tuned in.
 
+## Phase 4b – How much of the brain does the work? (review follow-ups, 2026-10-05)
+An outside review (`SUGGESTIONS.md`) asked whether the whole brain plays, or just one wire. Every row below used
+the same protocol: settings tuned on practice seeds 0–5, then the 90 unseen levels played with **5 draws of the
+random input spikes** (450 plays), with a 95% interval (Wilson).
+
+| setup | what's left of the brain | tuned settings | won | 95% interval |
+|---|---|---|---|---|
+| **full brain** | all 138,639 neurons | r_ref 5, steep 2 | 434/450 = **96.4%** | 94.3–97.8% |
+| **direct wire** (`--setup wire`) | only LPLC2/LC4 → Giant Fiber; every other neuron silenced | r_ref 5, steep 1 | 448/450 = **99.6%** | 98.4–99.9% |
+| **one-neuron stand-in** (`brain/standin.py`) | one LIF neuron, same physics, one tuned weight | r_ref 3, steep 1, 6 contacts | 449/450 = **99.8%** | 98.8–100% |
+| one-number rule | – | θ > 1.14 rad | 90/90 (deterministic) | 95.9–100% |
+| scrambled / Giant Fiber silenced | (Phase 4) | | 0/90 | |
+
+- **The escape pathway alone plays better than the whole brain.** The direct wire and the one-neuron stand-in
+  both beat the full brain, and the intervals don't overlap. The rest of the brain doesn't help at this task; it adds
+  misfires. The full brain's 16 losses are spread over 14 levels (early or late jumps), the direct wire's 2 over 2.
+- **Why the rest of the brain might add noise:** the Giant Fibers get 9,474 input synapses from 862 neurons. LPLC2
+  supplies 11% and LC4 9%; the other 80% comes from elsewhere, and half of all the input is inhibitory.
+- **Not just a lucky setting:** at the same setting (r_ref 5, steep 1), the full brain won 3/6 practice levels and
+  the direct wire 6/6. Overall, 9 of 15 practice settings were perfect for the direct wire vs 7 of 15 for the full brain.
+- **The stand-in reproduces the Giant Fiber's timing:** with 3 contacts per alarm spike (FlyWire averages 2.9 for
+  LPLC2, 3.9 for LC4), its first spike comes 22.8 ms after onset at 10 Hz (real brain 22.7) and 4.5 ms at 200 Hz (4.3).
+- **The original 89/90 was a slightly lucky draw:** the full brain's five draws gave 89, 87, 88, 84, 86. The
+  brain-vs-one-number-rule gap is not significant; the stand-in had 3 tuning knobs, the brain and the rule 2 and 1.
+- **What this means for the claim:** not "the whole fly brain plays Geometry Dash", but **"the fly's escape pathway,
+  wired as in the FlyWire connectome, plays it untrained; scrambling the wiring breaks it."** At this task, the
+  pathway is a good doorbell, and the rest of the brain adds a little static.
+- **Learning center (5B check):** no MBON connects directly to the Giant Fiber (0 of 9,474 synapses). 23 MBONs reach
+  it in 2 steps, but the first step is thin (best: MBON20 → DNp70, 6–9 synapses ≈ 2.5 mV per spike vs ~7 mV to
+  threshold; DNp70 → Giant Fiber is strong, 248–339). Learning could at most nudge the jump, so 5B is future work.
+- **Real fly's delay (for the delay sweep, #5):** stimulus to Giant Fiber response is about **19 ms** (Ache et al. 2019,
+  seen in search excerpts; check in the paper). LC4 → Giant Fiber is ~1.3 ms (von Reyn et al. 2017). The model
+  responds ~2 ms after the alarm cells, so it is missing ~17 ms of early visual processing, one game frame.
+
 ## Phase 5 – "Training" (be precise about what learns)
 The connectome's synapse weights are fixed. Learning can live in only two places:
 - **A. Trained readout.** Treat the brain as a fixed "reservoir" and learn only the output mapping
