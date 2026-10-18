@@ -75,8 +75,8 @@ class FrontApp:
             time.sleep(0.25)
 
 
-def tap_test(win, button, seconds: float = 4.0) -> bool:
-    """Tap space for 0.1 s every 0.8 s and watch the cube: True if it left the ground (the game takes our keys)."""
+def tap_test(win, button, seconds: float = 4.0) -> tuple[bool, list]:
+    """Tap space for 0.1 s every 0.8 s and watch the cube: (it left the ground, the cube's top per frame)."""
     t0, tops, last = time.monotonic(), [], -1
     while time.monotonic() - t0 < seconds:
         button.set((time.monotonic() - t0) % 0.8 < 0.1)
@@ -87,7 +87,7 @@ def tap_test(win, button, seconds: float = 4.0) -> bool:
             if cube:
                 tops.append(cube[0])
     button.set(False)
-    return bool(tops) and min(tops) < max(tops) - 10
+    return bool(tops) and min(tops) < max(tops) - 10, tops
 
 
 def main() -> int:
@@ -124,19 +124,24 @@ def main() -> int:
     with LiveWindow(scale=0.25, width=WIDTH) as win:
         try:
             button = Jump(win.game_pid) if args.press else None
+            front, warned = FrontApp(time.monotonic()), False
             for k in range(int(args.countdown), 0, -1):
                 print(f"starting in {k} s: click into the game window and leave it there", flush=True)
                 time.sleep(1)
             if button and args.tap_test:
-                if not tap_test(win, button):
-                    print("tap test: the cube didn't jump. Is the game window the active one?")
+                ok, tops = tap_test(win, button)
+                seen = f"cube seen in {len(tops)} frames" + (f", top {min(tops)}-{max(tops)} px" if tops else "")
+                if not ok:
+                    print(f"tap test: the cube didn't jump ({seen}; front app {front.name!r}, "
+                          f"changes {front.changes})")
                     return 1
+                print(f"tap test: the cube jumps, the game takes our keys ({seen}; front app {front.name!r})", flush=True)
                 print("tap test: the cube jumps, the game takes our keys", flush=True)
                 eye = Eye()                    # forget the lane the taps made
             print(f"{win.message}\n{mode} · {args.brain} brain · setup {args.setup} · r_ref {args.r_ref:g} "
                   f"steep {args.steep:g} · {args.seconds:g} s, Ctrl+C to stop\n", flush=True)
             t_start = time.monotonic()
-            front, warned = FrontApp(t_start), False
+            front.t0 = t_start
             while not stop and time.monotonic() - t_start < args.seconds:
                 got = win.latest(last_n)
                 if got is None:
