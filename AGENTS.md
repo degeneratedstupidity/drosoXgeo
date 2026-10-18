@@ -19,7 +19,8 @@ relays), #5 + #6 (README "Phase 4d": with +17 ms delay and a retuned alarm 27/30
 Headline wording: "the fly's escape pathway", not "the whole brain".
 **Stretch B works** (README "Stretch B"): the escape pathway (`brain/fastpath.py`, CPU, identical to the GPU "wire"
 setup) plays the real game live: 7/9 attempts past Stereo Madness's opening spikes, silenced and scrambled 0/22 and
-0/21. It dies at the first block section (the eye's limit). Next: teach the eye blocks/pits, more runs, then Phase 6.
+0/21. The block section after that is a planning problem a looming reflex can't solve (README "The block sections":
+eye and clone now know blocks/pits; best one-number rule and the fly both ~20% of terrain levels). Next: Phase 6.
 
 ## How to run
 - Simulator: sibling checkout `../drosophila-brain-mlx/`; its `.venv/bin/python` runs our modules from this repo

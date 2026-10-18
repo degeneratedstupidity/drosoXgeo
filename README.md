@@ -378,9 +378,45 @@ Stereo Madness is roughly 900–1,000 blocks, so ~55 blocks is ~6% of the level 
 - Watch-only replays of two human recordings (`brain/realwatch.py`): real wiring fires before 14/14 and 13/15
   obstacles (clean spikes at 0.28–0.47 blocks; the human jumps at 0.6–1.5), silenced and scrambled 0.
 
-**Limits and next steps:**
-- The eye only knows "something dark or white is in my lane". It dies at the first block section: blocks to jump
-  *onto*, pits (the thorns sit below the lane) and changing floor heights confuse it. Next: teach it those.
-- One 60 s run per brain, one noise seed, one level. More runs and levels before any percentage goes in a post.
+### The block sections: where a reflex stops (2026-10-19)
+**The escape pathway clears spikes in the real game but not Stereo Madness's first block section, and neither does
+the best possible one-number looming rule. Jumping there depends on where you will land, which an escape reflex
+doesn't consider.** The section: two spikes, a 1-block step right after them, then towers rising out of a thorn pit.
+
+- **Recorded the fly's own deaths** (`brain.live --record`): with the spike setting it cleared the double spikes but
+  flew over the step and fell into the pit (3 of 4 deaths; the 4th hit the double spikes late).
+- **Taught the eye** (`brain/realeye.py`): in the air it looks along the rows the cube is in now (before, a block it
+  was flying over stayed at distance 0); standing on something raised, the end of its top above black thorns is an
+  obstacle (checked on both recordings: the edges of platforms and towers over pits). Distance from the cube's true
+  front (centre + half a block), so a rotating cube doesn't read closer.
+- **Taught the clone** (`flydash.FlyDashTerrain`, `--difficulty terrain`): landable blocks, thorn pits, death on
+  block sides, levels built only from Stereo Madness's patterns and each checked beatable by a search over every jump
+  timing. Its observation copies the new eye. The spike-only levels are unchanged (30/30 saved plays identical; the
+  `python3 flydash.py` baselines unchanged). The real jump matches the clone (measured on 7 jumps: 0.443 s in the air,
+  2.2 blocks high; clone 0.45 s, 2.1).
+- **No single takeoff distance fits** (from the jump arc, 33 ms late): a single spike can be cleared from ~0.2 to ~2.4
+  blocks away, three spikes only from 0.17 to 0.45, one spike before a step needs > 1.0 (or you fly over the step),
+  a pit between platforms needs a jump right at the edge. A looming reflex has one threshold.
+- **Tuned on terrain practice levels** (`python -m brain.delay --setup fastwire --difficulty terrain --delays 37,45,50
+  --r-refs 2,3,5,8,12,20,30,50,80 run`; best mean progress over the three delays: r_ref 30, steep 1). 30 unseen
+  terrain levels at 45 ms:
+
+| player | won | mean progress |
+|---|---|---|
+| escape pathway, terrain setting (r_ref 30, steep 1) | 0/30 | **18%** |
+| best one-number looming rule (θ > 0.42) | 0/30 | 20% |
+| escape pathway, spike setting (r_ref 5, steep 1) | 0/30 | 5% |
+| Giant Fiber silenced / scrambled wiring (shuffled0) | 0/30 | 5% (no jumps) |
+
+- **Real game with the terrain setting** (30 s, normal mode): 4/4 attempts past the opening spikes, reaching 52–57
+  blocks as before; but now it lands on the step every time and reaches the first tower in 2 of 4. It dies jumping
+  off too early: the alarm is already up when it lands, so the held key bounces it straight off and it comes down
+  short of the next tower, where a player would wait for the edge.
+- **What it means for the claim:** the fly's escape pathway plays the part of Geometry Dash that is an escape
+  problem (something looms, get away), with the controls failing as they should. The block sections are a planning
+  problem. Learning in the mushroom body (5B) or other visual inputs could in principle add context; future work.
+
+**Other limits:**
+- One 60 s (or 30 s) run per brain, one noise seed, one level. More runs before any percentage goes in a post.
 - The real delay varies (press → rise 15–66 ms); the clone tunes for a fixed one.
 - The game is the Windows build in Wine (Sikarugir); never modified.
