@@ -137,6 +137,8 @@ def main() -> int:
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--countdown", type=float, default=0, help="seconds to wait first (to click into the game)")
     ap.add_argument("--tap-test", action="store_true", help="with --press: first check that taps make the cube jump")
+    ap.add_argument("--record", action="store_true",
+                    help="also save the frames the eye saw (game window only, ~20 MB/s in memory: keep runs short)")
     args = ap.parse_args()
 
     if args.steep is None:
@@ -153,7 +155,7 @@ def main() -> int:
 
     stop = []
     signal.signal(signal.SIGINT, lambda *_: stop.append(1))
-    log, last_n, last_t = [], -1, None
+    log, last_n, last_t, frames = [], -1, None, []
     mode = "PLAYING (pressing space)" if args.press else "WATCH-ONLY (nothing pressed)"
     button = None
     with LiveWindow(scale=0.25, width=WIDTH) as win:
@@ -185,6 +187,8 @@ def main() -> int:
                 t_got = time.monotonic()
                 skipped, last_n = (n - last_n - 1 if last_n >= 0 else 0), n
                 seen = eye(rgb)
+                if args.record:
+                    frames.append(rgb.copy())
                 d = None if seen is None else seen["distance"]
                 rate = (0.0 if seen is None
                         else min(MAX_RATE, args.r_ref * (seen["theta_dot"] / REF_LOOM) ** args.steep))
@@ -246,6 +250,10 @@ def main() -> int:
                                "seed": args.seed, "front_app": front.changes if "front" in locals() else [],
                                "frames": log}))
     print(f"wrote {out}")
+    if args.record and frames:
+        rec = out.with_suffix(".npz")
+        np.savez_compressed(rec, frames=np.stack(frames), t=np.array([r["t"] for r in log[: len(frames)]]))
+        print(f"wrote {rec} ({len(frames)} frames; python -m brain.realeye {rec} draws what the eye saw)")
     return 0
 
 

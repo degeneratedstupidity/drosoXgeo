@@ -6,17 +6,23 @@ front edge to the next obstacle in blocks (capped at 12), and theta_dot, how fas
 How it reads a frame:
   1. cube    the player's icon is found by its lime-green colour (Rajan's icon: lime square, cyan centre). The
              camera follows the cube, so it sits at the same x on screen while playing.
-  2. lane    the rows the cube occupies the last time it stood still on something (same height two frames in a row).
-             Mid-jump we keep looking along that lane, as Fly Dash does: its spikes are always on the floor.
-  3. ahead   in the lane, right of the cube, the first column with obstacle pixels: near-black (spikes, thorns) or
-             bright white (the outlines of spikes and blocks). The background is saturated blue/purple, so neither
-             shows up there.
-  4. blocks  pixels -> blocks with the cube's size. The lime square is the icon without its black outline, so one
+  2. band    the rows to look along. Standing (same height two frames in a row): the cube's rows, its "lane". In the
+             air: the rows the cube is in now, so whatever it is flying over stops counting (looking along the old
+             lane kept a block it was passing over at distance 0, the alarm stayed on, and the held key made the cube
+             jump again the moment it landed).
+  3. ahead   in the band, from the cube's front (its centre + half a block, the same whether or not it is rotating),
+             the first column with obstacle pixels: near-black (spikes, thorns) or bright white (the outlines of
+             spikes and blocks). The background is saturated blue/purple, so neither shows up there.
+  4. pits    standing on something raised (above the usual floor), the strip just under the lane is its top. Where
+             that support ends and black thorns lie below, the edge is an obstacle too: the jump has to happen there,
+             not at the next tower's wall.
+  5. blocks  pixels -> blocks with the cube's size. The lime square is the icon without its black outline, so one
              block is 1.135 lime widths: that factor makes the measured approach speed 10.4 blocks/s, the game's
              normal speed (fitted on 14 approaches in the first recording).
+  The distance is the nearer of 3 and 4, capped at 12 blocks.
 
-Known gaps (Stereo Madness first; check before trusting it elsewhere): pits are invisible (the thorns sit below the
-lane), and an obstacle the cube will land on looks the same as one it must jump over.
+Known gaps (Stereo Madness first; check before trusting it elsewhere): a block to land on looks the same as one to
+jump over (both mean "jump", which is right for the cube); drops without thorns are ignored; no ship/ball modes.
 
     python -m brain.realeye results/realgame/rec_YYYYMMDD-HHMMSS.npz     # trace + annotated contact sheet
 """
@@ -101,6 +107,7 @@ class Eye:
         self.prev_bottom = None
         self.sizes = Counter()          # box sizes of dense (upright-looking) detections
         self.unit = None                # the upright cube's lime size: the most common of those (rotated = bigger)
+        self.floors = Counter()         # lane bottoms seen while standing; the most common is the ground
 
     def __call__(self, rgb: np.ndarray) -> dict | None:
         found = _find_cube(rgb)
@@ -118,32 +125,64 @@ class Eye:
             self.prev_bottom = None
             return None
         upright = size <= 1.08 * self.unit                             # a rotated cube's box is bigger
-        if upright and self.prev_bottom is not None and abs(bottom - self.prev_bottom) <= 1:
+        standing = upright and self.prev_bottom is not None and abs(bottom - self.prev_bottom) <= 1
+        if standing:
             self.lane = (top, bottom, size)
+            self.floors[bottom] += 1
         self.prev_bottom = bottom
         if self.lane is None:
             return None
-        lt, lb, lime = self.lane
-        trim, gap = max(1, round(0.05 * lime)), max(2, round(0.13 * lime))   # skip the lane's edges, the cube's outline
-        band = rgb[lt + trim: lb - trim + 1, right + 1 + gap:].astype(np.int16)
+        lime = self.unit
+        block_px = BLOCK_PER_LIME * lime
+        trim = max(1, round(0.05 * lime))                              # skip the band's edges
+        if standing:
+            bt, bb = top, bottom
+        else:                                                          # in the air: where the cube is now
+            mid = (top + bottom) // 2
+            bt, bb = mid - lime // 2, mid + lime // 2
+        front = (left + right) // 2 + round(block_px / 2)              # the cube's front edge, rotating or not
+        clear = max(front, right + max(2, round(0.13 * lime))) + 1     # look past the cube's own outline/corners
+        band = rgb[max(0, bt + trim): bb - trim + 1, clear:].astype(np.int16)
         hit = (band.max(-1) < 40) | (band.min(-1) > 235)
         cols = np.flatnonzero(hit.sum(0) >= 2)
-        block_px = BLOCK_PER_LIME * lime
-        d = (cols[0] + gap) / block_px if len(cols) else VIEW
+        wall = clear + int(cols[0]) if len(cols) else None
+        edge = self._pit_edge(rgb, bb, clear, block_px) if standing else None
+        ahead = [x for x in (wall, edge) if x is not None]
+        d = (min(ahead) - front) / block_px if ahead else VIEW
         d = min(max(d, 0.05), VIEW)
-        return {"distance": d, "theta_dot": flydash.SPEED / (d * d + 0.25), "cube": cube, "lane": (lt, lb),
-                "block_px": block_px, "obstacle_x": None if not len(cols) else int(right + 1 + gap + cols[0])}
+        nearest = None if not ahead else min(ahead)
+        return {"distance": d, "theta_dot": flydash.SPEED / (d * d + 0.25), "cube": cube, "lane": (bt, bb),
+                "block_px": block_px, "obstacle_x": nearest, "pit": edge is not None and edge == min(ahead)}
+
+    def _pit_edge(self, rgb: np.ndarray, lane_bottom: int, front: int, block_px: float) -> int | None:
+        """Standing on something raised: the x where its top ends with black thorns below, or None."""
+        ground = self.floors.most_common(1)[0][0]
+        if lane_bottom > ground - 0.5 * block_px:                      # on the usual floor: nothing to fall off
+            return None
+        depth = max(2, round(0.2 * block_px))
+        strip = rgb[lane_bottom + 1: lane_bottom + 1 + depth, front + 1:].astype(np.int16)
+        support = ((strip.max(-1) < 110) | (strip.min(-1) > 200)).any(0)   # block top: white outline or dark fill
+        run = max(2, round(0.25 * block_px))                           # a gap at least a quarter block wide
+        missing = np.convolve(~support, np.ones(run, dtype=int), "valid") == run
+        starts = np.flatnonzero(missing)
+        if not len(starts):
+            return None
+        x = front + 1 + int(starts[0])
+        below = rgb[lane_bottom + 1:, x: x + round(1.5 * block_px)].astype(np.int16)
+        thorns = (below.max(-1) < 40).sum()
+        return x if thorns >= 3 else None
 
 
 def _mark(img: np.ndarray, seen: dict | None) -> np.ndarray:
-    """Draw the lane (yellow) and the detected obstacle edge (red) on a copy."""
+    """Draw the band looked along (yellow) and the nearest obstacle (red: a wall or spike, cyan: a pit edge)."""
     img = img.copy()
     if seen:
         lt, lb = seen["lane"]
         x0 = seen["cube"][3]
-        img[lt: lt + 2, x0:], img[lb - 1: lb + 1, x0:] = (255, 230, 0), (255, 230, 0)
+        img[max(0, lt): lt + 2, x0:], img[lb - 1: lb + 1, x0:] = (255, 230, 0), (255, 230, 0)
         if seen["obstacle_x"] is not None:
-            img[max(0, lt - 15): lb + 15, seen["obstacle_x"]: seen["obstacle_x"] + 4] = (255, 0, 0)
+            colour = (0, 255, 255) if seen.get("pit") else (255, 0, 0)
+            img[max(0, lt - 15): lb + 15, seen["obstacle_x"]: seen["obstacle_x"] + 4] = colour
     return img
 
 
