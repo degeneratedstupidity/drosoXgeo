@@ -16,8 +16,8 @@ game time we missed, so the brain stays in step with the game but decides late. 
 (time from capture to decision) to results/realgame/live_*.json; that lag is the number Phase 4d says matters
 (fine to ~33 ms with the alarm retuned, broken by 50 ms).
 
-Key presses go only to the game's process (CGEventPostToPid), never to whatever window has focus. --press needs the
-Accessibility permission for the app running this (System Settings > Privacy & Security > Accessibility).
+Key presses go through FlyJump.app (brain/flyapps.py): space only, sent only to the game's process, never to whatever
+window has focus. FlyJump holds the Accessibility permission itself; Python and the IDE need none.
 
     python -m brain.live --seconds 60                 # watch-only: you play, the terminal shows "WOULD JUMP"
     python -m brain.live --seconds 60 --press         # the fly plays
@@ -26,7 +26,6 @@ Accessibility permission for the app running this (System Settings > Privacy & S
 from __future__ import annotations
 
 import argparse
-import ctypes
 import json
 import signal
 import sys
@@ -39,38 +38,11 @@ from brain.fastpath import FastPathway
 from brain.player import MAX_RATE, REF_LOOM, load
 from brain.paths import RESULTS
 from brain.realeye import Eye
-from brain.screen import game_pid
 from brain.stepper import Brain
+from brain.flyapps import Jump
 from brain.stream import LiveWindow
 
 TICK = 1e-4                                   # s
-SPACE = 49                                    # macOS virtual key code
-
-_cg = ctypes.CDLL("/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics")
-_cg.CGEventCreateKeyboardEvent.restype = ctypes.c_void_p
-_cg.CGEventCreateKeyboardEvent.argtypes = [ctypes.c_void_p, ctypes.c_uint16, ctypes.c_bool]
-_cg.CGEventPostToPid.argtypes = [ctypes.c_int, ctypes.c_void_p]
-_cf = ctypes.CDLL("/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation")
-_cf.CFRelease.argtypes = [ctypes.c_void_p]
-_ax = ctypes.CDLL("/System/Library/Frameworks/ApplicationServices.framework/ApplicationServices")
-_ax.AXIsProcessTrusted.restype = ctypes.c_bool
-
-
-class Button:
-    """The jump key, sent to one process only."""
-
-    def __init__(self, pid: int):
-        if not _ax.AXIsProcessTrusted():
-            raise SystemExit("--press needs the Accessibility permission for the app running this "
-                             "(System Settings > Privacy & Security > Accessibility)")
-        self.pid, self.down = pid, False
-
-    def set(self, down: bool):
-        if down != self.down:
-            ev = _cg.CGEventCreateKeyboardEvent(None, SPACE, down)
-            _cg.CGEventPostToPid(self.pid, ev)
-            _cf.CFRelease(ev)
-            self.down = down
 
 
 def main() -> int:
@@ -95,14 +67,14 @@ def main() -> int:
         brain = Brain(pack, {"LPLC2": idx["LPLC2"], "LC4": idx["LC4"]}, monitor=idx["DNp01"], lesion=lesion,
                       seed=args.seed)
     brain.step(167, {"LPLC2": 0.0, "LC4": 0.0})            # warm up (the GPU model compiles its kernels here)
-    button = Button(game_pid()) if args.press else None
     eye = Eye()
 
     stop = []
     signal.signal(signal.SIGINT, lambda *_: stop.append(1))
     log, last_n, last_t = [], -1, None
-    mode = "PLAYING (pressing space)" if button else "WATCH-ONLY (nothing pressed)"
+    mode = "PLAYING (pressing space)" if args.press else "WATCH-ONLY (nothing pressed)"
     with LiveWindow() as win:
+        button = Jump(win.game_pid) if args.press else None
         print(f"{win.message}\n{mode} · {args.brain} brain · setup {args.setup} · r_ref {args.r_ref:g} steep {args.steep:g} · "
               f"{args.seconds:g} s, Ctrl+C to stop\n", flush=True)
         t_start = time.monotonic()
@@ -129,7 +101,7 @@ def main() -> int:
                 print(f"{t_cap - t_start:7.2f} s  {'JUMP' if button else 'WOULD JUMP'}  {gf} spike{'s' * (gf > 1)}"
                       f"  next obstacle {d:.2f} blocks  lag {log[-1]['lag_ms']:.0f} ms", flush=True)
         if button:
-            button.set(False)
+            button.close()
 
     lag = np.array([r["lag_ms"] for r in log])
     on = np.array([r["lag_ms"] for r in log if r["alarm_hz"] > 1])

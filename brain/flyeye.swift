@@ -1,14 +1,17 @@
-// gdcapture: stream the Geometry Dash window, and nothing else, to stdout with ScreenCaptureKit.
+// FlyEye: stream the Geometry Dash window, and nothing else, with ScreenCaptureKit.
 //
-// Built and started by brain/stream.py (swiftc, no downloads). The window is picked by its title; the filter is
-// "this one window" (desktopIndependentWindow), so other windows never reach us, even where they overlap it.
-// If the window isn't found we exit instead of falling back to the screen.
+// Built into its own app (~/Applications/FlyEye.app) by brain/flyapps.py and launched through macOS's `open`, so the
+// Screen Recording permission belongs to this app alone, not to the terminal or IDE that runs the Python side.
+// The window is picked by its title; the filter is "this one window" (desktopIndependentWindow), so other windows
+// never reach us, even where they overlap it. If the window isn't found we exit instead of falling back to the screen.
 //
-// Output, per frame: a 32-byte header, then height * width * 4 bytes of BGRA pixels (no row padding).
+// stderr (a log file): one status line, "streaming window <id> pid <game pid> self <own pid> ...", or the error.
+// stdout (a named pipe), per frame: a 32-byte header, then height * width * 4 bytes of BGRA pixels (no row padding).
 //   header: "GDFR" | u32 frame number | f64 capture time (s) | f64 send time (s) | u32 width | u32 height
 // Both times are on the host clock (mach_absolute_time), the clock Python's time.monotonic() uses on macOS.
+// When the reader closes the pipe, the next write fails and FlyEye exits.
 //
-//   gdcapture [--title "Geometry Dash"] [--scale 0.5] [--fps 60]
+//   FlyEye [--title "Geometry Dash"] [--scale 0.5] [--fps 60]
 
 import AppKit
 import CoreMedia
@@ -65,7 +68,7 @@ final class Sink: NSObject, SCStreamOutput, SCStreamDelegate {
     }
 }
 
-_ = NSApplication.shared   // connects this command-line tool to the window server, which ScreenCaptureKit needs
+_ = NSApplication.shared   // connects this tool to the window server, which ScreenCaptureKit needs
 
 let sink = Sink()
 var stream: SCStream?
@@ -87,13 +90,17 @@ Task {
         cfg.queueDepth = 3
         cfg.showsCursor = false
         let s = SCStream(filter: filter, configuration: cfg, delegate: sink)
-        try s.addStreamOutput(sink, type: .screen, sampleHandlerQueue: DispatchQueue(label: "gdcapture"))
+        try s.addStreamOutput(sink, type: .screen, sampleHandlerQueue: DispatchQueue(label: "flyeye"))
         try await s.startCapture()
         stream = s
-        log("streaming window \(win.windowID) \"\(title)\" of \(win.owningApplication?.applicationName ?? "?"): "
-            + "\(Int(win.frame.width))x\(Int(win.frame.height)) points -> \(cfg.width)x\(cfg.height) px, up to \(fps) fps")
+        let pid = win.owningApplication?.processID ?? -1
+        log("streaming window \(win.windowID) pid \(pid) self \(getpid()) \"\(title)\" of "
+            + "\(win.owningApplication?.applicationName ?? "?"): \(Int(win.frame.width))x\(Int(win.frame.height)) points "
+            + "-> \(cfg.width)x\(cfg.height) px, up to \(fps) fps")
     } catch {
-        log("could not start capture: \(error.localizedDescription)"); exit(1)
+        log("could not start capture: \(error.localizedDescription) "
+            + "(System Settings > Privacy & Security > Screen & System Audio Recording: allow FlyEye, then retry)")
+        exit(1)
     }
 }
 

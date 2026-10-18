@@ -31,7 +31,7 @@ from pathlib import Path
 import numpy as np
 
 import flydash
-from brain.screen import write_png
+from brain.png import write_png
 
 BLOCK_PER_LIME = 1.135                  # one block in lime-square widths (see 4. above)
 VIEW = flydash.VIEW                     # blocks; farther than this counts as "nothing ahead"
@@ -107,7 +107,7 @@ def _mark(img: np.ndarray, seen: dict | None) -> np.ndarray:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("recording", type=Path, help="an .npz from python -m brain.screen record")
+    ap.add_argument("recording", type=Path, help="an .npz from python -m brain.stream record")
     ap.add_argument("--sheet", type=int, default=12, help="frames on the annotated contact sheet")
     args = ap.parse_args()
 

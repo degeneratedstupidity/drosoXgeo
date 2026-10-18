@@ -1,11 +1,9 @@
-"""A live feed of the Geometry Dash window, through ScreenCaptureKit (brain/gdcapture.swift).
+"""A live feed of the Geometry Dash window, through ScreenCaptureKit (FlyEye.app, brain/flyeye.swift).
 
-brain.screen asks macOS for a fresh snapshot each time (~25 ms). Here a small Swift helper subscribes to the game
-window once and macOS hands it every new frame as the game draws it; a background thread here keeps the newest one.
-Same rule as brain.screen: only the game window is captured (the helper's filter is that one window).
-
-The helper is compiled on first use with the Swift compiler that comes with Xcode's command line tools
-(swiftc, nothing downloaded) into results/bin/gdcapture.
+Asking macOS for a fresh snapshot each time costs ~25 ms. Instead FlyEye subscribes to the game window once and
+macOS hands it every new frame as the game draws it (~4 ms old when Python gets it); a background thread here keeps
+the newest one. Only the game window is captured (FlyEye's filter is that one window). FlyEye is its own app with
+its own Screen Recording permission (see brain/flyapps.py); Python needs none.
 
     python -m brain.stream info                      # frames per second and how old a frame is when we get it
     python -m brain.stream record --seconds 20       # 60 fps recording -> results/realgame/rec_*.npz
@@ -14,29 +12,21 @@ The helper is compiled on first use with the Swift compiler that comes with Xcod
 from __future__ import annotations
 
 import argparse
+import os
+import re
+import signal
 import struct
-import subprocess
 import sys
 import threading
 import time
-from pathlib import Path
 
 import numpy as np
 
+from brain import flyapps
 from brain.paths import RESULTS
 
-SOURCE = Path(__file__).with_name("gdcapture.swift")
-BINARY = RESULTS / "bin" / "gdcapture"
 OUT = RESULTS / "realgame"
 HEADER = struct.Struct("<4sIddII")                  # magic, frame number, capture time, send time, width, height
-
-
-def build() -> Path:
-    """Compile the helper if it's missing or older than its source."""
-    if not BINARY.exists() or BINARY.stat().st_mtime < SOURCE.stat().st_mtime:
-        BINARY.parent.mkdir(parents=True, exist_ok=True)
-        subprocess.run(["swiftc", "-O", "-swift-version", "5", str(SOURCE), "-o", str(BINARY)], check=True)
-    return BINARY
 
 
 def _read_exact(f, n: int) -> bytes | None:
@@ -50,26 +40,38 @@ def _read_exact(f, n: int) -> bytes | None:
 
 
 class LiveWindow:
-    """Starts the helper; .latest() returns (frame number, capture time, received time, RGB array) or None."""
+    """Starts FlyEye; .latest() returns (frame number, capture time, received time, RGB array) or None.
+    .game_pid is the game's process (for FlyJump)."""
 
     def __init__(self, scale: float = 0.5, fps: float = 60.0, title: str = "Geometry Dash"):
-        self.proc = subprocess.Popen([str(build()), "--title", title, "--scale", str(scale), "--fps", str(fps)],
-                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=0)
-        self.message = self.proc.stderr.readline().decode().strip()   # "streaming window ..." or the error
-        if self.proc.poll() is not None or not self.message.startswith("streaming"):
-            self.proc.kill()
-            raise SystemExit(f"gdcapture: {self.message or 'exited'}")
+        pipe = flyapps._fifo("flyeye.out")
+        box = []
+        opener = threading.Thread(target=lambda: box.append(open(pipe, "rb", buffering=0)), daemon=True)
+        opener.start()                         # opening a pipe waits for the other side, so start before launching
+        log = flyapps.launch("FlyEye", ["--title", title, "--scale", str(scale), "--fps", str(fps)], stdout=pipe)
+        self.message = flyapps.wait_for_status(log, "streaming")
+        self.game_pid = int(re.search(r"\bpid (\d+)", self.message).group(1))
+        self.app_pid = flyapps.own_pid(self.message)
+        opener.join(10.0)
+        if not box:
+            raise SystemExit("FlyEye started but never opened its output pipe")
+        self.f = box[0]
         self._latest = None
         self._cond = threading.Condition()
         self.received = 0
         threading.Thread(target=self._pump, daemon=True).start()
 
     def _pump(self):
-        f = self.proc.stdout
+        try:
+            self._read_frames(self.f)
+        except (ValueError, OSError):          # close() closed the pipe under us: the normal way to stop
+            pass
+
+    def _read_frames(self, f):
         while (head := _read_exact(f, HEADER.size)) is not None:
             magic, n, t_cap, _t_send, w, h = HEADER.unpack(head)
             if magic != b"GDFR":
-                raise RuntimeError("gdcapture stream out of sync")
+                raise RuntimeError("FlyEye stream out of sync")
             px = _read_exact(f, w * h * 4)
             if px is None:
                 break
@@ -89,7 +91,12 @@ class LiveWindow:
         return n, t_cap, t_recv, rgb
 
     def close(self):
-        self.proc.terminate()
+        self.f.close()                         # FlyEye's next write fails and it exits
+        if self.app_pid:
+            try:
+                os.kill(self.app_pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
 
     def __enter__(self):
         return self
