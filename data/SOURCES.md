@@ -10,6 +10,17 @@
 Escape-circuit neurons in this data: 210 LPLC2, 104 LC4, 2 DNp01 / Giant Fiber
 (720575940632499757, 720575940622838154). All of them are in the simulation.
 
+## FlyWire Codex downloads (2026-10-19, `codex/`, gitignored, 16 GB)
+Downloaded by Rajan from https://codex.flywire.ai/api/download (FAFB v783, Google sign-in). Used so far:
+- `column_assignment.csv.gz`: 45,528 columnar optic-lobe neurons placed on each eye's hexagonal column grid
+  (`brain/receptive.py` derives LPLC2/LC4 receptive fields from it). From the FlyWire visual system paper:
+  Matsliah et al. 2024, *Nature*, "Neuronal parts list and wiring diagram for a visual system" (cite when used).
+- `synapse_coordinates.csv.gz`: synapse positions (nm); a neuron's ID is only on its first row. Used to measure
+  which way the column grid's axes point in the brain.
+- Also there, unused so far: connection tables (princeton/buhmann, thresholded or not), the full synapse table
+  (2.5 GB), cell types, classifications, labels, neuropil synapse counts, and skeletons (`sk_lod1_783_healed.zip`,
+  13 GB). Same license as the rest of FlyWire: CC BY-NC 4.0.
+
 ## Cite these when you post
 - Dorkenwald et al. 2024, *Nature*: "Neuronal wiring diagram of an adult brain" (FlyWire connectome)
 - Schlegel et al. 2024, *Nature*: "Whole-brain annotation and multi-connectome cell typing of Drosophila" (cell types)

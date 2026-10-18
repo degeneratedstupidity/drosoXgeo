@@ -1,4 +1,5 @@
 # --- connectome data: 131 MB, CC BY-NC 4.0, re-downloadable (see data/SOURCES.md) ---
+codex/
 data/*.parquet
 data/*.csv
 data/*.tsv
