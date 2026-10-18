@@ -14,6 +14,8 @@ game the same number of frames late (its threshold retuned on the same practice 
     python -m brain.delay run               # resumable, 4 jobs at a time
     python -m brain.delay summary           # -> figures/delay_sweep_<setup>.json and .svg
     python -m brain.delay --setup wire run  # any brain.player setup
+    python -m brain.delay --setup fastwire --delays 0,37,45,50 run   # the escape pathway on the CPU (brain.fastpath,
+                                            # identical to "wire", ~3.5x faster), at the real game's measured lag
 """
 
 from __future__ import annotations
@@ -36,6 +38,7 @@ from brain.tune import PRACTICE, STEEP, TEST
 DELAYS = (0, 17, 33, 50)
 R_REF = [2, 3, 5, 8, 12, 20, 30]
 FIXED = (5, 2)                                # Phase 3's choice for the real brain, delay 0
+FIXED_FOR = {"wire": (5, 1), "fastwire": (5, 1)}   # Phase 4b's choice for the escape pathway, delay 0
 CHUNKS = [list(TEST)[i:i + 10] for i in range(0, len(TEST), 10)]
 
 
@@ -50,9 +53,15 @@ def job_path(setup, stage, delay, r_ref, steep, seeds):
 def play(setup, stage, delay, r_ref, steep, seeds):
     from brain import neurons
     from brain.player import gain_for, load, play_level, silence_for
+    fast = setup == "fastwire"
+    if fast:
+        setup = "wire"
     pack, lesion = load(setup)
     idx = neurons.indices(pack)
     silence = silence_for(setup, pack, idx)
+    if fast:
+        from brain.fastpath import use_in_player
+        use_in_player(idx)
     length = 150.0 if stage == "practice" else 300.0
     rows = []
     for s in seeds:
@@ -62,7 +71,7 @@ def play(setup, stage, delay, r_ref, steep, seeds):
         rows.append(r)
         print(f"{setup} delay {delay} ms {stage} level {s} r_ref {r_ref:g} steep {steep:g}: "
               f"{'WON ' if r['won'] else 'died'} at {r['progress']:4.0%}, {r['jumps']} jumps", flush=True)
-    path = job_path(setup, stage, delay, r_ref, steep, seeds)
+    path = job_path("fastwire" if fast else setup, stage, delay, r_ref, steep, seeds)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(rows))
 
@@ -184,7 +193,7 @@ def summary(setup: str):
         t, f, o = row["brain_tuned"], row["brain_fixed"], row["one_number"]
         mt = "-" if t["median_takeoff"] is None else f"{t['median_takeoff']:.2f}"
         print(f"delay {d:>2} ms: brain retuned (r_ref {best['r_ref']:g}, steep {best['steep']:g}) {t['won']:>2}/30, "
-              f"takeoff {mt} blocks | brain at r_ref 5 steep 2 {f['won']:>2}/30 | "
+              f"takeoff {mt} blocks | brain at r_ref {FIXED[0]:g} steep {FIXED[1]:g} {f['won']:>2}/30 | "
               f"one-number rule (theta > {o['theta_threshold']:.2f}) {o['won']:>2}/30")
     path = FIGURES / f"delay_sweep_{setup}.json"
     path.write_text(json.dumps(out, indent=2) + "\n")
@@ -232,6 +241,7 @@ def chart(out):
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--setup", default="real")
+    ap.add_argument("--delays", default=None, help="comma-separated, ms (default 0,17,33,50)")
     sub = ap.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("play")
     p.add_argument("stage", choices=["practice", "test"])
@@ -243,6 +253,10 @@ def main() -> int:
     r.add_argument("--workers", type=int, default=4)
     sub.add_parser("summary")
     a = ap.parse_args()
+    global DELAYS, FIXED
+    if a.delays:
+        DELAYS = tuple(int(d) for d in a.delays.split(","))
+    FIXED = FIXED_FOR.get(a.setup, FIXED)
     if a.cmd == "play":
         lo, hi = map(int, a.seeds.split("-"))
         play(a.setup, a.stage, a.delay, a.r_ref, a.steep, list(range(lo, hi + 1)))

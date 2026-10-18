@@ -96,6 +96,17 @@ class FastPathway:
         return out
 
 
+def use_in_player(idx: dict):
+    """Make brain.player build FastPathway instead of the GPU brain (for the "wire" setup: identical results)."""
+    from brain import player
+
+    def fast_brain(pack, inputs, monitor, lesion=(), silence=(), seed=0, gain=1.0):
+        assert gain == 1.0 and len(lesion) == 0
+        return FastPathway(pack, idx, seed=seed)
+
+    player.Brain = fast_brain                               # BrainPlayer builds its brain through this name
+
+
 def replay_levels(noise: int, difficulty: str) -> int:
     """Play the 30 unseen levels of one noise draw and difficulty with FastPathway in place of the GPU brain, and
     compare with the saved GPU plays of the wire setup (results/noise_seeds/wire): wins and every takeoff distance."""
@@ -106,11 +117,7 @@ def replay_levels(noise: int, difficulty: str) -> int:
     pack, _ = player.load("real")
     idx = neurons.indices(pack)
 
-    def fast_brain(pack, inputs, monitor, lesion=(), silence=(), seed=0, gain=1.0):
-        assert gain == 1.0 and len(lesion) == 0
-        return FastPathway(pack, idx, seed=seed)
-
-    player.Brain = fast_brain                               # BrainPlayer builds its brain through this name
+    use_in_player(idx)
     s = chosen("wire")
     same = 0
     for block in ("100-109", "110-119", "120-129"):

@@ -108,6 +108,7 @@ def main() -> int:
                 ms = lambda a, b: round((b - a) * 1000, 2)
                 log.append({"n": n, "skipped": skipped, "t": round(t_cap - t_start, 4),
                             "distance": None if d is None else round(d, 3), "alarm_hz": round(rate, 2),
+                            "cube_top": None if seen is None else seen["cube"][0], "pressed": bool(button and gf > 0),
                             "ticks": ticks, "gap_ticks": gap, "gf": gf,
                             "deliver_ms": ms(t_cap, t_recv),   # FlyEye -> pipe -> Python
                             "wait_ms": ms(t_recv, t_got),      # frame sat here while we were busy with the last one
