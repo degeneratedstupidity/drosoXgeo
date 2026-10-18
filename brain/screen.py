@@ -66,7 +66,7 @@ _sig(_cf, "CFDataGetLength", ctypes.c_long, _V)
 _sig(_cf, "CFRelease", None, _V)
 
 _KEYS = {k: _cf.CFStringCreateWithCString(None, k.encode(), _UTF8)
-         for k in ("kCGWindowNumber", "kCGWindowOwnerName", "kCGWindowName", "kCGWindowBounds")}
+         for k in ("kCGWindowNumber", "kCGWindowOwnerName", "kCGWindowOwnerPID", "kCGWindowName", "kCGWindowBounds")}
 
 
 def _str(ref) -> str:
@@ -84,6 +84,16 @@ def _int(ref) -> int:
 
 def find_game_window(owner: str = "wine", title: str = "Geometry Dash") -> tuple[int, _Rect]:
     """(window ID, bounds in screen points) of the game's window, on any desktop. Raises if it isn't there."""
+    wid, bounds, _pid = _find(owner, title)
+    return wid, bounds
+
+
+def game_pid(owner: str = "wine", title: str = "Geometry Dash") -> int:
+    """Process ID of the program that owns the game's window (where key presses are sent)."""
+    return _find(owner, title)[2]
+
+
+def _find(owner: str, title: str) -> tuple[int, _Rect, int]:
     if not _cg.CGPreflightScreenCaptureAccess():
         raise SystemExit("no Screen Recording permission for this app (System Settings > Privacy & Security)")
     arr = _cg.CGWindowListCopyWindowInfo(_ALL, 0)  # window metadata only, every desktop (Space): no pixels
@@ -95,7 +105,8 @@ def find_game_window(owner: str = "wine", title: str = "Geometry Dash") -> tuple
                 r = _Rect()
                 _cg.CGRectMakeWithDictionaryRepresentation(_cf.CFDictionaryGetValue(d, _KEYS["kCGWindowBounds"]),
                                                            ctypes.byref(r))
-                return _int(_cf.CFDictionaryGetValue(d, _KEYS["kCGWindowNumber"])), r
+                return (_int(_cf.CFDictionaryGetValue(d, _KEYS["kCGWindowNumber"])), r,
+                        _int(_cf.CFDictionaryGetValue(d, _KEYS["kCGWindowOwnerPID"])))
     finally:
         _cf.CFRelease(arr)
     raise SystemExit(f"no window {title!r} owned by {owner!r}: is the game running? (open geometrydash.app)")
