@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from collections import Counter
 import re
 import signal
 import subprocess
@@ -73,6 +74,40 @@ class FrontApp:
                 self.name = name
                 self.changes.append({"t": round(time.monotonic() - self.t0, 3), "front": name})
             time.sleep(0.25)
+
+
+RESPAWN_S = 1.07                              # s from death to respawn (Stereo Madness, normal mode: measured)
+
+
+def attempts(frames: list[dict]) -> list[float]:
+    """Blocks reached in each complete attempt (normal mode, so every attempt starts at 0%).
+
+    An attempt starts when the cube respawns, which the game shows as a burst of blinks: the cube flickers on and
+    off every ~50 ms at ground height with nothing ahead. Counting deaths instead is unreliable: explosion pieces
+    can look like the cube, and the cube flickers mid-jump when rotated. Blocks reached = (time to the next
+    respawn - the death-to-respawn pause) * 10.4 blocks/s."""
+    t, top = [r["t"] for r in frames], [r["cube_top"] for r in frames]
+    seen = [x for x in top if x is not None]
+    if not seen:
+        return []
+    ground = Counter(seen).most_common(1)[0][0]
+    short, i = [], 0                                   # start times of short gaps that end on the ground
+    while i < len(frames):
+        if top[i] is None:
+            j = i
+            while j < len(frames) and top[j] is None:
+                j += 1
+            if (j < len(frames) and t[j] - t[i] < 0.1 and abs(top[j] - ground) <= 2
+                    and frames[j]["distance"] is not None and frames[j]["distance"] >= 12):
+                short.append(t[i])
+            i = j
+        else:
+            i += 1
+    starts = []
+    for s in short:
+        if sum(0 <= x - s < 0.4 for x in short) >= 3 and (not starts or s - starts[-1] > 0.6):
+            starts.append(s)
+    return [round((b - a - RESPAWN_S) * 10.4, 1) for a, b in zip(starts, starts[1:])]
 
 
 def tap_test(win, button, seconds: float = 4.0) -> tuple[bool, list]:
@@ -198,6 +233,10 @@ def main() -> int:
           + (f"; alarm on: median {np.median(on):.1f}, p95 {np.percentile(on, 95):.1f} ms" if len(on) else ""))
     parts = ", ".join(f"{k[:-3]} {np.median([r[k] for r in log]):.1f}" for k in ("deliver_ms", "wait_ms", "eye_ms", "brain_ms"))
     print(f"where the lag goes (median ms): {parts}")
+    reached = attempts(log)
+    if reached:
+        print(f"complete attempts: {len(reached)}; blocks reached: {reached}; past the first spike (> 20 blocks): "
+              f"{sum(r > 20 for r in reached)}/{len(reached)}")
     if args.press:
         print("front app during the run: " + ", ".join(f"{c['front']} from {c['t']:.1f} s" for c in front.changes))
     out = (RESULTS / "realgame" /
