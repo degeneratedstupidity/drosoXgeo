@@ -37,9 +37,11 @@ NEVER = 2**30                      # refractory ticks for a lesioned neuron (~30
 class Brain:
     def __init__(self, pack: core.Pack, inputs: dict[str, np.ndarray], monitor: np.ndarray,
                  silence: np.ndarray = (), lesion: np.ndarray = (), seed: int = 0,
-                 edge_split: int = 1):
+                 edge_split: int = 1, gain: float = 1.0):
         """inputs: group name -> neuron indices that receive Poisson input.
-        monitor: neuron indices whose every spike is reported, tick by tick."""
+        monitor: neuron indices whose every spike is reported, tick by tick.
+        gain: multiplies every synapse's weight (1 = the validated model). Only the
+        gain-matched shuffle control uses another value."""
         self.pack, self.edge_split = pack, edge_split
         N = pack.n_neurons
         self.groups = {k: np.asarray(v, dtype=np.int32) for k, v in inputs.items()}
@@ -65,7 +67,8 @@ class Brain:
         rfc0[lesion] = NEVER
         self.rfc_reload = mx.array(reload)
 
-        cf = core.constants_f32()
+        cf = dict(core.constants_f32())
+        cf["w_syn"] = np.float32(cf["w_syn"] * gain)
         self.k = [mx.array([float(cf[n])], dtype=mx.float32)
                   for n in ("v0_term", "couple_g", "decay_v", "decay_g", "v_th", "w_syn", "w_ext", "v_0")]
         self.n_arr = mx.array([N], dtype=mx.uint32)

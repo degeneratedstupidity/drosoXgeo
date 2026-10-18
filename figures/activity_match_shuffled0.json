@@ -1,0 +1,583 @@
+{
+  "brain": "shuffled0",
+  "target_spikes": 273725.2,
+  "gain": 2.8284271247461903,
+  "setting": {
+    "n_driven": 300,
+    "rate_hz": 100.0,
+    "ticks": 10000,
+    "draws": 5
+  },
+  "search": [
+    {
+      "brain": "real",
+      "gain": 1.0,
+      "spikes_rest": 273725.2,
+      "active_rest": 5550.0,
+      "trials": [
+        {
+          "driven_hz": 99.01333333333334,
+          "spikes_rest": 444467,
+          "active_rest": 8748,
+          "wall_s": 2.8
+        },
+        {
+          "driven_hz": 99.64666666666666,
+          "spikes_rest": 3194,
+          "active_rest": 454,
+          "wall_s": 1.7
+        },
+        {
+          "driven_hz": 98.94333333333333,
+          "spikes_rest": 14346,
+          "active_rest": 1271,
+          "wall_s": 2.1
+        },
+        {
+          "driven_hz": 99.49666666666667,
+          "spikes_rest": 456423,
+          "active_rest": 8538,
+          "wall_s": 2.8
+        },
+        {
+          "driven_hz": 99.51333333333334,
+          "spikes_rest": 450196,
+          "active_rest": 8739,
+          "wall_s": 2.8
+        }
+      ]
+    },
+    {
+      "brain": "shuffled0",
+      "gain": 2.0,
+      "spikes_rest": 17020.0,
+      "active_rest": 2143.2,
+      "trials": [
+        {
+          "driven_hz": 98.57333333333334,
+          "spikes_rest": 21471,
+          "active_rest": 2694,
+          "wall_s": 2.0
+        },
+        {
+          "driven_hz": 99.68,
+          "spikes_rest": 13197,
+          "active_rest": 1911,
+          "wall_s": 1.8
+        },
+        {
+          "driven_hz": 99.02666666666667,
+          "spikes_rest": 21289,
+          "active_rest": 2305,
+          "wall_s": 1.7
+        },
+        {
+          "driven_hz": 97.46666666666667,
+          "spikes_rest": 14738,
+          "active_rest": 1875,
+          "wall_s": 1.9
+        },
+        {
+          "driven_hz": 98.60666666666667,
+          "spikes_rest": 14405,
+          "active_rest": 1931,
+          "wall_s": 1.8
+        }
+      ]
+    },
+    {
+      "brain": "shuffled0",
+      "gain": 4.0,
+      "spikes_rest": 3528213.6,
+      "active_rest": 77520.0,
+      "trials": [
+        {
+          "driven_hz": 113.28,
+          "spikes_rest": 3572077,
+          "active_rest": 77553,
+          "wall_s": 4.4
+        },
+        {
+          "driven_hz": 113.29666666666667,
+          "spikes_rest": 3452304,
+          "active_rest": 77225,
+          "wall_s": 4.2
+        },
+        {
+          "driven_hz": 113.75666666666666,
+          "spikes_rest": 3534338,
+          "active_rest": 77568,
+          "wall_s": 4.4
+        },
+        {
+          "driven_hz": 111.75666666666666,
+          "spikes_rest": 3527011,
+          "active_rest": 77471,
+          "wall_s": 4.3
+        },
+        {
+          "driven_hz": 113.47333333333333,
+          "spikes_rest": 3555338,
+          "active_rest": 77783,
+          "wall_s": 4.4
+        }
+      ]
+    },
+    {
+      "brain": "shuffled0",
+      "gain": 2.8284271247461903,
+      "spikes_rest": 275102.2,
+      "active_rest": 29873.0,
+      "trials": [
+        {
+          "driven_hz": 99.34333333333333,
+          "spikes_rest": 273623,
+          "active_rest": 28301,
+          "wall_s": 2.6
+        },
+        {
+          "driven_hz": 100.39,
+          "spikes_rest": 254139,
+          "active_rest": 31075,
+          "wall_s": 2.6
+        },
+        {
+          "driven_hz": 99.43,
+          "spikes_rest": 183995,
+          "active_rest": 22938,
+          "wall_s": 2.4
+        },
+        {
+          "driven_hz": 97.97333333333333,
+          "spikes_rest": 291711,
+          "active_rest": 33088,
+          "wall_s": 2.6
+        },
+        {
+          "driven_hz": 99.51333333333334,
+          "spikes_rest": 372043,
+          "active_rest": 33963,
+          "wall_s": 2.7
+        }
+      ]
+    },
+    {
+      "brain": "shuffled0",
+      "gain": 2.378414230005442,
+      "spikes_rest": 39606.0,
+      "active_rest": 5683.8,
+      "trials": [
+        {
+          "driven_hz": 98.65,
+          "spikes_rest": 50795,
+          "active_rest": 7285,
+          "wall_s": 2.1
+        },
+        {
+          "driven_hz": 99.76333333333334,
+          "spikes_rest": 32542,
+          "active_rest": 5204,
+          "wall_s": 2.1
+        },
+        {
+          "driven_hz": 99.16333333333333,
+          "spikes_rest": 52574,
+          "active_rest": 6440,
+          "wall_s": 2.2
+        },
+        {
+          "driven_hz": 97.49,
+          "spikes_rest": 33590,
+          "active_rest": 5181,
+          "wall_s": 2.1
+        },
+        {
+          "driven_hz": 98.65666666666667,
+          "spikes_rest": 28529,
+          "active_rest": 4309,
+          "wall_s": 2.0
+        }
+      ]
+    },
+    {
+      "brain": "shuffled0",
+      "gain": 2.5936791093020193,
+      "spikes_rest": 72636.8,
+      "active_rest": 11321.0,
+      "trials": [
+        {
+          "driven_hz": 98.79,
+          "spikes_rest": 112082,
+          "active_rest": 15498,
+          "wall_s": 2.4
+        },
+        {
+          "driven_hz": 99.86666666666666,
+          "spikes_rest": 63810,
+          "active_rest": 12719,
+          "wall_s": 2.3
+        },
+        {
+          "driven_hz": 99.18666666666667,
+          "spikes_rest": 78755,
+          "active_rest": 10690,
+          "wall_s": 2.3
+        },
+        {
+          "driven_hz": 97.53666666666666,
+          "spikes_rest": 66398,
+          "active_rest": 11136,
+          "wall_s": 2.3
+        },
+        {
+          "driven_hz": 98.68,
+          "spikes_rest": 42139,
+          "active_rest": 6562,
+          "wall_s": 2.1
+        }
+      ]
+    },
+    {
+      "brain": "shuffled0",
+      "gain": 2.7085110938737857,
+      "spikes_rest": 146211.2,
+      "active_rest": 19800.4,
+      "trials": [
+        {
+          "driven_hz": 99.07333333333334,
+          "spikes_rest": 169727,
+          "active_rest": 21441,
+          "wall_s": 2.4
+        },
+        {
+          "driven_hz": 100.02333333333333,
+          "spikes_rest": 126844,
+          "active_rest": 20405,
+          "wall_s": 2.4
+        },
+        {
+          "driven_hz": 99.25666666666666,
+          "spikes_rest": 84538,
+          "active_rest": 12346,
+          "wall_s": 2.3
+        },
+        {
+          "driven_hz": 97.79,
+          "spikes_rest": 226029,
+          "active_rest": 26953,
+          "wall_s": 2.5
+        },
+        {
+          "driven_hz": 98.87,
+          "spikes_rest": 123918,
+          "active_rest": 17857,
+          "wall_s": 2.3
+        }
+      ]
+    },
+    {
+      "brain": "shuffled0",
+      "gain": 2.767819763927664,
+      "spikes_rest": 177094.8,
+      "active_rest": 22438.0,
+      "trials": [
+        {
+          "driven_hz": 99.10666666666667,
+          "spikes_rest": 206409,
+          "active_rest": 23813,
+          "wall_s": 2.4
+        },
+        {
+          "driven_hz": 100.18666666666667,
+          "spikes_rest": 184406,
+          "active_rest": 24387,
+          "wall_s": 2.4
+        },
+        {
+          "driven_hz": 99.28,
+          "spikes_rest": 121939,
+          "active_rest": 16098,
+          "wall_s": 2.3
+        },
+        {
+          "driven_hz": 97.86333333333333,
+          "spikes_rest": 237189,
+          "active_rest": 28055,
+          "wall_s": 2.4
+        },
+        {
+          "driven_hz": 98.90333333333334,
+          "spikes_rest": 135531,
+          "active_rest": 19837,
+          "wall_s": 2.3
+        }
+      ]
+    },
+    {
+      "brain": "shuffled0",
+      "gain": 2.7979593450766225,
+      "spikes_rest": 256654.6,
+      "active_rest": 27546.8,
+      "trials": [
+        {
+          "driven_hz": 99.35,
+          "spikes_rest": 240496,
+          "active_rest": 27763,
+          "wall_s": 2.5
+        },
+        {
+          "driven_hz": 100.38666666666667,
+          "spikes_rest": 278191,
+          "active_rest": 28731,
+          "wall_s": 2.6
+        },
+        {
+          "driven_hz": 99.37333333333333,
+          "spikes_rest": 135148,
+          "active_rest": 17798,
+          "wall_s": 2.1
+        },
+        {
+          "driven_hz": 97.96666666666667,
+          "spikes_rest": 313445,
+          "active_rest": 31351,
+          "wall_s": 2.5
+        },
+        {
+          "driven_hz": 99.36666666666666,
+          "spikes_rest": 315993,
+          "active_rest": 32091,
+          "wall_s": 2.6
+        }
+      ]
+    },
+    {
+      "brain": "shuffled0",
+      "gain": 2.813151987638031,
+      "spikes_rest": 230643.2,
+      "active_rest": 26883.0,
+      "trials": [
+        {
+          "driven_hz": 99.15333333333334,
+          "spikes_rest": 213005,
+          "active_rest": 25742,
+          "wall_s": 2.4
+        },
+        {
+          "driven_hz": 100.34333333333333,
+          "spikes_rest": 241915,
+          "active_rest": 29497,
+          "wall_s": 2.5
+        },
+        {
+          "driven_hz": 99.25333333333333,
+          "spikes_rest": 103162,
+          "active_rest": 15724,
+          "wall_s": 2.5
+        },
+        {
+          "driven_hz": 97.94,
+          "spikes_rest": 292679,
+          "active_rest": 31684,
+          "wall_s": 2.6
+        },
+        {
+          "driven_hz": 99.31333333333333,
+          "spikes_rest": 302455,
+          "active_rest": 31768,
+          "wall_s": 2.7
+        }
+      ]
+    },
+    {
+      "brain": "shuffled0",
+      "gain": 2.8207792164345418,
+      "spikes_rest": 237134.6,
+      "active_rest": 27769.8,
+      "trials": [
+        {
+          "driven_hz": 99.42,
+          "spikes_rest": 288038,
+          "active_rest": 29385,
+          "wall_s": 2.5
+        },
+        {
+          "driven_hz": 100.26333333333334,
+          "spikes_rest": 204640,
+          "active_rest": 27277,
+          "wall_s": 2.4
+        },
+        {
+          "driven_hz": 99.32333333333334,
+          "spikes_rest": 138688,
+          "active_rest": 20886,
+          "wall_s": 2.4
+        },
+        {
+          "driven_hz": 98.02666666666667,
+          "spikes_rest": 285745,
+          "active_rest": 33059,
+          "wall_s": 2.5
+        },
+        {
+          "driven_hz": 99.27333333333333,
+          "spikes_rest": 268562,
+          "active_rest": 28242,
+          "wall_s": 2.3
+        }
+      ]
+    },
+    {
+      "brain": "shuffled0",
+      "gain": 2.824600582150291,
+      "spikes_rest": 244205.0,
+      "active_rest": 28522.8,
+      "trials": [
+        {
+          "driven_hz": 99.53,
+          "spikes_rest": 341272,
+          "active_rest": 33146,
+          "wall_s": 2.6
+        },
+        {
+          "driven_hz": 100.25333333333333,
+          "spikes_rest": 211907,
+          "active_rest": 27569,
+          "wall_s": 2.3
+        },
+        {
+          "driven_hz": 99.24666666666667,
+          "spikes_rest": 100754,
+          "active_rest": 14687,
+          "wall_s": 2.2
+        },
+        {
+          "driven_hz": 97.94666666666667,
+          "spikes_rest": 284858,
+          "active_rest": 33474,
+          "wall_s": 2.5
+        },
+        {
+          "driven_hz": 99.28333333333333,
+          "spikes_rest": 282234,
+          "active_rest": 33738,
+          "wall_s": 2.5
+        }
+      ]
+    },
+    {
+      "brain": "shuffled0",
+      "gain": 2.826513205900118,
+      "spikes_rest": 254914.0,
+      "active_rest": 28377.6,
+      "trials": [
+        {
+          "driven_hz": 99.53666666666666,
+          "spikes_rest": 327048,
+          "active_rest": 33262,
+          "wall_s": 2.5
+        },
+        {
+          "driven_hz": 100.37666666666667,
+          "spikes_rest": 260218,
+          "active_rest": 29221,
+          "wall_s": 2.5
+        },
+        {
+          "driven_hz": 99.33666666666667,
+          "spikes_rest": 127784,
+          "active_rest": 17174,
+          "wall_s": 2.3
+        },
+        {
+          "driven_hz": 97.90666666666667,
+          "spikes_rest": 263879,
+          "active_rest": 31848,
+          "wall_s": 2.4
+        },
+        {
+          "driven_hz": 99.33333333333333,
+          "spikes_rest": 295641,
+          "active_rest": 30383,
+          "wall_s": 2.6
+        }
+      ]
+    },
+    {
+      "brain": "shuffled0",
+      "gain": 2.827470003381328,
+      "spikes_rest": 275687.8,
+      "active_rest": 29596.2,
+      "trials": [
+        {
+          "driven_hz": 99.61,
+          "spikes_rest": 327815,
+          "active_rest": 32088,
+          "wall_s": 2.7
+        },
+        {
+          "driven_hz": 100.39666666666666,
+          "spikes_rest": 250932,
+          "active_rest": 30715,
+          "wall_s": 2.7
+        },
+        {
+          "driven_hz": 99.30666666666667,
+          "spikes_rest": 123321,
+          "active_rest": 17227,
+          "wall_s": 2.4
+        },
+        {
+          "driven_hz": 98.08333333333333,
+          "spikes_rest": 328514,
+          "active_rest": 33849,
+          "wall_s": 2.6
+        },
+        {
+          "driven_hz": 99.46333333333334,
+          "spikes_rest": 347857,
+          "active_rest": 34102,
+          "wall_s": 2.6
+        }
+      ]
+    },
+    {
+      "brain": "shuffled0",
+      "gain": 2.8269915641621175,
+      "spikes_rest": 253799.2,
+      "active_rest": 28362.0,
+      "trials": [
+        {
+          "driven_hz": 99.65333333333334,
+          "spikes_rest": 356499,
+          "active_rest": 33910,
+          "wall_s": 2.6
+        },
+        {
+          "driven_hz": 100.26666666666667,
+          "spikes_rest": 201474,
+          "active_rest": 26523,
+          "wall_s": 2.4
+        },
+        {
+          "driven_hz": 99.26333333333334,
+          "spikes_rest": 119737,
+          "active_rest": 17895,
+          "wall_s": 2.3
+        },
+        {
+          "driven_hz": 98.10666666666667,
+          "spikes_rest": 359625,
+          "active_rest": 35142,
+          "wall_s": 2.6
+        },
+        {
+          "driven_hz": 99.16333333333333,
+          "spikes_rest": 231661,
+          "active_rest": 28340,
+          "wall_s": 2.4
+        }
+      ]
+    }
+  ]
+}

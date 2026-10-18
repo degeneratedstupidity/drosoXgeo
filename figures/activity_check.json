@@ -1,0 +1,284 @@
+{
+  "setting": {
+    "n_driven": 300,
+    "rate_hz": 100.0,
+    "ticks": 10000,
+    "hub_percentile": 90,
+    "pool": 117843,
+    "set_seeds": [
+      1000,
+      1001,
+      1002,
+      1003,
+      1004
+    ]
+  },
+  "summary": {
+    "real": {
+      "spikes_rest": 273725.2,
+      "active_rest": 5550.0
+    },
+    "shuffled0": {
+      "spikes_rest": 1783.2,
+      "active_rest": 249.2
+    },
+    "shuffled1": {
+      "spikes_rest": 1742.8,
+      "active_rest": 238.2
+    },
+    "shuffled2": {
+      "spikes_rest": 1881.0,
+      "active_rest": 251.8
+    },
+    "shuffled3": {
+      "spikes_rest": 1801.8,
+      "active_rest": 245.2
+    },
+    "shuffled4": {
+      "spikes_rest": 1923.8,
+      "active_rest": 253.0
+    }
+  },
+  "trials": [
+    {
+      "brain": "real",
+      "draw": 0,
+      "driven_hz": 99.01333333333334,
+      "spikes_rest": 444467,
+      "active_rest": 8748,
+      "wall_s": 2.7
+    },
+    {
+      "brain": "shuffled0",
+      "draw": 0,
+      "driven_hz": 98.54,
+      "spikes_rest": 2698,
+      "active_rest": 357,
+      "wall_s": 1.5
+    },
+    {
+      "brain": "shuffled1",
+      "draw": 0,
+      "driven_hz": 98.54,
+      "spikes_rest": 2525,
+      "active_rest": 325,
+      "wall_s": 1.5
+    },
+    {
+      "brain": "shuffled2",
+      "draw": 0,
+      "driven_hz": 98.55666666666667,
+      "spikes_rest": 3019,
+      "active_rest": 391,
+      "wall_s": 1.6
+    },
+    {
+      "brain": "shuffled3",
+      "draw": 0,
+      "driven_hz": 98.54,
+      "spikes_rest": 2814,
+      "active_rest": 344,
+      "wall_s": 1.5
+    },
+    {
+      "brain": "shuffled4",
+      "draw": 0,
+      "driven_hz": 98.63,
+      "spikes_rest": 3921,
+      "active_rest": 439,
+      "wall_s": 1.6
+    },
+    {
+      "brain": "real",
+      "draw": 1,
+      "driven_hz": 99.64666666666666,
+      "spikes_rest": 3194,
+      "active_rest": 454,
+      "wall_s": 1.8
+    },
+    {
+      "brain": "shuffled0",
+      "draw": 1,
+      "driven_hz": 99.64666666666666,
+      "spikes_rest": 1653,
+      "active_rest": 219,
+      "wall_s": 1.6
+    },
+    {
+      "brain": "shuffled1",
+      "draw": 1,
+      "driven_hz": 99.64666666666666,
+      "spikes_rest": 1783,
+      "active_rest": 229,
+      "wall_s": 1.3
+    },
+    {
+      "brain": "shuffled2",
+      "draw": 1,
+      "driven_hz": 99.64666666666666,
+      "spikes_rest": 1390,
+      "active_rest": 180,
+      "wall_s": 1.3
+    },
+    {
+      "brain": "shuffled3",
+      "draw": 1,
+      "driven_hz": 99.64666666666666,
+      "spikes_rest": 1623,
+      "active_rest": 204,
+      "wall_s": 1.4
+    },
+    {
+      "brain": "shuffled4",
+      "draw": 1,
+      "driven_hz": 99.64666666666666,
+      "spikes_rest": 1556,
+      "active_rest": 213,
+      "wall_s": 1.4
+    },
+    {
+      "brain": "real",
+      "draw": 2,
+      "driven_hz": 98.94333333333333,
+      "spikes_rest": 14346,
+      "active_rest": 1271,
+      "wall_s": 1.9
+    },
+    {
+      "brain": "shuffled0",
+      "draw": 2,
+      "driven_hz": 98.92666666666666,
+      "spikes_rest": 2074,
+      "active_rest": 263,
+      "wall_s": 1.4
+    },
+    {
+      "brain": "shuffled1",
+      "draw": 2,
+      "driven_hz": 98.92666666666666,
+      "spikes_rest": 1979,
+      "active_rest": 245,
+      "wall_s": 1.5
+    },
+    {
+      "brain": "shuffled2",
+      "draw": 2,
+      "driven_hz": 98.92666666666666,
+      "spikes_rest": 2649,
+      "active_rest": 303,
+      "wall_s": 1.6
+    },
+    {
+      "brain": "shuffled3",
+      "draw": 2,
+      "driven_hz": 98.92666666666666,
+      "spikes_rest": 2387,
+      "active_rest": 308,
+      "wall_s": 1.6
+    },
+    {
+      "brain": "shuffled4",
+      "draw": 2,
+      "driven_hz": 98.92666666666666,
+      "spikes_rest": 1943,
+      "active_rest": 240,
+      "wall_s": 1.5
+    },
+    {
+      "brain": "real",
+      "draw": 3,
+      "driven_hz": 99.49666666666667,
+      "spikes_rest": 456423,
+      "active_rest": 8538,
+      "wall_s": 2.7
+    },
+    {
+      "brain": "shuffled0",
+      "draw": 3,
+      "driven_hz": 97.46,
+      "spikes_rest": 935,
+      "active_rest": 144,
+      "wall_s": 1.4
+    },
+    {
+      "brain": "shuffled1",
+      "draw": 3,
+      "driven_hz": 97.46,
+      "spikes_rest": 948,
+      "active_rest": 148,
+      "wall_s": 1.2
+    },
+    {
+      "brain": "shuffled2",
+      "draw": 3,
+      "driven_hz": 97.46,
+      "spikes_rest": 946,
+      "active_rest": 159,
+      "wall_s": 1.3
+    },
+    {
+      "brain": "shuffled3",
+      "draw": 3,
+      "driven_hz": 97.46,
+      "spikes_rest": 816,
+      "active_rest": 135,
+      "wall_s": 1.3
+    },
+    {
+      "brain": "shuffled4",
+      "draw": 3,
+      "driven_hz": 97.46,
+      "spikes_rest": 788,
+      "active_rest": 123,
+      "wall_s": 1.5
+    },
+    {
+      "brain": "real",
+      "draw": 4,
+      "driven_hz": 99.51333333333334,
+      "spikes_rest": 450196,
+      "active_rest": 8739,
+      "wall_s": 2.6
+    },
+    {
+      "brain": "shuffled0",
+      "draw": 4,
+      "driven_hz": 98.58666666666667,
+      "spikes_rest": 1556,
+      "active_rest": 263,
+      "wall_s": 1.3
+    },
+    {
+      "brain": "shuffled1",
+      "draw": 4,
+      "driven_hz": 98.58666666666667,
+      "spikes_rest": 1479,
+      "active_rest": 244,
+      "wall_s": 1.4
+    },
+    {
+      "brain": "shuffled2",
+      "draw": 4,
+      "driven_hz": 98.58666666666667,
+      "spikes_rest": 1401,
+      "active_rest": 226,
+      "wall_s": 1.3
+    },
+    {
+      "brain": "shuffled3",
+      "draw": 4,
+      "driven_hz": 98.58666666666667,
+      "spikes_rest": 1369,
+      "active_rest": 235,
+      "wall_s": 1.4
+    },
+    {
+      "brain": "shuffled4",
+      "draw": 4,
+      "driven_hz": 98.59666666666666,
+      "spikes_rest": 1411,
+      "active_rest": 250,
+      "wall_s": 1.6
+    }
+  ]
+}

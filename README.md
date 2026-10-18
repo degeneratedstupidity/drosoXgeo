@@ -15,7 +15,7 @@ can time jumps well enough to clear levels.
 - [ ] Phase 5 – Learning (**5A done**, `brain/readout.py`; 5B not started)
 - [ ] Phase 6 – Demo video + LinkedIn post
 
-**Next:** remaining controls before Phase 6: a targeted lesion (cut only LPLC2/LC4 → Giant Fiber), a check that scrambled brains aren't just quieter, a sensory-delay sweep, and frame-time percentiles. 5B is future work (see Phase 4b).
+**Next:** remaining checks before Phase 6: a sensory-delay sweep and frame-time percentiles. The scrambled-brain activity check and the targeted lesion are done (Phase 4c). 5B is future work (see Phase 4b).
 
 Baselines from `python3 flydash.py` (30 levels each):
 
@@ -193,6 +193,48 @@ random input spikes** (450 plays), with a 95% interval (Wilson).
 - **Real fly's delay (for the delay sweep, #5):** stimulus to Giant Fiber response is about **19 ms** (Ache et al. 2019,
   seen in search excerpts; check in the paper). LC4 → Giant Fiber is ~1.3 ms (von Reyn et al. 2017). The model
   responds ~2 ms after the alarm cells, so it is missing ~17 ms of early visual processing, one game frame.
+
+## Phase 4c – Is the scrambled brain just dead? And the targeted lesion (review #2, 2026-10-18)
+**The shuffle keeps what it should** (checked on all 5 packs, `lif.shuffle_pack`): every neuron keeps its sign
+(all outputs excitatory or all inhibitory, 0 mixed rows), its in- and out-degree, and its own outgoing synapse
+counts. What changes is where strong input lands: in the real brain it piles onto a few cells (99.9th percentile of
+excitatory input 7,694 synapses vs ~3,950 shuffled), and the Giant Fibers get ~2,400 excitatory synapses each vs ~1,000.
+
+**Activity check** (`python -m brain.activity`, `figures/activity_check.json`): 300 random ordinary neurons (below the
+90th percentile of in- and out-degree, not in the escape circuit) driven at 100 Hz for 1 s, the same input spikes in
+every brain, 5 draws. Counted: the rest of the brain.
+
+| brain | spikes | neurons active |
+|---|---|---|
+| real | 273,725 | 5,550 |
+| scrambled, 5 seeds | 1,743–1,924 (**~150× fewer**) | 238–253 |
+| scrambled 0, every synapse ×2.83 (`--match shuffled0`) | 275,102 (matched) | **29,873** |
+
+- **Yes, a scrambled brain is mostly quiet,** on any input, not just the looming drive. The review's worry was right.
+- **No single volume knob fixes it.** At ×2.83 the spike count matches, but it is spread over 5× as many neurons.
+  Matching the number of active neurons instead (×2.38) leaves 7× fewer spikes. ×2 is still quiet, ×4 lights up
+  78,000 neurons. The real wiring concentrates activity on particular cells; scrambled wiring can't, at any gain.
+
+**Game rerun** (same protocol as Phase 4: tuned on practice seeds 0–5, then the 90 unseen levels, one draw):
+
+| setup | what changed | tuned settings | easy | normal | hard | won (95% interval) | median takeoff, hard |
+|---|---|---|---|---|---|---|---|
+| real | – | r_ref 5, steep 2 | 30/30 | 30/30 | 29/30 | 89/90 | 0.41 blocks |
+| **gain-matched scramble** (`--setup shuffled0g2.83`) | scramble 0, synapses ×2.83 | r_ref 2, steep 1 | 0/30 | 0/30 | 0/30 | **0/90** (0–4.1%) | never jumps |
+| **targeted lesion** (`--setup cut`) | only the 293 LPLC2/LC4 → Giant Fiber edges (1,885 synapses) removed | r_ref 5, steep 3 | 22/30 | 23/30 | 18/30 | **63/90 = 70%** (60–79%) | 0.29 blocks |
+
+- **The gain-matched scramble never jumped once** in 180 levels (6 practice levels × 15 settings, plus the 90 test
+  levels). As busy as the real brain, and its Giant Fiber stays silent. So the scramble control is about wiring,
+  not about a dead brain.
+- **The direct synapses aren't the only way in.** With them cut, the alarm still reaches the Giant Fiber through
+  2-step routes, and the brain plays 70% of levels. Practice even looked perfect (6/6 hard at steep 3).
+  It jumps later (0.29 vs 0.41 blocks) and loses at random points along a level, not at the first spike.
+- **The routes:** 211 neurons get input from the alarm cells and connect to the Giant Fiber. The main excitatory
+  relays are PVLP151 (3,228 synapses in from LPLC2/LC4, 190 out to the Giant Fiber) and PVLP122b (1,332 in, 281 out);
+  smaller ones are DNp103 and AMMC-A1. Others inhibit the Giant Fiber (LHAD1g1, PVLP024, PVLP010). These are wiring
+  counts only; we haven't tested which relay the model actually uses.
+- **Together with Phase 4b:** the direct synapses alone play best (99.6%), the full brain without them still plays
+  (70%), and the Giant Fiber itself is required (0%). The circuit has a fast main road and slower side roads.
 
 ## Phase 5 – "Training" (be precise about what learns)
 The connectome's synapse weights are fixed. Learning can live in only two places:

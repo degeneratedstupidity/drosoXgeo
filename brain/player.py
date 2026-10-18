@@ -16,7 +16,11 @@ r_ref and steep are the only tuned numbers: they shape the alarm, not the decisi
 Setups (the controls of Phase 4 use the same code):
   real        FlyWire v783 wiring
   shuffledN   degree-preserving rewiring, seed N
+  shuffledNgG the same, with every synapse G times stronger (the gain-matched shuffle:
+              brain.activity --match finds the G at which it is as active as the real brain)
   lesion      real wiring, both DNp01 unable to spike
+  cut         real wiring with only the LPLC2/LC4 -> DNp01 synapses removed: the targeted
+              lesion. The alarm can still reach the Giant Fiber through any longer route
   wire        real wiring, but every neuron except LPLC2, LC4 and DNp01 is silenced (its synapses
               deliver nothing): the Giant Fiber hears only its direct inputs from the alarm cells
 
@@ -27,10 +31,12 @@ Setups (the controls of Phase 4 use the same code):
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import json
 import sys
 import time
 
+import mlx.core as mx
 import numpy as np
 
 from lif import core
@@ -53,12 +59,29 @@ def load(setup: str):
     if setup == "lesion":
         return real, neurons.indices(real)["DNp01"]
     if setup.startswith("shuffled"):
-        pack = core.load_pack(shuffled(PACK_V783, int(setup[len("shuffled"):])))
+        pack = core.load_pack(shuffled(PACK_V783, int(setup[len("shuffled"):].split("g")[0])))
         neurons.check_same_neurons(real, pack)
         return pack, ()
     if setup == "wire":
         return real, ()
+    if setup == "cut":
+        return cut_alarm_to_gf(real), ()
     raise ValueError(f"unknown setup {setup!r}")
+
+
+def cut_alarm_to_gf(pack):
+    """A copy of the pack whose LPLC2/LC4 -> DNp01 edges carry no synapses; every other edge is untouched."""
+    idx = neurons.indices(pack)
+    alarm = np.concatenate([idx["LPLC2"], idx["LC4"]])
+    row_ptr, dst = np.asarray(pack.row_ptr), np.asarray(pack.destinations)
+    src = np.repeat(np.arange(pack.n_neurons), np.diff(row_ptr))
+    cut = np.isin(src, alarm) & np.isin(dst, idx["DNp01"])
+    counts = np.asarray(pack.signed_counts).copy()
+    removed = int(counts[cut].sum())
+    counts[cut] = 0
+    manifest = dict(pack.manifest, cut={"edges": int(cut.sum()), "synapses": removed,
+                                        "what": "LPLC2 and LC4 -> DNp01 signed counts set to 0"})
+    return dataclasses.replace(pack, signed_counts=mx.array(counts), manifest=manifest)
 
 
 def silence_for(setup: str, pack, idx) -> np.ndarray:
@@ -69,14 +92,21 @@ def silence_for(setup: str, pack, idx) -> np.ndarray:
     return np.setdiff1d(np.arange(pack.n_neurons), keep)
 
 
+def gain_for(setup: str) -> float:
+    """Synapse gain for this setup: G for shuffledNgG, else 1 (the validated model)."""
+    if setup.startswith("shuffled") and "g" in setup:
+        return float(setup.split("g", 1)[1])
+    return 1.0
+
+
 class BrainPlayer:
     """One brain for one level. Call it with an observation, get a jump decision."""
 
     def __init__(self, pack, idx, r_ref: float, steep: float, lesion=(), seed: int = 0, record: bool = False,
-                 silence=()):
+                 silence=(), gain: float = 1.0):
         self.r_ref, self.steep = r_ref, steep
         self.brain = Brain(pack, {"LPLC2": idx["LPLC2"], "LC4": idx["LC4"]},
-                           monitor=idx["DNp01"], lesion=lesion, silence=silence, seed=seed)
+                           monitor=idx["DNp01"], lesion=lesion, silence=silence, seed=seed, gain=gain)
         self.frame = 0
         self.trace = [] if record else None
         self.last_rate, self.last_gf = 0.0, 0
@@ -105,11 +135,11 @@ NOISE_STRIDE = 1_000_000                     # noise seed k plays level s with i
 
 
 def play_level(pack, idx, r_ref, steep, seed, difficulty, lesion=(), length=300.0, record=False, on_frame=None,
-               noise=0, silence=()):
+               noise=0, silence=(), gain=1.0):
     """noise picks a different random draw of the alarm cells' input spikes; 0 is the draw every earlier run used."""
     env = flydash.FlyDash(seed, difficulty, length)
     player = BrainPlayer(pack, idx, r_ref, steep, lesion, seed=seed + noise * NOISE_STRIDE, record=record,
-                         silence=silence)
+                         silence=silence, gain=gain)
     obs, done = env.reset(), False
     jump_d = []                                   # distance to the spike at each takeoff
     while not done:
@@ -198,7 +228,7 @@ def main() -> int:
         watcher = (Watcher(f"setup {args.setup} · {args.difficulty} · level {seed} · "
                            f"alarm r_ref {args.r_ref:g} Hz, steep {args.steep:g}", args.slow) if args.watch else None)
         r = play_level(pack, idx, args.r_ref, args.steep, seed, args.difficulty, lesion, args.length,
-                       args.record, on_frame=watcher, silence=silence)
+                       args.record, on_frame=watcher, silence=silence, gain=gain_for(args.setup))
         if watcher:
             watcher.finish(r)
         rows.append(r)

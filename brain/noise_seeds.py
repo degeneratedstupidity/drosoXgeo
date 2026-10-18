@@ -37,14 +37,15 @@ def chosen(setup):
 
 def play(setup: str, noise: int, difficulty: str, seeds: list[int]):
     from brain import neurons
-    from brain.player import load, play_level, silence_for
+    from brain.player import gain_for, load, play_level, silence_for
     pack, lesion = load(setup)
     idx = neurons.indices(pack)
     silence = silence_for(setup, pack, idx)
     c = chosen(setup)
     rows = []
     for s in seeds:
-        r = play_level(pack, idx, c["r_ref"], c["steep"], s, difficulty, lesion, noise=noise, silence=silence)
+        r = play_level(pack, idx, c["r_ref"], c["steep"], s, difficulty, lesion, noise=noise, silence=silence,
+                       gain=gain_for(setup))
         r.pop("trace")
         rows.append(r)
         print(f"{setup} noise {noise} {difficulty:<6} level {s}: {'WON ' if r['won'] else 'died'} at {r['progress']:4.0%}, "

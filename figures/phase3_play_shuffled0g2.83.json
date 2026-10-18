@@ -1,0 +1,719 @@
+{
+  "setup": "shuffled0g2.83",
+  "practice_seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "test_seeds": [
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127,
+    128,
+    129
+  ],
+  "practice_grid": [
+    {
+      "r_ref": 2,
+      "steep": 1,
+      "progress": 0.0959111111111113,
+      "won": 0
+    },
+    {
+      "r_ref": 2,
+      "steep": 2,
+      "progress": 0.0959111111111113,
+      "won": 0
+    },
+    {
+      "r_ref": 2,
+      "steep": 3,
+      "progress": 0.0959111111111113,
+      "won": 0
+    },
+    {
+      "r_ref": 3,
+      "steep": 1,
+      "progress": 0.0959111111111113,
+      "won": 0
+    },
+    {
+      "r_ref": 3,
+      "steep": 2,
+      "progress": 0.0959111111111113,
+      "won": 0
+    },
+    {
+      "r_ref": 3,
+      "steep": 3,
+      "progress": 0.0959111111111113,
+      "won": 0
+    },
+    {
+      "r_ref": 5,
+      "steep": 1,
+      "progress": 0.0959111111111113,
+      "won": 0
+    },
+    {
+      "r_ref": 5,
+      "steep": 2,
+      "progress": 0.0959111111111113,
+      "won": 0
+    },
+    {
+      "r_ref": 5,
+      "steep": 3,
+      "progress": 0.0959111111111113,
+      "won": 0
+    },
+    {
+      "r_ref": 8,
+      "steep": 1,
+      "progress": 0.0959111111111113,
+      "won": 0
+    },
+    {
+      "r_ref": 8,
+      "steep": 2,
+      "progress": 0.0959111111111113,
+      "won": 0
+    },
+    {
+      "r_ref": 8,
+      "steep": 3,
+      "progress": 0.0959111111111113,
+      "won": 0
+    },
+    {
+      "r_ref": 12,
+      "steep": 1,
+      "progress": 0.0959111111111113,
+      "won": 0
+    },
+    {
+      "r_ref": 12,
+      "steep": 2,
+      "progress": 0.0959111111111113,
+      "won": 0
+    },
+    {
+      "r_ref": 12,
+      "steep": 3,
+      "progress": 0.0959111111111113,
+      "won": 0
+    }
+  ],
+  "chosen": {
+    "r_ref": 2,
+    "steep": 1,
+    "progress": 0.0959111111111113,
+    "won": 0
+  },
+  "test": {
+    "easy": {
+      "progress": 0.04795555555555567,
+      "won": 0,
+      "levels": 30,
+      "takeoff_blocks": {
+        "p10": null,
+        "median": null,
+        "p90": null
+      },
+      "per_level": [
+        {
+          "seed": 100,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 101,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 102,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 103,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 104,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 105,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 106,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 107,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 108,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 109,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 110,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 111,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 112,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 113,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 114,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 115,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 116,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 117,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 118,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 119,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 120,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 121,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 122,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 123,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 124,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 125,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 126,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 127,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 128,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 129,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        }
+      ]
+    },
+    "normal": {
+      "progress": 0.04795555555555567,
+      "won": 0,
+      "levels": 30,
+      "takeoff_blocks": {
+        "p10": null,
+        "median": null,
+        "p90": null
+      },
+      "per_level": [
+        {
+          "seed": 100,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 101,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 102,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 103,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 104,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 105,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 106,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 107,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 108,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 109,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 110,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 111,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 112,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 113,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 114,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 115,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 116,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 117,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 118,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 119,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 120,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 121,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 122,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 123,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 124,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 125,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 126,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 127,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 128,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 129,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        }
+      ]
+    },
+    "hard": {
+      "progress": 0.04795555555555567,
+      "won": 0,
+      "levels": 30,
+      "takeoff_blocks": {
+        "p10": null,
+        "median": null,
+        "p90": null
+      },
+      "per_level": [
+        {
+          "seed": 100,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 101,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 102,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 103,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 104,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 105,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 106,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 107,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 108,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 109,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 110,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 111,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 112,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 113,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 114,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 115,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 116,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 117,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 118,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 119,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 120,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 121,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 122,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 123,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 124,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 125,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 126,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 127,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 128,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        },
+        {
+          "seed": 129,
+          "progress": 0.04795555555555565,
+          "won": false,
+          "jumps": 0
+        }
+      ]
+    }
+  }
+}

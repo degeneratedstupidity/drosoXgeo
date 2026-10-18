@@ -5,6 +5,9 @@ pick settings on the practice levels, then play the unseen test levels once.
   real            the FlyWire v783 wiring                       (figures/phase3_play_real.json)
   lesion          real wiring, both Giant Fibers unable to spike (phase3_play_lesion.json)
   shuffled0-4     degree-preserving scrambled wiring            (phase3_play_shuffledN.json)
+  shuffled0g2.83  shuffle 0 with every synapse 2.83x stronger, as active as the real brain
+                  (gain from brain.activity --match shuffled0)
+  cut             real wiring minus only the LPLC2/LC4 -> DNp01 synapses (targeted lesion)
   random          press jump on 5% of frames at random          (computed here)
   one number      jump when the spike's angular size > threshold (computed here, threshold
                   picked on the same practice levels)
@@ -22,7 +25,7 @@ from brain.paths import FIGURES
 from brain.tune import PRACTICE, TEST
 
 DIFFS = ("easy", "normal", "hard")
-SETUPS = ["real", "lesion"] + [f"shuffled{i}" for i in range(5)]
+SETUPS = ["real", "lesion", "cut"] + [f"shuffled{i}" for i in range(5)] + ["shuffled0g2.83"]
 
 
 def play(policy, seed, difficulty, length):
@@ -71,12 +74,12 @@ def main() -> int:
                                                        for k, v in d["test"].items()}}
     rows.update(baselines())
 
-    print(f"{'setup':<14}{'chosen on practice':<26}" + "".join(f"{d:>16}" for d in DIFFS) + "   median takeoff (hard)")
+    print(f"{'setup':<16}{'chosen on practice':<26}" + "".join(f"{d:>16}" for d in DIFFS) + "   median takeoff (hard)")
     for name, r in rows.items():
         ch = ", ".join(f"{k} {v:g}" for k, v in r["chosen"].items() if k in ("r_ref", "steep", "p", "theta_threshold"))
         cells = "".join(f"{r['test'][d]['won']:>4}/{r['test'][d]['levels']} {r['test'][d]['progress']:>5.0%}  " for d in DIFFS)
         med = r["test"]["hard"]["takeoff_blocks"]["median"]
-        print(f"{name:<14}{ch:<26}{cells}   {'-' if med is None else f'{med:.2f} blocks'}")
+        print(f"{name:<16}{ch:<26}{cells}   {'-' if med is None else f'{med:.2f} blocks'}")
     out = FIGURES / "phase4_controls.json"
     out.write_text(json.dumps({"practice_seeds": list(PRACTICE), "test_seeds": list(TEST), "rows": rows}, indent=2) + "\n")
     print(f"\nwrote {out.relative_to(FIGURES.parent)}   (cells: levels won, mean progress)")

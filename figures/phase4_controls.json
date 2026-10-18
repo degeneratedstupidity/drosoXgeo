@@ -120,6 +120,46 @@
         }
       }
     },
+    "cut": {
+      "chosen": {
+        "r_ref": 5,
+        "steep": 3,
+        "progress": 1.0,
+        "won": 6
+      },
+      "test": {
+        "easy": {
+          "won": 22,
+          "levels": 30,
+          "progress": 0.8748118518518541,
+          "takeoff_blocks": {
+            "p10": 0.133,
+            "median": 0.307,
+            "p90": 0.46760000000000007
+          }
+        },
+        "normal": {
+          "won": 23,
+          "levels": 30,
+          "progress": 0.8980725925925955,
+          "takeoff_blocks": {
+            "p10": 0.133,
+            "median": 0.3,
+            "p90": 0.444
+          }
+        },
+        "hard": {
+          "won": 18,
+          "levels": 30,
+          "progress": 0.8264696296296342,
+          "takeoff_blocks": {
+            "p10": 0.133,
+            "median": 0.293,
+            "p90": 0.455
+          }
+        }
+      }
+    },
     "shuffled0": {
       "chosen": {
         "r_ref": 2,
@@ -281,6 +321,46 @@
       }
     },
     "shuffled4": {
+      "chosen": {
+        "r_ref": 2,
+        "steep": 1,
+        "progress": 0.0959111111111113,
+        "won": 0
+      },
+      "test": {
+        "easy": {
+          "won": 0,
+          "levels": 30,
+          "progress": 0.04795555555555567,
+          "takeoff_blocks": {
+            "p10": null,
+            "median": null,
+            "p90": null
+          }
+        },
+        "normal": {
+          "won": 0,
+          "levels": 30,
+          "progress": 0.04795555555555567,
+          "takeoff_blocks": {
+            "p10": null,
+            "median": null,
+            "p90": null
+          }
+        },
+        "hard": {
+          "won": 0,
+          "levels": 30,
+          "progress": 0.04795555555555567,
+          "takeoff_blocks": {
+            "p10": null,
+            "median": null,
+            "p90": null
+          }
+        }
+      }
+    },
+    "shuffled0g2.83": {
       "chosen": {
         "r_ref": 2,
         "steep": 1,

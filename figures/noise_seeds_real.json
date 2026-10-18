@@ -1,4 +1,5 @@
 {
+  "setup": "real",
   "setting": {
     "r_ref": 5,
     "steep": 2,
