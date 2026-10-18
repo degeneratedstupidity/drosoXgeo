@@ -136,6 +136,234 @@ class FlyDash:
         return "\n".join("".join(row) for row in reversed(rows)) + "\n" + "▔" * width
 
 
+# ---------------- terrain: blocks, towers and thorn pits, like Stereo Madness ----------------
+# The real game isn't only spikes on flat ground. Its first block section (measured on recordings) is: two spikes,
+# a 1-block step right after them, then towers rising out of a thorn pit. You must land on the step and jump from
+# block top to block top. The jump itself matches Fly Dash (measured: 0.443 s in the air, 2.2 blocks high).
+# FlyDash above is unchanged; this is a separate level type, "terrain".
+
+THORN_H = 0.35                    # thorn hitbox height on the pit floor (they're drawn ~0.5 high)
+THORN_VIS = 0.5                   # how high the eye sees them
+SNAP = 0.25                       # landing tolerance: up to this far below a block's top still lands on it
+
+
+@dataclass
+class Block:
+    x0: float                     # a solid column from the ground up to `top` (towers, steps, platforms)
+    x1: float
+    top: float
+
+
+@dataclass
+class Thorns:
+    x0: float                     # a pit floor covered in thorns
+    x1: float
+
+
+@dataclass
+class Peak:
+    x: float                      # a spike standing on something: left edge and the height of its base
+    base: float = 0.0
+
+
+def _segment(rng, x):
+    """One Stereo Madness-style obstacle starting at x. Returns (blocks, thorns, peaks, end x)."""
+    kind = rng.choice(["spikes", "spikes", "step", "platforms"])
+    if kind == "spikes":
+        n = rng.choice([1, 1, 2, 2, 3])
+        return [], [], [Peak(x + i) for i in range(n)], x + n
+    if kind == "step":                                # spikes, a 1-block step, towers out of a thorn pit
+        n = rng.choice([0, 1, 2, 2])
+        peaks = [Peak(x + i) for i in range(n)]
+        x0 = x + n
+        blocks = [Block(x0, x0 + 1, 1.0)]
+        h, end = 1.0, x0 + 1
+        for _ in range(rng.choice([1, 2, 3])):
+            h = min(h + 1, 3.0)
+            start = end + rng.uniform(2.0, 3.0)
+            blocks.append(Block(start, start + 1, h))
+            end = start + 1
+        land = end + rng.uniform(1.5, 2.5)
+        return blocks, [Thorns(x0 + 1, land)], peaks, land
+    blocks, thorns, peaks, cur = [], [], [], x       # platforms: 1 high, thorn pits between them
+    for k in range(rng.choice([2, 3])):
+        length = rng.uniform(3, 7)
+        blocks.append(Block(cur, cur + length, 1.0))
+        if length >= 5 and rng.random() < 0.5:
+            peaks.append(Peak(cur + length / 2, 1.0))
+        cur += length
+        if k < 2:
+            gap = rng.uniform(2.0, 3.0)
+            thorns.append(Thorns(cur, cur + gap))
+            cur += gap
+    return blocks, thorns, peaks, cur
+
+
+def make_terrain(seed=0, length=300.0):
+    """A level of terrain segments with 5-9 blocks of flat ground between them, checked to be beatable
+    (solvable(): a search over every jump timing). An unbeatable draw is replaced by the next one."""
+    for attempt in range(100):
+        rng = random.Random(seed * 1000 + attempt)
+        blocks, thorns, peaks, x = [], [], [], 15.0
+        while x < length - 25:
+            b, t, p, x = _segment(rng, x)
+            blocks += b
+            thorns += t
+            peaks += p
+            x += rng.uniform(5, 9)
+        level = (blocks, thorns, peaks)
+        if solvable(level, length):
+            return level
+    raise RuntimeError(f"no beatable terrain level for seed {seed}")
+
+
+class FlyDashTerrain(FlyDash):
+    """Fly Dash with blocks, towers and thorn pits. Same interface and observation as FlyDash."""
+
+    def __init__(self, seed=0, difficulty="terrain", length=300.0, level=None):
+        self.length = length
+        self.blocks, self.thorns, self.peaks = level if level is not None else make_terrain(seed, length)
+        self.spikes = []                              # FlyDash's spike list stays empty; peaks replace it
+        self.reset()
+
+    def reset(self):
+        self.t, self.px, self.py, self.vy = 0.0, 0.0, 0.0, 0.0
+        self.grounded = True
+        self.dead = self.won = False
+        self.jumps = 0
+        return self.observe()
+
+    @property
+    def on_ground(self):
+        return self.grounded
+
+    def _near(self, items, lo, hi, x0="x0", x1="x1"):
+        return [o for o in items if getattr(o, x1) > lo and getattr(o, x0) < hi]
+
+    def _surface(self, was=None):
+        """The highest top under the player that it could stand on (ground = 0): within SNAP below its feet, or
+        anything it was above before this frame's move (a fast fall can cross a top in one frame)."""
+        reach = self.py + SNAP if was is None else max(self.py + SNAP, was)
+        tops = [b.top for b in self._near(self.blocks, self.px, self.px + 1) if b.top <= reach]
+        return max(tops, default=0.0)
+
+    def step(self, jump: bool):
+        if self.dead or self.won:
+            return self.observe(), 0.0, True
+        if jump and self.grounded:                    # holding the button re-jumps on landing, like GD
+            self.vy, self.grounded = JUMP_V, False
+            self.jumps += 1
+        was = self.py
+        if not self.grounded:
+            self.py += self.vy * DT
+            self.vy -= GRAVITY * DT
+        self.px += SPEED * DT
+        self.t += DT
+        surface = self._surface(was)
+        if self.grounded and surface < self.py:       # walked off an edge: start falling
+            self.grounded, self.vy = False, 0.0
+        elif not self.grounded and self.vy <= 0 and self.py <= surface:
+            self.py, self.vy, self.grounded = surface, 0.0, True
+        for b in self._near(self.blocks, self.px, self.px + 1):
+            if self.py < b.top - SNAP:                # ran or jumped into its side
+                self.dead = True
+        x0, x1, h = SPIKE_HIT
+        for p in self.peaks:
+            if self.px + 1 > p.x + x0 and self.px < p.x + x1 and p.base - 1 < self.py < p.base + h:
+                self.dead = True
+        for th in self._near(self.thorns, self.px + 0.15, self.px + 0.85):
+            if self.py < THORN_H:
+                self.dead = True
+        if self.px >= self.length:
+            self.won = True
+        return self.observe(), SPEED * DT, self.dead or self.won
+
+    def observe(self):
+        """What brain.realeye would report: the nearest obstacle in the band of rows the cube is in now, or, standing
+        on something raised, the edge of its top where thorns lie below."""
+        front, lo, hi = self.px + 1, self.py + 0.05, self.py + 0.95
+        seen = []
+        for b in self.blocks:
+            if b.x1 > front and lo < b.top:
+                seen.append(b.x0)
+        for p in self.peaks:
+            if p.x + 1 > front and lo < p.base + 1 and hi > p.base:
+                seen.append(p.x + 0.5 * max(lo - p.base, 0.0))     # a triangle narrows towards its tip
+        for th in self.thorns:
+            if th.x1 > front and lo < THORN_VIS:
+                seen.append(th.x0)
+        if self.grounded and self.py >= 0.5:
+            edge = self._support_end()
+            if any(th.x0 < edge + 1.5 and th.x1 > edge for th in self.thorns):
+                seen.append(edge)
+        d = min((max(x, front) - front for x in seen), default=VIEW)
+        d = min(max(d, 0.05), VIEW)
+        theta = 2 * math.atan(0.5 / d)
+        theta_dot = SPEED / (d * d + 0.25)
+        return dict(retina=None, distance=d, theta=theta, theta_dot=theta_dot, tau=theta / theta_dot, y=self.py,
+                    airborne=not self.grounded, progress=min(self.px / self.length, 1.0))
+
+    def _support_end(self):
+        """Where the surface the player stands on ends (adjacent blocks of the same height count as one)."""
+        end = max(b.x1 for b in self._near(self.blocks, self.px, self.px + 1) if abs(b.top - self.py) < 1e-6)
+        while True:
+            nxt = [b.x1 for b in self.blocks if abs(b.top - self.py) < 1e-6 and b.x0 <= end + 1e-6 < b.x1]
+            if not nxt:
+                return end
+            end = max(nxt)
+
+    def render(self, width=40):
+        """One ASCII frame:  ■ = player,  ▲ = spike,  █ = block,  ^ = thorns."""
+        rows = [[" "] * width for _ in range(5)]
+        for c in range(width):
+            x = self.px - 2 + c + 0.5
+            for b in self.blocks:
+                if b.x0 <= x < b.x1:
+                    for r in range(int(round(b.top))):
+                        rows[r][c] = "█"
+            if any(th.x0 <= x < th.x1 for th in self.thorns):
+                rows[0][c] = "^"
+            for p in self.peaks:
+                if p.x <= x < p.x + 1:
+                    rows[int(round(p.base))][c] = "▲"
+        rows[min(int(self.py + 0.5), 4)][2] = "■"
+        return "\n".join("".join(row) for row in reversed(rows)) + "\n" + "▔" * width
+
+
+def solvable(level, length=300.0):
+    """Can some sequence of jumps beat this terrain level? Searches every frame at which a standing player could
+    jump (the only choice the game offers). States are (frame, height) while standing, so the search is small."""
+    import copy
+    env = FlyDashTerrain(level=level, length=length)
+    todo, seen = [env], set()
+    while todo:
+        e = todo.pop()
+        key = (round(e.px / (SPEED * DT)), round(e.py, 3))
+        if key in seen:
+            continue
+        seen.add(key)
+        for jump in (True, False):
+            f = copy.copy(e)
+            f.step(jump)
+            while not (f.dead or f.won or f.grounded):
+                f.step(False)
+            if f.won:
+                return True
+            if not f.dead:
+                todo.append(f)
+    return False
+
+
+LEVELS = list(DIFFICULTY) + ["terrain"]
+
+
+def make_env(seed=0, difficulty="easy", length=300.0):
+    """FlyDash for the spike-only difficulties, FlyDashTerrain for "terrain"."""
+    if difficulty == "terrain":
+        return FlyDashTerrain(seed, difficulty, length)
+    return FlyDash(seed, difficulty, length)
+
+
 # ---------------- baseline policies (the bar the fly brain has to beat) ----------------
 def random_policy(obs, p=0.05, rng=random.Random(1)):
     return rng.random() < p

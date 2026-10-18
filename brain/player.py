@@ -150,7 +150,7 @@ NOISE_STRIDE = 1_000_000                     # noise seed k plays level s with i
 def play_level(pack, idx, r_ref, steep, seed, difficulty, lesion=(), length=300.0, record=False, on_frame=None,
                noise=0, silence=(), gain=1.0, delay_ms=0.0):
     """noise picks a different random draw of the alarm cells' input spikes; 0 is the draw every earlier run used."""
-    env = flydash.FlyDash(seed, difficulty, length)
+    env = flydash.make_env(seed, difficulty, length)
     player = BrainPlayer(pack, idx, r_ref, steep, lesion, seed=seed + noise * NOISE_STRIDE, record=record,
                          silence=silence, gain=gain, delay_ms=delay_ms)
     obs, done = env.reset(), False
@@ -222,7 +222,7 @@ def parse_seeds(text: str) -> list[int]:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--setup", default="real", help="real, lesion, cut, wire, shuffledN or shuffledNgG")
-    ap.add_argument("--difficulty", default="easy", choices=list(flydash.DIFFICULTY))
+    ap.add_argument("--difficulty", default="easy", choices=flydash.LEVELS)
     ap.add_argument("--seeds", default="0-4", help="level seeds, e.g. 0-29 or 1,5,7")
     ap.add_argument("--r-ref", type=float, default=5.0, help="alarm rate (Hz) with the spike 0.6 blocks away")
     ap.add_argument("--steep", type=float, default=2.0, help="how steeply the alarm climbs as the spike nears")

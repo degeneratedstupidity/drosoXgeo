@@ -16,6 +16,7 @@ game the same number of frames late (its threshold retuned on the same practice 
     python -m brain.delay --setup wire run  # any brain.player setup
     python -m brain.delay --setup fastwire --delays 0,37,45,50 run   # the escape pathway on the CPU (brain.fastpath,
                                             # identical to "wire", ~3.5x faster), at the real game's measured lag
+    python -m brain.delay --setup fastwire --difficulty terrain --delays 37,45,50 run   # blocks, towers, thorn pits
 """
 
 from __future__ import annotations
@@ -42,8 +43,15 @@ FIXED_FOR = {"wire": (5, 1), "fastwire": (5, 1)}   # Phase 4b's choice for the e
 CHUNKS = [list(TEST)[i:i + 10] for i in range(0, len(TEST), 10)]
 
 
+DIFF = "hard"                                 # level type (--difficulty); results of other types get their own folder
+
+
+def tag(setup):
+    return setup if DIFF == "hard" else f"{setup}_{DIFF}"
+
+
 def out_dir(setup):
-    return RESULTS / "delay" / setup
+    return RESULTS / "delay" / tag(setup)
 
 
 def job_path(setup, stage, delay, r_ref, steep, seeds):
@@ -65,7 +73,7 @@ def play(setup, stage, delay, r_ref, steep, seeds):
     length = 150.0 if stage == "practice" else 300.0
     rows = []
     for s in seeds:
-        r = play_level(pack, idx, r_ref, steep, s, "hard", lesion, length, silence=silence,
+        r = play_level(pack, idx, r_ref, steep, s, DIFF, lesion, length, silence=silence,
                        gain=gain_for(setup), delay_ms=delay)
         r.pop("trace")
         rows.append(r)
@@ -108,7 +116,7 @@ def run(setup: str, workers: int):
         log = out_dir(setup) / "logs" / f"{stage}_d{d}_r{r_ref:g}_s{steep:g}_{seeds[0]}.log"
         log.parent.mkdir(parents=True, exist_ok=True)
         with open(log, "w") as f:
-            subprocess.run([sys.executable, "-m", "brain.delay", "--setup", setup, "play", stage, str(d),
+            subprocess.run([sys.executable, "-m", "brain.delay", "--setup", setup, "--difficulty", DIFF, "play", stage, str(d),
                             str(r_ref), str(steep), f"{seeds[0]}-{seeds[-1]}"],
                            stdout=f, stderr=subprocess.STDOUT, check=True)
         rows = json.loads(job_path(setup, stage, d, r_ref, steep, seeds).read_text())
@@ -136,7 +144,7 @@ def run(setup: str, workers: int):
 # ------------------------------------------------------------------ the one-number rule, seeing the game late
 
 def rule_play(th, frames_late, seed, length):
-    env = flydash.FlyDash(seed, "hard", length)
+    env = flydash.make_env(seed, DIFF, length)
     obs, done = env.reset(), False
     seen = collections.deque([0.0] * frames_late)
     takeoffs = []
@@ -177,7 +185,7 @@ def score(rows):
 
 def summary(setup: str):
     out = {"setup": setup, "delays_ms": list(DELAYS), "r_ref_grid": R_REF, "steep_grid": STEEP,
-           "practice_seeds": list(PRACTICE), "test_seeds": list(TEST), "difficulty": "hard", "rows": []}
+           "practice_seeds": list(PRACTICE), "test_seeds": list(TEST), "difficulty": DIFF, "rows": []}
     for d in DELAYS:
         best, grid = best_setting(setup, d)
         tuned = load_rows(setup, "test", d, best["r_ref"], best["steep"], CHUNKS) if best else None
@@ -195,9 +203,9 @@ def summary(setup: str):
         print(f"delay {d:>2} ms: brain retuned (r_ref {best['r_ref']:g}, steep {best['steep']:g}) {t['won']:>2}/30, "
               f"takeoff {mt} blocks | brain at r_ref {FIXED[0]:g} steep {FIXED[1]:g} {f['won']:>2}/30 | "
               f"one-number rule (theta > {o['theta_threshold']:.2f}) {o['won']:>2}/30")
-    path = FIGURES / f"delay_sweep_{setup}.json"
+    path = FIGURES / f"delay_sweep_{tag(setup)}.json"
     path.write_text(json.dumps(out, indent=2) + "\n")
-    (FIGURES / f"delay_sweep_{setup}.svg").write_text(chart(out))
+    (FIGURES / f"delay_sweep_{tag(setup)}.svg").write_text(chart(out))
     print(f"wrote {path} and {path.with_suffix('.svg').name}")
     return 0
 
@@ -213,7 +221,7 @@ def chart(out):
     s = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}" '
          f'font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#222222">',
          f'<rect width="{W}" height="{H}" fill="#ffffff"/>',
-         f'<text x="{L}" y="24" font-size="15" font-weight="bold">Win rate vs sensory delay ({out["setup"]}, 30 unseen hard levels)</text>']
+         f'<text x="{L}" y="24" font-size="15" font-weight="bold">Win rate vs sensory delay ({out["setup"]}, 30 unseen {out["difficulty"]} levels)</text>']
     for p in (0, .25, .5, .75, 1):
         s.append(f'<line x1="{L}" x2="{W - R}" y1="{y(p):.1f}" y2="{y(p):.1f}" stroke="#e9ecef"/>')
         s.append(f'<text x="{L - 8}" y="{y(p) + 4:.1f}" text-anchor="end">{p:.0%}</text>')
@@ -242,6 +250,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--setup", default="real")
     ap.add_argument("--delays", default=None, help="comma-separated, ms (default 0,17,33,50)")
+    ap.add_argument("--difficulty", default="hard", choices=flydash.LEVELS, help="level type (default hard)")
     sub = ap.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("play")
     p.add_argument("stage", choices=["practice", "test"])
@@ -253,7 +262,8 @@ def main() -> int:
     r.add_argument("--workers", type=int, default=4)
     sub.add_parser("summary")
     a = ap.parse_args()
-    global DELAYS, FIXED
+    global DELAYS, FIXED, DIFF
+    DIFF = a.difficulty
     if a.delays:
         DELAYS = tuple(int(d) for d in a.delays.split(","))
     FIXED = FIXED_FOR.get(a.setup, FIXED)
