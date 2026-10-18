@@ -39,14 +39,21 @@ TITLE_BAR = 0.04                        # top fraction of the window to ignore (
 
 
 def find_cube(rgb: np.ndarray):
-    """(top, bottom, left, right) of the lime icon, or None (menus, death screen)."""
+    """(top, bottom, left, right) of the lime icon, or None (menus, the death explosion).
+
+    A real cube's box is square-ish (up to ~1.4 wide when rotated 45 degrees) and about half lime (the rest is
+    its purple centre); menus and the explosion's scattered pieces give big, mostly empty boxes (5-15% lime)."""
     r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
     lime = (g > 200) & (r > 60) & (r < 200) & (b < 80)
     lime[: int(TITLE_BAR * len(rgb))] = False
     ys, xs = np.nonzero(lime)
     if len(ys) < 100:
         return None
-    return int(ys.min()), int(ys.max()), int(xs.min()), int(xs.max())
+    top, bottom, left, right = int(ys.min()), int(ys.max()), int(xs.min()), int(xs.max())
+    h, w = bottom - top + 1, right - left + 1
+    if max(h, w) > 1.5 * min(h, w) or len(ys) < 0.3 * h * w:
+        return None
+    return top, bottom, left, right
 
 
 class Eye:
@@ -55,6 +62,7 @@ class Eye:
     def __init__(self):
         self.lane = None                # (top, bottom, lime size in px)
         self.prev_bottom = None
+        self.unit = None                # the upright cube's lime size: the smallest box it ever has (rotated = bigger)
 
     def __call__(self, rgb: np.ndarray) -> dict | None:
         cube = find_cube(rgb)
@@ -62,8 +70,12 @@ class Eye:
             self.prev_bottom = None
             return None
         top, bottom, left, right = cube
-        size = bottom - top + 1
-        upright = right - left + 1 <= 1.12 * size                     # a rotating cube's box is wider
+        size = max(bottom - top, right - left) + 1
+        self.unit = size if self.unit is None else min(self.unit, size)
+        if size > 1.5 * self.unit:                                     # not the cube we've been following
+            self.prev_bottom = None
+            return None
+        upright = size <= 1.08 * self.unit                             # a rotated cube's box is bigger
         if upright and self.prev_bottom is not None and abs(bottom - self.prev_bottom) <= 1:
             self.lane = (top, bottom, size)
         self.prev_bottom = bottom
