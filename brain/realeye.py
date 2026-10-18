@@ -110,7 +110,8 @@ class Eye:
             return None
         top, bottom, left, right = cube
         size = max(bottom - top, right - left) + 1
-        if found[1] >= 0.55 * size * size:                             # upright cubes are ~64% lime, rotated ~35%
+        if found[1] >= 0.5 * size * size:                              # upright: ~54-64% lime (less when small and
+                                                                       # blurred), rotated ~35%
             self.sizes[size] += 1
             self.unit = self.sizes.most_common(1)[0][0]
         if self.unit is None or not 0.85 * self.unit <= size <= 1.5 * self.unit:   # not the cube we've been following

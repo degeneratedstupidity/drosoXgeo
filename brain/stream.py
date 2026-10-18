@@ -43,7 +43,17 @@ class LiveWindow:
     """Starts FlyEye; .latest() returns (frame number, capture time, received time, RGB array) or None.
     .game_pid is the game's process (for FlyJump)."""
 
-    def __init__(self, scale: float = 0.5, fps: float = 60.0, title: str = "Geometry Dash"):
+    def __init__(self, scale: float = 0.5, fps: float = 60.0, title: str = "Geometry Dash", width: int | None = None):
+        """width: pick the scale so frames are this many pixels wide, whatever the window's size (FlyEye reports
+        the window size when it starts; if the scale it got was off, it is restarted once with the right one)."""
+        self._start(scale, fps, title)
+        if width:
+            points = float(re.search(r": (\d+)x\d+ points", self.message).group(1))
+            if abs(points * scale - width) > 0.1 * width:
+                self.close()
+                self._start(width / points, fps, title)
+
+    def _start(self, scale: float, fps: float, title: str):
         pipe = flyapps._fifo("flyeye.out")
         box = []
         opener = threading.Thread(target=lambda: box.append(open(pipe, "rb", buffering=0)), daemon=True)

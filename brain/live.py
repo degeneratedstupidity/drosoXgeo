@@ -44,8 +44,9 @@ from brain.stream import LiveWindow
 
 TICK = 1e-4                                   # s
 MAX_GAP = 500                                 # ticks (50 ms): longer gaps between frames are pauses (death, menus)
-SCALE = 0.25                                  # frame size: quarter of the window's points. The cube is ~23 px,
-                                              # plenty for the eye, and frames arrive ~5 ms old instead of ~11
+WIDTH = 440                                   # frame width in px, whatever the window size: the cube is then
+                                              # ~23 px, plenty for the eye, and frames arrive ~4 ms old (~11 ms at
+                                              # 2x the size)
 
 
 def main() -> int:
@@ -77,7 +78,7 @@ def main() -> int:
     log, last_n, last_t = [], -1, None
     mode = "PLAYING (pressing space)" if args.press else "WATCH-ONLY (nothing pressed)"
     button = None
-    with LiveWindow(scale=SCALE) as win:
+    with LiveWindow(scale=0.25, width=WIDTH) as win:
         try:
             button = Jump(win.game_pid) if args.press else None
             print(f"{win.message}\n{mode} · {args.brain} brain · setup {args.setup} · r_ref {args.r_ref:g} "
