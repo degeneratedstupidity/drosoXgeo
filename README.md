@@ -338,12 +338,49 @@ the input fools the controls.** `python -m brain.readout run --setups real,lesio
   "something is coming" by themselves. It's harder, and much more impressive if it works.
 - First check: does a looming square on screen drive LPLC2 in the model at all?
 
-## Stretch B – The real Geometry Dash on macOS
-- The Steam version runs natively on macOS, so no wrapper is needed.
-- Read the game state:
-  - screen capture (`mss`) plus OpenCV, or
-  - a Geode mod that exports the player's and obstacles' positions (more precise)
-- Press jump with `pynput` or Quartz key events.
-- macOS needs Screen Recording and Accessibility permissions for both.
-- The real game won't wait for the brain. The brain has to keep up at 60 fps and hit a 45 ms jump window,
-  so measure the simulation speed on the M1 Pro first.
+## Stretch B – The real Geometry Dash on macOS (2026-10-19: the escape pathway plays it live)
+**Result: in the real game (Stereo Madness, normal mode), the fly's escape pathway clears the opening spikes on 7 of
+9 attempts; with the Giant Fiber silenced or the wiring scrambled it never jumps and dies at the first spike
+(0/22, 0/21).** One 60 s run each, same eye, same alarm settings, game in front the whole time:
+
+| brain | Giant Fiber spikes | presses | attempts past the first spike | where attempts end |
+|---|---|---|---|---|
+| **real FlyWire wiring** (escape pathway) | 1,380 | 53 | **7/9** | 52–57 blocks (first block section) |
+| Giant Fiber silenced | 0 | 0 | 0/22 | 16.4–16.8 blocks (first spike) |
+| scrambled wiring (shuffled0) | 0 | 0 | 0/21 | 15.7–17.8 blocks (first spike) |
+
+Stereo Madness is roughly 900–1,000 blocks, so ~55 blocks is ~6% of the level (Rajan's first try: 9%).
+
+**How it's wired** (`python -m brain.live --press --r-ref 20 --steep 2 --countdown 5 --tap-test`):
+- **Eye** (`brain/realeye.py`): finds the lime cube, keeps its "lane" (the rows it last stood in), and measures the
+  gap to the first near-black/white column ahead in blocks (1 block = 1.135 lime widths, fitted so approaches run at
+  10.4 blocks/s). Same number Fly Dash gives the brain. Checked on two recordings with annotated contact sheets.
+- **Capture** (`FlyEye.app`, `brain/flyeye.swift`): ScreenCaptureKit stream of the game window only, 440 px wide,
+  ~4 ms from capture to Python. **Keys** (`FlyJump.app`, `brain/flyjump.swift`): space down/up, sent only to the
+  game's process. Each is its own app with its own permission (Screen Recording, Accessibility), launched through
+  `open` so the IDE needs neither (`brain/flyapps.py`). Wine only takes keys while the game window is the active one.
+- **Brain** (`brain/fastpath.py`): the escape pathway (LPLC2 + LC4 + DNp01, the Phase 4b "wire" setup) on the CPU,
+  identical to the GPU model spike for spike (1,043/1,043 Giant Fiber spikes) and play for play (360/360 saved
+  Phase 4b plays). 16–26 µs per 0.1 ms tick, so ~4× faster than real time. **The full brain can't play live:** with
+  the game running it needs 134–150 µs per tick while the alarm is on, falls behind and decides 100+ ms late.
+- **Lag:** capture → decision 8 ms (median; p95 11 ms). Press → first frame showing the cube rising: 34 ms
+  (16 taps: 15–66 ms). So the fly acts on a picture ~40 ms old.
+- **Alarm retuned for that lag** (`python -m brain.delay --setup fastwire --delays 0,37,45,50 run`, then chosen on
+  practice only as the gentlest setting perfect at 37, 45 and 50 ms): r_ref 20, steep 2 wins 30/30 unseen hard
+  levels in Fly Dash at each of those delays (takeoff 0.41, 0.31, 0.27 blocks). The delay-0 setting (r_ref 5,
+  steep 1) wins 0/30 at any of them, and in the real game it died at the first spike in 22 of 23 attempts.
+
+**What went wrong on the way (and is logged now):**
+- A run where the presses took ~100 ms to show (vs 34 ms) died at the first spike 20 of 21 times. Most likely the
+  game lost focus; runs now log the front app 4×/s and start with a tap test (does the cube jump?).
+- Counting deaths from "cube gone" glued attempts together (explosion pieces look like the cube; the respawned cube
+  blinks). Attempts are now counted from the respawn blink.
+- Watch-only replays of two human recordings (`brain/realwatch.py`): real wiring fires before 14/14 and 13/15
+  obstacles (clean spikes at 0.28–0.47 blocks; the human jumps at 0.6–1.5), silenced and scrambled 0.
+
+**Limits and next steps:**
+- The eye only knows "something dark or white is in my lane". It dies at the first block section: blocks to jump
+  *onto*, pits (the thorns sit below the lane) and changing floor heights confuse it. Next: teach it those.
+- One 60 s run per brain, one noise seed, one level. More runs and levels before any percentage goes in a post.
+- The real delay varies (press → rise 15–66 ms); the clone tunes for a fixed one.
+- The game is the Windows build in Wine (Sikarugir); never modified.

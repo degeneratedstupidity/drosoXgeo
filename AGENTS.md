@@ -8,7 +8,7 @@ Geometry Dash clone through its own escape circuit: looming detectors **LPLC2**/
 (DNp01)**, and any DNp01 spike presses jump. For a LinkedIn post, learning, and maybe a term paper. Owner: Rajan,
 an experienced developer **new to computational neuroscience**: explain in plain language, analogies first.
 
-## Where things stand (2026-10-18)
+## Where things stand (2026-10-19)
 Phases 1–4 and 5A are done (results in `README.md`). Headline: real wiring wins 89/90 unseen levels untrained;
 Giant Fiber silenced and 5 scrambled brains win 0/90; trained readouts don't beat the Giant Fiber.
 **Now:** working through `SUGGESTIONS.md` (an external review; local only, Rajan keeps it out of git) before Phase 6. Done: #11, #3, #1, #7 (README
@@ -17,6 +17,9 @@ scrambled brains ~150× quieter; gain-matched scramble still 0/90; cutting only 
 relays), #5 + #6 (README "Phase 4d": with +17 ms delay and a retuned alarm 27/30 hard, fine to 33 ms, breaks at
 50 ms; full brain is over the 16.7 ms frame budget on 64% of alarm-on frames, ~11 ms engine floor). Next: Phase 6 post.
 Headline wording: "the fly's escape pathway", not "the whole brain".
+**Stretch B works** (README "Stretch B"): the escape pathway (`brain/fastpath.py`, CPU, identical to the GPU "wire"
+setup) plays the real game live: 7/9 attempts past Stereo Madness's opening spikes, silenced and scrambled 0/22 and
+0/21. It dies at the first block section (the eye's limit). Next: teach the eye blocks/pits, more runs, then Phase 6.
 
 ## How to run
 - Simulator: sibling checkout `../drosophila-brain-mlx/`; its `.venv/bin/python` runs our modules from this repo
@@ -33,7 +36,11 @@ Headline wording: "the fly's escape pathway", not "the whole brain".
 
 ## Open decisions (ask Rajan)
 - 5B (mushroom-body learning): future work; the MBON→DNp01 path check showed only weak 2-step routes (README Phase 4b).
-- Real game (Stretch B): decided 2026-10-18, Claude builds the screen/keyboard connector, watch-only first, then jump.
+- Real game (Stretch B): built 2026-10-18/19. Run `python -m brain.live --press --r-ref 20 --steep 2 --countdown 5
+  --tap-test` (normal mode; Rajan clicks into the game during the countdown, hands off). Capture and keys live in
+  ~/Applications/FlyEye.app (Screen Recording) and FlyJump.app (Accessibility), built from brain/flyeye.swift and
+  brain/flyjump.swift; rebuilding changes their ad-hoc signature, so macOS asks Rajan for the permission again.
+  Capture only the game window, never the screen (Rajan's rule). Keys only reach the game while it's the front app.
   Rajan's local copy is the Windows build, run through the Sikarugir (Wine) wrapper `geometrydash.app` in the repo root
   (gitignored; game copied into its C:\Program Files; `open geometrydash.app`). It must start from its own folder,
   or it can't find Resources and crashes in CCNode::addChild. Never modify the game's own files;
