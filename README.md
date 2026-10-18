@@ -338,6 +338,55 @@ the input fools the controls.** `python -m brain.readout run --setups real,lesio
   "something is coming" by themselves. It's harder, and much more impressive if it works.
 - First check: does a looming square on screen drive LPLC2 in the model at all?
 
+## Stretch C – Learning to time jumps (plan, not started; 2026-10-19)
+**Question.** The escape reflex can't do Stereo Madness's block sections: the right takeoff depends on where the cube
+will land (README "The block sections"). Can the fly *learn* that timing by trial and error, with learning only
+where the rules allow it (a readout with the brain fixed, or dopamine-gated Kenyon cell → MBON synapses)? And would
+the result still say something about the fly's wiring?
+
+**What we already know** (measured, 2026-10-19 unless noted):
+- **The brain gets one number per frame** ("how close is the danger"). It can't tell a lone spike from a spike before
+  a step, so no learning can time those differently. Learning first needs a richer input.
+- **The mushroom body doesn't hear the alarm.** On paper LPLC2/LC4 reach 189 Kenyon cells in two excitatory steps
+  (mostly KCg-d, the visual ones). In the full model, the alarm at 50 or 200 Hz for 1 s makes **0 of 5,177 Kenyon
+  cells** fire (6 of 96 MBONs, 2 of 331 dopamine neurons at 200 Hz). Plasticity at KC → MBON needs active KCs.
+- **The mushroom body barely reaches the Giant Fiber** (Phase 4b: 0 direct synapses, weak 2-step routes).
+- **Readouts can fool the controls** (Phase 5A): a reader that sees the driven cells learns our input, not the wiring.
+  Only a reader of downstream neurons is a fair test, and it needs the full brain.
+- **The full brain is too slow for the live game** (Stretch B: 1.3–1.5× slower than real time while the alarm is
+  on). Anything that reads downstream neurons is clone-only, watch-only, or needs the game slowed (a mod; ask Rajan).
+
+**Route R: a readout learns, the brain stays fixed** (the feasible one). Stages, each with a go/no-go gate:
+1. **Context in the input.** Give each of the 210 LPLC2 and 104 LC4 cells the looming in *its own* patch of the
+   visual field, so a step ahead and a pit ahead drive different cells. Needs each cell's receptive-field position,
+   which the files we have don't give (one point per neuron). **Rajan:** download FlyWire synapse positions or the
+   visual column map from Codex (Google sign-in; `data/SOURCES.md`). Faking positions would not be honest.
+   *Gate:* the real brain still plays spike levels as before (the Giant Fiber still fires on time).
+2. **Does context survive downstream?** Train a downstream-only reader (as Reader B, Phase 5A) to tell what's coming
+   (spikes / step / pit / platform edge) from the clone's terrain levels. *Gate:* the real wiring carries it clearly
+   better than the 5 shuffled brains (same reader, same training). If the shuffled brains do as well, the wiring
+   adds nothing and we stop. (The input itself always carries it, so "input-only" is a reference, not a control.)
+3. **Learn the timing.** First by imitation (a planner's takeoffs as the teacher, like 5A: cheap, a few hours), then
+   by trial and error (reward = blocks survived, the reader's weights only, e.g. REINFORCE). On the clone's terrain:
+   practice seeds to learn, unseen seeds to score. Controls: the same learning on shuffled and Giant-Fiber-silenced
+   brains, and an input-only reader. *Success:* unseen terrain progress clearly above the reflex (18%) and the best
+   one-number rule (20%), with non-overlapping intervals, and clearly above the shuffled brains given the same reader.
+4. **Real game:** watch-only replays of recordings (the full brain can't run live), or live with the game slowed
+   down if Rajan approves a mod.
+- **Cost:** stage 1 ~1–2 days after the download; stage 2 ~1 day of runs; stage 3 imitation ~1 day, trial and error
+  days of GPU time (one 300-block terrain level ≈ 20–40 s on the full brain, and learning needs thousands of plays).
+- **Expected honest outcome:** a reader can likely learn the timing; the open question is whether the *wiring*
+  matters (stage 2/3 against shuffled brains). The claim would be "a trained readout on a fixed connectome-
+  constrained brain learns jump timing", not "the fly learns".
+
+**Route M: the mushroom body learns (5B).** Blocked for now: under the looming drive no Kenyon cell fires, so
+there is nothing for dopamine to change. It would need much more of the visual system driven (Stretch A: real
+frames into the optic lobe columns that feed the visual Kenyon cells), and even then its lever on the Giant Fiber is
+weak. Revisit only after Stretch A.
+
+**Recommendation:** if we try it, Route R stages 1–2 as a feasibility check (~3 days after the data download), with
+a firm stop if the real wiring carries no more context than the shuffled brains.
+
 ## Stretch B – The real Geometry Dash on macOS (2026-10-19: the escape pathway plays it live)
 **Result: in the real game (Stereo Madness, normal mode), the fly's escape pathway clears the opening spikes on 7 of
 9 attempts; with the Giant Fiber silenced or the wiring scrambled it never jumps and dies at the first spike
