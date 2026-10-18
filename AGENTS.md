@@ -33,8 +33,11 @@ Headline wording: "the fly's escape pathway", not "the whole brain".
 
 ## Open decisions (ask Rajan)
 - 5B (mushroom-body learning): future work; the MBON→DNp01 path check showed only weak 2-step routes (README Phase 4b).
-- Real game (Stretch B) comes last, run by Rajan. Feasible; real time is borderline, and a game slow-down mod is the
-  honest fallback. Undecided: whether Claude builds the screen/keyboard connector. Don't touch the game binary until then.
+- Real game (Stretch B): decided 2026-10-18, Claude builds the screen/keyboard connector, watch-only first, then jump.
+  Rajan's local copy is the Windows build, run through the Sikarugir (Wine) wrapper `geometrydash.app` in the repo root
+  (gitignored; game copied into its C:\Program Files; `open geometrydash.app`). It must start from its own folder,
+  or it can't find Resources and crashes in CCNode::addChild. Never modify the game's own files;
+  ask Rajan before any mod (e.g. Geode for the slow-down). Real time is borderline (README Phase 4d).
 
 ## Working with Rajan
 - Commit each tested piece and push to `origin` (private `degeneratedstupidity/drosoXgeo`). **No `Co-Authored-By`
