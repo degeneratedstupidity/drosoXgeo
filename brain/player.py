@@ -106,11 +106,14 @@ class BrainPlayer:
     """One brain for one level. Call it with an observation, get a jump decision."""
 
     def __init__(self, pack, idx, r_ref: float, steep: float, lesion=(), seed: int = 0, record: bool = False,
-                 silence=(), gain: float = 1.0, delay_ms: float = 0.0):
-        self.r_ref, self.steep = r_ref, steep
+                 silence=(), gain: float = 1.0, delay_ms: float = 0.0, vision=None):
+        """vision: a brain.vision.Vision to drive each alarm cell by what looms in its own receptive field;
+        None (the default, every result before Stretch C) gives all 314 cells the same rate."""
+        self.r_ref, self.steep, self.vision = r_ref, steep, vision
         # Sensory delay: a conveyor belt of per-tick rates. Each frame puts its rate on the back and the
         # alarm cells get what comes off the front, so they see the game delay_ms late (0 = no belt).
-        self.belt = collections.deque([0.0] * round(delay_ms / 0.1))
+        self.belt = collections.deque([0.0 if vision is None else {"LPLC2": 0.0, "LC4": 0.0}]
+                                      * round(delay_ms / 0.1))
         self.brain = Brain(pack, {"LPLC2": idx["LPLC2"], "LC4": idx["LC4"]},
                            monitor=idx["DNp01"], lesion=lesion, silence=silence, seed=seed, gain=gain)
         self.frame = 0
@@ -121,6 +124,8 @@ class BrainPlayer:
         return min(MAX_RATE, self.r_ref * (obs["theta_dot"] / REF_LOOM) ** self.steep)
 
     def __call__(self, obs) -> bool:
+        if self.vision is not None:
+            return self._call_vision(obs)
         rate = self.alarm_rate(obs)
         # 166.67 ticks per frame: alternate 167/167/166 so game time and brain time stay in step
         n = round((self.frame + 1) * TICKS_PER_FRAME) - round(self.frame * TICKS_PER_FRAME)
@@ -143,16 +148,45 @@ class BrainPlayer:
         self.frame += 1
         return gf > 0
 
+    def _call_vision(self, obs) -> bool:
+        """As __call__, with per-cell rates (a dict of arrays per frame) on the belt."""
+        rates = self.vision.rates(obs["objects"], self.r_ref, self.steep)
+        n = round((self.frame + 1) * TICKS_PER_FRAME) - round(self.frame * TICKS_PER_FRAME)
+        self.belt.extend([rates] * n)
+        felt = [self.belt.popleft() for _ in range(n)]
+        parts, start = [], 0
+        for i in range(1, n + 1):
+            if i == n or felt[i] is not felt[start]:
+                parts.append(self.brain.step(i - start, felt[start]))
+                start = i
+        spikes = np.concatenate(parts)
+        gf = int(spikes.sum())
+        mean = float(np.mean(np.concatenate([np.atleast_1d(rates["LPLC2"]), np.atleast_1d(rates["LC4"])])))
+        self.last_rate, self.last_gf = mean, gf
+        if self.trace is not None:
+            first = np.flatnonzero(spikes.any(axis=1))
+            self.trace.append({"frame": self.frame, "distance": round(obs["distance"], 4),
+                               "theta_dot": round(obs["theta_dot"], 4), "alarm_hz": round(mean, 2),
+                               "gf_spikes": gf, "gf_first_ms": round(first[0] / 10, 1) if first.size else None,
+                               "y": round(obs["y"], 4)})
+        self.frame += 1
+        return gf > 0
+
 
 NOISE_STRIDE = 1_000_000                     # noise seed k plays level s with input-spike seed s + k * NOISE_STRIDE
 
 
 def play_level(pack, idx, r_ref, steep, seed, difficulty, lesion=(), length=300.0, record=False, on_frame=None,
-               noise=0, silence=(), gain=1.0, delay_ms=0.0):
-    """noise picks a different random draw of the alarm cells' input spikes; 0 is the draw every earlier run used."""
+               noise=0, silence=(), gain=1.0, delay_ms=0.0, vision=False):
+    """noise picks a different random draw of the alarm cells' input spikes; 0 is the draw every earlier run used.
+    vision=True drives each alarm cell by its own receptive field (brain.vision, Stretch C)."""
     env = flydash.make_env(seed, difficulty, length)
+    eyes = None
+    if vision:
+        from brain.vision import Vision
+        eyes = Vision(pack, idx)
     player = BrainPlayer(pack, idx, r_ref, steep, lesion, seed=seed + noise * NOISE_STRIDE, record=record,
-                         silence=silence, gain=gain, delay_ms=delay_ms)
+                         silence=silence, gain=gain, delay_ms=delay_ms, vision=eyes)
     obs, done = env.reset(), False
     jump_d = []                                   # distance to the spike at each takeoff
     while not done:

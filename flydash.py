@@ -122,7 +122,18 @@ class FlyDash:
                         retina[0][c] = retina[1][c] = 1
         return dict(retina=retina, distance=d, theta=theta, theta_dot=theta_dot,
                     tau=theta / theta_dot, y=self.py, airborne=not self.on_ground,
-                    progress=min(self.px / self.length, 1.0))
+                    progress=min(self.px / self.length, 1.0), objects=self.objects())
+
+    def objects(self):
+        """Everything ahead the fly could see looming, as (distance from the player's front, height of the object's
+        centre above the player's centre), in blocks. Used by the vision input (brain.vision); not by the score."""
+        out = []
+        for sp in self.spikes[self._i:self._i + 20]:
+            if sp.x - (self.px + 1) > VIEW:
+                break
+            if sp.x + SPIKE_HIT[1] > self.px:
+                out.append((max(sp.x - (self.px + 1), 0.05), -self.py))
+        return out
 
     def render(self, width=40):
         """One ASCII frame:  ■ = player,  ▲ = spike."""
@@ -303,7 +314,23 @@ class FlyDashTerrain(FlyDash):
         theta = 2 * math.atan(0.5 / d)
         theta_dot = SPEED / (d * d + 0.25)
         return dict(retina=None, distance=d, theta=theta, theta_dot=theta_dot, tau=theta / theta_dot, y=self.py,
-                    airborne=not self.grounded, progress=min(self.px / self.length, 1.0))
+                    airborne=not self.grounded, progress=min(self.px / self.length, 1.0), objects=self.objects())
+
+    def objects(self):
+        """Everything ahead that could loom: block faces higher than the player's feet, spikes, thorn pits, as
+        (distance from the player's front, height of the object's centre above the player's centre), in blocks.
+        A block the player stands on or runs over shows no face, so it doesn't loom."""
+        front, eye, out = self.px + 1, self.py + 0.5, []
+        for b in self.blocks:
+            if b.x1 > front and b.x0 - front < VIEW and b.top > self.py + 0.05 and b.x0 >= self.px:
+                out.append((max(b.x0 - front, 0.05), (max(self.py, 0.0) + b.top) / 2 - eye))
+        for p in self.peaks:
+            if p.x + 1 > front and p.x - front < VIEW:
+                out.append((max(p.x - front, 0.05), p.base + 0.5 - eye))
+        for th in self.thorns:
+            if th.x1 > front and th.x0 - front < VIEW:
+                out.append((max(th.x0 - front, 0.05), THORN_VIS / 2 - eye))
+        return out
 
     def _support_end(self):
         """Where the surface the player stands on ends (adjacent blocks of the same height count as one)."""

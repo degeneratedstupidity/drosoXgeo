@@ -44,10 +44,11 @@ CHUNKS = [list(TEST)[i:i + 10] for i in range(0, len(TEST), 10)]
 
 
 DIFF = "hard"                                 # level type (--difficulty); results of other types get their own folder
+VISION = False                                # --vision: per-cell receptive-field input (brain.vision, Stretch C)
 
 
 def tag(setup):
-    return setup if DIFF == "hard" else f"{setup}_{DIFF}"
+    return (setup if DIFF == "hard" else f"{setup}_{DIFF}") + ("_vision" if VISION else "")
 
 
 def out_dir(setup):
@@ -74,7 +75,7 @@ def play(setup, stage, delay, r_ref, steep, seeds):
     rows = []
     for s in seeds:
         r = play_level(pack, idx, r_ref, steep, s, DIFF, lesion, length, silence=silence,
-                       gain=gain_for(setup), delay_ms=delay)
+                       gain=gain_for(setup), delay_ms=delay, vision=VISION)
         r.pop("trace")
         rows.append(r)
         print(f"{setup} delay {delay} ms {stage} level {s} r_ref {r_ref:g} steep {steep:g}: "
@@ -116,7 +117,8 @@ def run(setup: str, workers: int):
         log = out_dir(setup) / "logs" / f"{stage}_d{d}_r{r_ref:g}_s{steep:g}_{seeds[0]}.log"
         log.parent.mkdir(parents=True, exist_ok=True)
         with open(log, "w") as f:
-            subprocess.run([sys.executable, "-m", "brain.delay", "--setup", setup, "--difficulty", DIFF, "play", stage, str(d),
+            subprocess.run([sys.executable, "-m", "brain.delay", "--setup", setup, "--difficulty", DIFF,
+                            *(["--vision"] if VISION else []), "play", stage, str(d),
                             str(r_ref), str(steep), f"{seeds[0]}-{seeds[-1]}"],
                            stdout=f, stderr=subprocess.STDOUT, check=True)
         rows = json.loads(job_path(setup, stage, d, r_ref, steep, seeds).read_text())
@@ -252,6 +254,7 @@ def main() -> int:
     ap.add_argument("--delays", default=None, help="comma-separated, ms (default 0,17,33,50)")
     ap.add_argument("--difficulty", default="hard", choices=flydash.LEVELS, help="level type (default hard)")
     ap.add_argument("--r-refs", default=None, help="comma-separated alarm grid (default 2,3,5,8,12,20,30)")
+    ap.add_argument("--vision", action="store_true", help="per-cell receptive-field input (brain.vision)")
     sub = ap.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("play")
     p.add_argument("stage", choices=["practice", "test"])
@@ -263,8 +266,8 @@ def main() -> int:
     r.add_argument("--workers", type=int, default=4)
     sub.add_parser("summary")
     a = ap.parse_args()
-    global DELAYS, FIXED, DIFF, R_REF
-    DIFF = a.difficulty
+    global DELAYS, FIXED, DIFF, R_REF, VISION
+    DIFF, VISION = a.difficulty, a.vision
     if a.r_refs:
         R_REF = [float(r) for r in a.r_refs.split(",")]
     if a.delays:
