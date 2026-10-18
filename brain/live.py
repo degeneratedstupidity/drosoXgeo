@@ -43,6 +43,9 @@ from brain.flyapps import Jump
 from brain.stream import LiveWindow
 
 TICK = 1e-4                                   # s
+MAX_GAP = 500                                 # ticks (50 ms): longer gaps between frames are pauses (death, menus)
+SCALE = 0.25                                  # frame size: quarter of the window's points. The cube is ~23 px,
+                                              # plenty for the eye, and frames arrive ~5 ms old instead of ~11
 
 
 def main() -> int:
@@ -73,36 +76,52 @@ def main() -> int:
     signal.signal(signal.SIGINT, lambda *_: stop.append(1))
     log, last_n, last_t = [], -1, None
     mode = "PLAYING (pressing space)" if args.press else "WATCH-ONLY (nothing pressed)"
-    with LiveWindow() as win:
-        button = Jump(win.game_pid) if args.press else None
-        print(f"{win.message}\n{mode} · {args.brain} brain · setup {args.setup} · r_ref {args.r_ref:g} steep {args.steep:g} · "
-              f"{args.seconds:g} s, Ctrl+C to stop\n", flush=True)
-        t_start = time.monotonic()
-        while not stop and time.monotonic() - t_start < args.seconds:
-            got = win.latest(last_n)
-            if got is None:
-                continue
-            n, t_cap, t_recv, rgb = got
-            skipped, last_n = (n - last_n - 1 if last_n >= 0 else 0), n
-            seen = eye(rgb)
-            d = None if seen is None else seen["distance"]
-            rate = 0.0 if seen is None else min(MAX_RATE, args.r_ref * (seen["theta_dot"] / REF_LOOM) ** args.steep)
-            ticks = 167 if last_t is None else max(1, round((t_cap - last_t) / TICK))   # game time since last frame
-            last_t = t_cap
-            t0 = time.monotonic()
-            gf = int(brain.step(ticks, {"LPLC2": rate, "LC4": rate}).sum())
-            t_dec = time.monotonic()
+    button = None
+    with LiveWindow(scale=SCALE) as win:
+        try:
+            button = Jump(win.game_pid) if args.press else None
+            print(f"{win.message}\n{mode} · {args.brain} brain · setup {args.setup} · r_ref {args.r_ref:g} "
+                  f"steep {args.steep:g} · {args.seconds:g} s, Ctrl+C to stop\n", flush=True)
+            t_start = time.monotonic()
+            while not stop and time.monotonic() - t_start < args.seconds:
+                got = win.latest(last_n)
+                if got is None:
+                    continue
+                n, t_cap, t_recv, rgb = got
+                t_got = time.monotonic()
+                skipped, last_n = (n - last_n - 1 if last_n >= 0 else 0), n
+                seen = eye(rgb)
+                d = None if seen is None else seen["distance"]
+                rate = (0.0 if seen is None
+                        else min(MAX_RATE, args.r_ref * (seen["theta_dot"] / REF_LOOM) ** args.steep))
+                # game time since the last frame; after a pause (no new frames while the cube respawns, or a menu)
+                # simulate at most 50 ms of it, or the brain spends the next frame catching up on nothing
+                gap = 167 if last_t is None else max(1, round((t_cap - last_t) / TICK))
+                ticks = min(gap, MAX_GAP)
+                last_t = t_cap
+                t0 = time.monotonic()
+                gf = int(brain.step(ticks, {"LPLC2": rate, "LC4": rate}).sum())
+                t_dec = time.monotonic()
+                if button:
+                    button.set(gf > 0)
+                ms = lambda a, b: round((b - a) * 1000, 2)
+                log.append({"n": n, "skipped": skipped, "t": round(t_cap - t_start, 4),
+                            "distance": None if d is None else round(d, 3), "alarm_hz": round(rate, 2),
+                            "ticks": ticks, "gap_ticks": gap, "gf": gf,
+                            "deliver_ms": ms(t_cap, t_recv),   # FlyEye -> pipe -> Python
+                            "wait_ms": ms(t_recv, t_got),      # frame sat here while we were busy with the last one
+                            "eye_ms": ms(t_got, t0), "brain_ms": ms(t0, t_dec), "lag_ms": ms(t_cap, t_dec)})
+                if gf:
+                    where = "nothing in view" if d is None else f"next obstacle {d:.2f} blocks"
+                    print(f"{t_cap - t_start:7.2f} s  {'JUMP' if button else 'WOULD JUMP'}  {gf} spike{'s' * (gf > 1)}"
+                          f"  {where}  lag {log[-1]['lag_ms']:.0f} ms", flush=True)
+        finally:
             if button:
-                button.set(gf > 0)
-            log.append({"n": n, "skipped": skipped, "t": round(t_cap - t_start, 4), "distance": None if d is None
-                        else round(d, 3), "alarm_hz": round(rate, 2), "ticks": ticks, "gf": gf,
-                        "brain_ms": round((t_dec - t0) * 1000, 2), "lag_ms": round((t_dec - t_cap) * 1000, 2)})
-            if gf:
-                print(f"{t_cap - t_start:7.2f} s  {'JUMP' if button else 'WOULD JUMP'}  {gf} spike{'s' * (gf > 1)}"
-                      f"  next obstacle {d:.2f} blocks  lag {log[-1]['lag_ms']:.0f} ms", flush=True)
-        if button:
-            button.close()
+                button.close()                 # space up, FlyJump exits
 
+    if not log:
+        print("no frames from the game")
+        return 1
     lag = np.array([r["lag_ms"] for r in log])
     on = np.array([r["lag_ms"] for r in log if r["alarm_hz"] > 1])
     skipped = sum(r["skipped"] for r in log)
@@ -110,10 +129,12 @@ def main() -> int:
     print(f"\n{len(log)} frames in {span:.1f} s, {skipped} skipped (the brain was still busy); lag capture -> decision: "
           f"median {np.median(lag):.1f} ms, p95 {np.percentile(lag, 95):.1f} ms"
           + (f"; alarm on: median {np.median(on):.1f}, p95 {np.percentile(on, 95):.1f} ms" if len(on) else ""))
+    parts = ", ".join(f"{k[:-3]} {np.median([r[k] for r in log]):.1f}" for k in ("deliver_ms", "wait_ms", "eye_ms", "brain_ms"))
+    print(f"where the lag goes (median ms): {parts}")
     out = (RESULTS / "realgame" /
-           f"live_{time.strftime('%Y%m%d-%H%M%S')}_{args.brain}_{args.setup}{'_press' if button else ''}.json")
+           f"live_{time.strftime('%Y%m%d-%H%M%S')}_{args.brain}_{args.setup}{'_press' if args.press else ''}.json")
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps({"brain": args.brain, "setup": args.setup, "press": bool(button), "r_ref": args.r_ref, "steep": args.steep,
+    out.write_text(json.dumps({"brain": args.brain, "setup": args.setup, "press": args.press, "r_ref": args.r_ref, "steep": args.steep,
                                "seed": args.seed, "frames": log}))
     print(f"wrote {out}")
     return 0

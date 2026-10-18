@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from collections import Counter
 import sys
 from pathlib import Path
 
@@ -38,22 +39,58 @@ VIEW = flydash.VIEW                     # blocks; farther than this counts as "n
 TITLE_BAR = 0.04                        # top fraction of the window to ignore (Wine's title bar)
 
 
-def find_cube(rgb: np.ndarray):
-    """(top, bottom, left, right) of the lime icon, or None (menus, the death explosion).
+def _patches(mask: np.ndarray, cell: int = 8) -> list[tuple[np.ndarray, np.ndarray]]:
+    """Group the mask's pixels into separate patches (pixels of the same patch lie within ~cell px of each other).
+    A flood fill over cell x cell squares, so it stays fast without scipy. Returns (ys, xs) per patch."""
+    ys, xs = np.nonzero(mask)
+    if not len(ys):
+        return []
+    cy, cx = ys // cell, xs // cell
+    occupied = set(zip(cy.tolist(), cx.tolist()))
+    label, n = {}, 0
+    for start in occupied:
+        if start in label:
+            continue
+        stack, label[start] = [start], n
+        while stack:
+            y, x = stack.pop()
+            for dy in (-1, 0, 1):
+                for dx in (-1, 0, 1):
+                    nb = (y + dy, x + dx)
+                    if nb in occupied and nb not in label:
+                        label[nb] = n
+                        stack.append(nb)
+        n += 1
+    lab = np.array([label[c] for c in zip(cy.tolist(), cx.tolist())])
+    return [(ys[lab == k], xs[lab == k]) for k in range(n)]
 
-    A real cube's box is square-ish (up to ~1.4 wide when rotated 45 degrees) and about half lime (the rest is
-    its purple centre); menus and the explosion's scattered pieces give big, mostly empty boxes (5-15% lime)."""
+
+def find_cube(rgb: np.ndarray):
+    """(top, bottom, left, right) of the lime icon, or None (menus, the death explosion)."""
+    found = _find_cube(rgb)
+    return None if found is None else found[0]
+
+
+def _find_cube(rgb: np.ndarray):
+    """((top, bottom, left, right), lime pixel count) of the cube, or None.
+
+    Lime pixels are grouped into patches, and the biggest patch that looks like a cube wins: its box is square-ish
+    (up to ~1.4 wide when rotated 45 degrees) and about half lime (the rest is its purple centre). That skips the
+    practice-mode checkpoint buttons (small green diamonds), menus and the explosion's scattered pieces."""
     r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
     lime = (g > 200) & (r > 60) & (r < 200) & (b < 80)
     lime[: int(TITLE_BAR * len(rgb))] = False
-    ys, xs = np.nonzero(lime)
-    if len(ys) < 100:
-        return None
-    top, bottom, left, right = int(ys.min()), int(ys.max()), int(xs.min()), int(xs.max())
-    h, w = bottom - top + 1, right - left + 1
-    if max(h, w) > 1.5 * min(h, w) or len(ys) < 0.3 * h * w:
-        return None
-    return top, bottom, left, right
+    best = None
+    for ys, xs in _patches(lime):
+        if len(ys) < 100:
+            continue
+        top, bottom, left, right = int(ys.min()), int(ys.max()), int(xs.min()), int(xs.max())
+        h, w = bottom - top + 1, right - left + 1
+        if max(h, w) > 1.5 * min(h, w) or len(ys) < 0.3 * h * w:
+            continue
+        if best is None or len(ys) > best[1]:
+            best = ((top, bottom, left, right), len(ys))
+    return best
 
 
 class Eye:
@@ -62,17 +99,21 @@ class Eye:
     def __init__(self):
         self.lane = None                # (top, bottom, lime size in px)
         self.prev_bottom = None
-        self.unit = None                # the upright cube's lime size: the smallest box it ever has (rotated = bigger)
+        self.sizes = Counter()          # box sizes of dense (upright-looking) detections
+        self.unit = None                # the upright cube's lime size: the most common of those (rotated = bigger)
 
     def __call__(self, rgb: np.ndarray) -> dict | None:
-        cube = find_cube(rgb)
+        found = _find_cube(rgb)
+        cube = None if found is None else found[0]
         if cube is None:
             self.prev_bottom = None
             return None
         top, bottom, left, right = cube
         size = max(bottom - top, right - left) + 1
-        self.unit = size if self.unit is None else min(self.unit, size)
-        if size > 1.5 * self.unit:                                     # not the cube we've been following
+        if found[1] >= 0.55 * size * size:                             # upright cubes are ~64% lime, rotated ~35%
+            self.sizes[size] += 1
+            self.unit = self.sizes.most_common(1)[0][0]
+        if self.unit is None or not 0.85 * self.unit <= size <= 1.5 * self.unit:   # not the cube we've been following
             self.prev_bottom = None
             return None
         upright = size <= 1.08 * self.unit                             # a rotated cube's box is bigger
