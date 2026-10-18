@@ -27,8 +27,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import signal
+import subprocess
 import sys
+import threading
 import time
 
 import numpy as np
@@ -37,7 +40,7 @@ from brain import neurons
 from brain.fastpath import FastPathway
 from brain.player import MAX_RATE, REF_LOOM, load
 from brain.paths import RESULTS
-from brain.realeye import Eye
+from brain.realeye import Eye, find_cube
 from brain.stepper import Brain
 from brain.flyapps import Jump
 from brain.stream import LiveWindow
@@ -47,6 +50,44 @@ MAX_GAP = 500                                 # ticks (50 ms): longer gaps betwe
 WIDTH = 440                                   # frame width in px, whatever the window size: the cube is then
                                               # ~23 px, plenty for the eye, and frames arrive ~4 ms old (~11 ms at
                                               # 2x the size)
+
+
+class FrontApp:
+    """Which app is in front, checked 4 times a second (lsappinfo: built in, no permission). Wine only passes key
+    presses to the game while its window is the active one, so a run is only valid while this says "wine"."""
+
+    def __init__(self, t0: float):
+        self.t0, self.name, self.changes, self.stop = t0, None, [], False
+        threading.Thread(target=self._poll, daemon=True).start()
+
+    def _poll(self):
+        while not self.stop:
+            try:
+                asn = subprocess.run(["lsappinfo", "front"], capture_output=True, text=True).stdout.strip()
+                out = subprocess.run(["lsappinfo", "info", "-only", "name", asn], capture_output=True, text=True).stdout
+                m = re.search(r'"([^"]*)"', out)
+                name = m.group(1) if m else out.strip()
+            except OSError:
+                name = "?"
+            if name != self.name:
+                self.name = name
+                self.changes.append({"t": round(time.monotonic() - self.t0, 3), "front": name})
+            time.sleep(0.25)
+
+
+def tap_test(win, button, seconds: float = 4.0) -> bool:
+    """Tap space for 0.1 s every 0.8 s and watch the cube: True if it left the ground (the game takes our keys)."""
+    t0, tops, last = time.monotonic(), [], -1
+    while time.monotonic() - t0 < seconds:
+        button.set((time.monotonic() - t0) % 0.8 < 0.1)
+        got = win.latest(last, timeout=0.2)
+        if got:
+            last = got[0]
+            cube = find_cube(got[3])
+            if cube:
+                tops.append(cube[0])
+    button.set(False)
+    return bool(tops) and min(tops) < max(tops) - 10
 
 
 def main() -> int:
@@ -59,6 +100,8 @@ def main() -> int:
     ap.add_argument("--r-ref", type=float, default=5.0, help="tuned in Phase 3/4b: 5 for both brains")
     ap.add_argument("--steep", type=float, default=None, help="default: 1 for fast (Phase 4b), 2 for full")
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--countdown", type=float, default=0, help="seconds to wait first (to click into the game)")
+    ap.add_argument("--tap-test", action="store_true", help="with --press: first check that taps make the cube jump")
     args = ap.parse_args()
 
     if args.steep is None:
@@ -81,9 +124,19 @@ def main() -> int:
     with LiveWindow(scale=0.25, width=WIDTH) as win:
         try:
             button = Jump(win.game_pid) if args.press else None
+            for k in range(int(args.countdown), 0, -1):
+                print(f"starting in {k} s: click into the game window and leave it there", flush=True)
+                time.sleep(1)
+            if button and args.tap_test:
+                if not tap_test(win, button):
+                    print("tap test: the cube didn't jump. Is the game window the active one?")
+                    return 1
+                print("tap test: the cube jumps, the game takes our keys", flush=True)
+                eye = Eye()                    # forget the lane the taps made
             print(f"{win.message}\n{mode} · {args.brain} brain · setup {args.setup} · r_ref {args.r_ref:g} "
                   f"steep {args.steep:g} · {args.seconds:g} s, Ctrl+C to stop\n", flush=True)
             t_start = time.monotonic()
+            front, warned = FrontApp(t_start), False
             while not stop and time.monotonic() - t_start < args.seconds:
                 got = win.latest(last_n)
                 if got is None:
@@ -113,6 +166,11 @@ def main() -> int:
                             "deliver_ms": ms(t_cap, t_recv),   # FlyEye -> pipe -> Python
                             "wait_ms": ms(t_recv, t_got),      # frame sat here while we were busy with the last one
                             "eye_ms": ms(t_got, t0), "brain_ms": ms(t0, t_dec), "lag_ms": ms(t_cap, t_dec)})
+                if button and front.name not in (None, "wine") and not warned:
+                    print(f"{t_cap - t_start:7.2f} s  WARNING: the game isn't the front app ({front.name!r}): "
+                          f"key presses won't reach it", flush=True)
+                    warned = True
+                warned = warned and front.name != "wine"
                 if gf:
                     where = "nothing in view" if d is None else f"next obstacle {d:.2f} blocks"
                     print(f"{t_cap - t_start:7.2f} s  {'JUMP' if button else 'WOULD JUMP'}  {gf} spike{'s' * (gf > 1)}"
@@ -120,6 +178,8 @@ def main() -> int:
         finally:
             if button:
                 button.close()                 # space up, FlyJump exits
+            if "front" in locals():
+                front.stop = True
 
     if not log:
         print("no frames from the game")
@@ -133,11 +193,14 @@ def main() -> int:
           + (f"; alarm on: median {np.median(on):.1f}, p95 {np.percentile(on, 95):.1f} ms" if len(on) else ""))
     parts = ", ".join(f"{k[:-3]} {np.median([r[k] for r in log]):.1f}" for k in ("deliver_ms", "wait_ms", "eye_ms", "brain_ms"))
     print(f"where the lag goes (median ms): {parts}")
+    if args.press:
+        print("front app during the run: " + ", ".join(f"{c['front']} from {c['t']:.1f} s" for c in front.changes))
     out = (RESULTS / "realgame" /
            f"live_{time.strftime('%Y%m%d-%H%M%S')}_{args.brain}_{args.setup}{'_press' if args.press else ''}.json")
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps({"brain": args.brain, "setup": args.setup, "press": args.press, "r_ref": args.r_ref, "steep": args.steep,
-                               "seed": args.seed, "frames": log}))
+                               "seed": args.seed, "front_app": front.changes if "front" in locals() else [],
+                               "frames": log}))
     print(f"wrote {out}")
     return 0
 
