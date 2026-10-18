@@ -251,6 +251,7 @@ def main() -> int:
     ap.add_argument("--setup", default="real")
     ap.add_argument("--delays", default=None, help="comma-separated, ms (default 0,17,33,50)")
     ap.add_argument("--difficulty", default="hard", choices=flydash.LEVELS, help="level type (default hard)")
+    ap.add_argument("--r-refs", default=None, help="comma-separated alarm grid (default 2,3,5,8,12,20,30)")
     sub = ap.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("play")
     p.add_argument("stage", choices=["practice", "test"])
@@ -262,8 +263,10 @@ def main() -> int:
     r.add_argument("--workers", type=int, default=4)
     sub.add_parser("summary")
     a = ap.parse_args()
-    global DELAYS, FIXED, DIFF
+    global DELAYS, FIXED, DIFF, R_REF
     DIFF = a.difficulty
+    if a.r_refs:
+        R_REF = [float(r) for r in a.r_refs.split(",")]
     if a.delays:
         DELAYS = tuple(int(d) for d in a.delays.split(","))
     FIXED = FIXED_FOR.get(a.setup, FIXED)

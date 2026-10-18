@@ -167,13 +167,15 @@ class Peak:
 
 
 def _segment(rng, x):
-    """One Stereo Madness-style obstacle starting at x. Returns (blocks, thorns, peaks, end x)."""
+    """One Stereo Madness-style obstacle starting at x. Returns (blocks, thorns, peaks, end x).
+    Only patterns Stereo Madness's first part uses: 1-2 spikes; two spikes, a 1-block step right after them, towers
+    out of a thorn pit; platforms with thorn pits between them (sometimes a spike on top)."""
     kind = rng.choice(["spikes", "spikes", "step", "platforms"])
     if kind == "spikes":
-        n = rng.choice([1, 1, 2, 2, 3])
+        n = rng.choice([1, 2])
         return [], [], [Peak(x + i) for i in range(n)], x + n
-    if kind == "step":                                # spikes, a 1-block step, towers out of a thorn pit
-        n = rng.choice([0, 1, 2, 2])
+    if kind == "step":                                # two spikes, a 1-block step, towers out of a thorn pit
+        n = 2
         peaks = [Peak(x + i) for i in range(n)]
         x0 = x + n
         blocks = [Block(x0, x0 + 1, 1.0)]
