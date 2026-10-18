@@ -6,6 +6,8 @@ Every game frame (1/60 s):
               (Hz, capped at MAX_RATE). REF_LOOM is the looming speed with the spike
               0.6 blocks away, so r_ref reads as "alarm rate at 0.6 blocks"; steep > 1
               means the alarm stays quiet far away and climbs fast up close, as LPLC2 does.
+     (with --delay-ms D, the alarm cells get the rate the game showed D ms earlier: the
+     fly's eye and early visual processing take ~19 ms, which the model otherwise skips)
   3. brain    the connectome model runs 16.7 ms of fly time (lock-step: the game waits)
   4. button   if either Giant Fiber (DNp01) spiked during that frame, press jump
 
@@ -31,6 +33,7 @@ Setups (the controls of Phase 4 use the same code):
 from __future__ import annotations
 
 import argparse
+import collections
 import dataclasses
 import json
 import sys
@@ -103,8 +106,11 @@ class BrainPlayer:
     """One brain for one level. Call it with an observation, get a jump decision."""
 
     def __init__(self, pack, idx, r_ref: float, steep: float, lesion=(), seed: int = 0, record: bool = False,
-                 silence=(), gain: float = 1.0):
+                 silence=(), gain: float = 1.0, delay_ms: float = 0.0):
         self.r_ref, self.steep = r_ref, steep
+        # Sensory delay: a conveyor belt of per-tick rates. Each frame puts its rate on the back and the
+        # alarm cells get what comes off the front, so they see the game delay_ms late (0 = no belt).
+        self.belt = collections.deque([0.0] * round(delay_ms / 0.1))
         self.brain = Brain(pack, {"LPLC2": idx["LPLC2"], "LC4": idx["LC4"]},
                            monitor=idx["DNp01"], lesion=lesion, silence=silence, seed=seed, gain=gain)
         self.frame = 0
@@ -118,7 +124,14 @@ class BrainPlayer:
         rate = self.alarm_rate(obs)
         # 166.67 ticks per frame: alternate 167/167/166 so game time and brain time stay in step
         n = round((self.frame + 1) * TICKS_PER_FRAME) - round(self.frame * TICKS_PER_FRAME)
-        spikes = self.brain.step(n, {"LPLC2": rate, "LC4": rate})
+        self.belt.extend([rate] * n)
+        felt = [self.belt.popleft() for _ in range(n)]
+        parts, start = [], 0                       # one step per run of equal rates (at most 2 per frame)
+        for i in range(1, n + 1):
+            if i == n or felt[i] != felt[start]:
+                parts.append(self.brain.step(i - start, {"LPLC2": felt[start], "LC4": felt[start]}))
+                start = i
+        spikes = np.concatenate(parts)
         gf = int(spikes.sum())
         self.last_rate, self.last_gf = rate, gf
         if self.trace is not None:
@@ -135,11 +148,11 @@ NOISE_STRIDE = 1_000_000                     # noise seed k plays level s with i
 
 
 def play_level(pack, idx, r_ref, steep, seed, difficulty, lesion=(), length=300.0, record=False, on_frame=None,
-               noise=0, silence=(), gain=1.0):
+               noise=0, silence=(), gain=1.0, delay_ms=0.0):
     """noise picks a different random draw of the alarm cells' input spikes; 0 is the draw every earlier run used."""
     env = flydash.FlyDash(seed, difficulty, length)
     player = BrainPlayer(pack, idx, r_ref, steep, lesion, seed=seed + noise * NOISE_STRIDE, record=record,
-                         silence=silence, gain=gain)
+                         silence=silence, gain=gain, delay_ms=delay_ms)
     obs, done = env.reset(), False
     jump_d = []                                   # distance to the spike at each takeoff
     while not done:
@@ -208,12 +221,13 @@ def parse_seeds(text: str) -> list[int]:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--setup", default="real", help="real, lesion, wire, or shuffledN")
+    ap.add_argument("--setup", default="real", help="real, lesion, cut, wire, shuffledN or shuffledNgG")
     ap.add_argument("--difficulty", default="easy", choices=list(flydash.DIFFICULTY))
     ap.add_argument("--seeds", default="0-4", help="level seeds, e.g. 0-29 or 1,5,7")
     ap.add_argument("--r-ref", type=float, default=5.0, help="alarm rate (Hz) with the spike 0.6 blocks away")
     ap.add_argument("--steep", type=float, default=2.0, help="how steeply the alarm climbs as the spike nears")
     ap.add_argument("--length", type=float, default=300.0, help="level length in blocks")
+    ap.add_argument("--delay-ms", type=float, default=0.0, help="sensory delay before the alarm cells (ms)")
     ap.add_argument("--record", action="store_true", help="save a frame-by-frame trace per level")
     ap.add_argument("--watch", action="store_true", help="draw the game live in the terminal")
     ap.add_argument("--slow", type=float, default=4.0, help="with --watch: slow-motion factor (1 = real time)")
@@ -228,7 +242,8 @@ def main() -> int:
         watcher = (Watcher(f"setup {args.setup} · {args.difficulty} · level {seed} · "
                            f"alarm r_ref {args.r_ref:g} Hz, steep {args.steep:g}", args.slow) if args.watch else None)
         r = play_level(pack, idx, args.r_ref, args.steep, seed, args.difficulty, lesion, args.length,
-                       args.record, on_frame=watcher, silence=silence, gain=gain_for(args.setup))
+                       args.record, on_frame=watcher, silence=silence, gain=gain_for(args.setup),
+                       delay_ms=args.delay_ms)
         if watcher:
             watcher.finish(r)
         rows.append(r)
@@ -240,7 +255,8 @@ def main() -> int:
     print(f"\n{args.setup} {args.difficulty} r_ref {args.r_ref:g} steep {args.steep:g}: won {won}/{len(rows)}, "
           f"mean progress {np.mean([r['progress'] for r in rows]):.0%}  ({time.perf_counter() - t0:.0f} s)")
     if args.record:
-        out = RESULTS / "player" / f"{args.setup}_{args.difficulty}_r{args.r_ref:g}_s{args.steep:g}.json"
+        tag = f"_d{args.delay_ms:g}" if args.delay_ms else ""
+        out = RESULTS / "player" / f"{args.setup}_{args.difficulty}_r{args.r_ref:g}_s{args.steep:g}{tag}.json"
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps({"setup": args.setup, "difficulty": args.difficulty, "r_ref": args.r_ref, "steep": args.steep,
                                    "levels": rows}))

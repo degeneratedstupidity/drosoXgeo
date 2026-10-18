@@ -14,15 +14,17 @@ Giant Fiber silenced and 5 scrambled brains win 0/90; trained readouts don't bea
 **Now:** working through `SUGGESTIONS.md` (an external review; local only, Rajan keeps it out of git) before Phase 6. Done: #11, #3, #1, #7 (README
 "Phase 4b": escape pathway alone beats the full brain, 99.6% vs 96.4%; 5B → future work), #2 (README "Phase 4c":
 scrambled brains ~150× quieter; gain-matched scramble still 0/90; cutting only LPLC2/LC4→GF leaves 63/90 via 2-step
-relays). Next: #5 delay sweep (real fly ≈ 19 ms stimulus→GF, so add ~17 ms) → #6 frame-time
-percentiles → Phase 6 post. Headline wording: "the fly's escape pathway", not "the whole brain".
+relays), #5 + #6 (README "Phase 4d": with +17 ms delay and a retuned alarm 27/30 hard, fine to 33 ms, breaks at
+50 ms; full brain is over the 16.7 ms frame budget on 64% of alarm-on frames, ~11 ms engine floor). Next: Phase 6 post.
+Headline wording: "the fly's escape pathway", not "the whole brain".
 
 ## How to run
 - Simulator: sibling checkout `../drosophila-brain-mlx/`; its `.venv/bin/python` runs our modules from this repo
   root (`-m brain.xxx`). Packs in `data/pack/` (gitignored): `v783`, `v783-shuffled-seed0..4`.
 - `brain/player.py` plays (setups `real`, `lesion`, `cut`, `wire`, `shuffledN`, `shuffledNgG` = synapses ×G; `--watch` draws it live). `brain/tune.py` tunes on
   practice seeds 0–5, scores once on seeds 100–129 × easy/normal/hard. `brain/phase4.py` builds the controls table.
-  `brain/readout.py` is Phase 5A (resumable, 4 jobs at a time). `brain/checks.py` reruns the 10 sanity checks.
+  `brain/readout.py` is Phase 5A (resumable, 4 jobs at a time). Review checks: `brain/activity.py` (4c),
+  `brain/delay.py` (4d, resumable), `brain/frametime.py` (4d; run on an idle Mac only). `brain/checks.py` reruns the 10 sanity checks.
 - Pages in `docs/` (rebuild with `docs/build_*.py`). Check them with headless Chrome:
   `"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --screenshot=out.png "file://$PWD/docs/<page>.html"`
 - `flydash.py`: dependency-free clone, lock-step. Speed 10.4 blocks/s, 60 fps, hard-level jump window ~45 ms.

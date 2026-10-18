@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="380" viewBox="0 0 640 380" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#222222">
+<rect width="640" height="380" fill="#ffffff"/>
+<text x="64" y="24" font-size="15" font-weight="bold">Win rate vs sensory delay (real, 30 unseen hard levels)</text>
+<line x1="64" x2="460" y1="328.0" y2="328.0" stroke="#e9ecef"/>
+<text x="56" y="332.0" text-anchor="end">0%</text>
+<line x1="64" x2="460" y1="258.0" y2="258.0" stroke="#e9ecef"/>
+<text x="56" y="262.0" text-anchor="end">25%</text>
+<line x1="64" x2="460" y1="188.0" y2="188.0" stroke="#e9ecef"/>
+<text x="56" y="192.0" text-anchor="end">50%</text>
+<line x1="64" x2="460" y1="118.0" y2="118.0" stroke="#e9ecef"/>
+<text x="56" y="122.0" text-anchor="end">75%</text>
+<line x1="64" x2="460" y1="48.0" y2="48.0" stroke="#e9ecef"/>
+<text x="56" y="52.0" text-anchor="end">100%</text>
+<text x="64.0" y="346" text-anchor="middle">0</text>
+<text x="198.6" y="346" text-anchor="middle">17</text>
+<text x="325.4" y="346" text-anchor="middle">33</text>
+<text x="460.0" y="346" text-anchor="middle">50</text>
+<text x="262.0" y="368" text-anchor="middle">added delay before the alarm cells (ms)</text>
+<line x1="198.6" x2="198.6" y1="48" y2="328" stroke="#adb5bd" stroke-dasharray="3 3"/>
+<text x="202.6" y="60" fill="#868e96">real fly</text>
+<polyline fill="none" stroke="#d9480f" stroke-width="2" points="64.0,57.3 198.6,76.0 325.4,48.0 460.0,281.3"/>
+<line x1="64.0" x2="64.0" y1="94.7" y2="49.7" stroke="#d9480f" stroke-opacity="0.5"/>
+<circle cx="64.0" cy="57.3" r="4" fill="#d9480f"/>
+<line x1="198.6" x2="198.6" y1="119.7" y2="57.7" stroke="#d9480f" stroke-opacity="0.5"/>
+<circle cx="198.6" cy="76.0" r="4" fill="#d9480f"/>
+<line x1="325.4" x2="325.4" y1="79.8" y2="48.0" stroke="#d9480f" stroke-opacity="0.5"/>
+<circle cx="325.4" cy="48.0" r="4" fill="#d9480f"/>
+<line x1="460.0" x2="460.0" y1="307.5" y2="234.0" stroke="#d9480f" stroke-opacity="0.5"/>
+<circle cx="460.0" cy="281.3" r="4" fill="#d9480f"/>
+<rect x="474" y="69" width="12" height="12" fill="#d9480f"/>
+<text x="492" y="79">brain,</text>
+<text x="492" y="94">alarm retuned per delay</text>
+<polyline fill="none" stroke="#868e96" stroke-width="2" points="64.0,57.3 198.6,272.0 325.4,328.0 460.0,328.0"/>
+<line x1="64.0" x2="64.0" y1="94.7" y2="49.7" stroke="#868e96" stroke-opacity="0.5"/>
+<circle cx="64.0" cy="57.3" r="4" fill="#868e96"/>
+<line x1="198.6" x2="198.6" y1="301.4" y2="223.5" stroke="#868e96" stroke-opacity="0.5"/>
+<circle cx="198.6" cy="272.0" r="4" fill="#868e96"/>
+<line x1="325.4" x2="325.4" y1="328.0" y2="296.2" stroke="#868e96" stroke-opacity="0.5"/>
+<circle cx="325.4" cy="328.0" r="4" fill="#868e96"/>
+<line x1="460.0" x2="460.0" y1="328.0" y2="296.2" stroke="#868e96" stroke-opacity="0.5"/>
+<circle cx="460.0" cy="328.0" r="4" fill="#868e96"/>
+<rect x="474" y="109" width="12" height="12" fill="#868e96"/>
+<text x="492" y="119">brain,</text>
+<text x="492" y="134">alarm not retuned</text>
+<polyline fill="none" stroke="#1971c2" stroke-width="2" points="64.0,48.0 198.6,48.0 325.4,48.0 460.0,48.0"/>
+<line x1="64.0" x2="64.0" y1="79.8" y2="48.0" stroke="#1971c2" stroke-opacity="0.5"/>
+<circle cx="64.0" cy="48.0" r="4" fill="#1971c2"/>
+<line x1="198.6" x2="198.6" y1="79.8" y2="48.0" stroke="#1971c2" stroke-opacity="0.5"/>
+<circle cx="198.6" cy="48.0" r="4" fill="#1971c2"/>
+<line x1="325.4" x2="325.4" y1="79.8" y2="48.0" stroke="#1971c2" stroke-opacity="0.5"/>
+<circle cx="325.4" cy="48.0" r="4" fill="#1971c2"/>
+<line x1="460.0" x2="460.0" y1="79.8" y2="48.0" stroke="#1971c2" stroke-opacity="0.5"/>
+<circle cx="460.0" cy="48.0" r="4" fill="#1971c2"/>
+<rect x="474" y="149" width="12" height="12" fill="#1971c2"/>
+<text x="492" y="159">one-number rule,</text>
+<text x="492" y="174">same delay</text>
+</svg>

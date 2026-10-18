@@ -15,7 +15,7 @@ can time jumps well enough to clear levels.
 - [ ] Phase 5 – Learning (**5A done**, `brain/readout.py`; 5B not started)
 - [ ] Phase 6 – Demo video + LinkedIn post
 
-**Next:** remaining checks before Phase 6: a sensory-delay sweep and frame-time percentiles. The scrambled-brain activity check and the targeted lesion are done (Phase 4c). 5B is future work (see Phase 4b).
+**Next:** Phase 6 (demo + post). The review's checks are done: scrambled-brain activity and targeted lesion (Phase 4c), sensory delay and slow frames (Phase 4d). 5B is future work (see Phase 4b).
 
 Baselines from `python3 flydash.py` (30 levels each):
 
@@ -235,6 +235,52 @@ every brain, 5 draws. Counted: the rest of the brain.
   counts only; we haven't tested which relay the model actually uses.
 - **Together with Phase 4b:** the direct synapses alone play best (99.6%), the full brain without them still plays
   (70%), and the Giant Fiber itself is required (0%). The circuit has a fast main road and slower side roads.
+
+## Phase 4d – Timing: sensory delay and slow frames (review #5 and #6, 2026-10-18)
+**Sensory delay** (`python -m brain.delay run`, then `summary`; 67 min, 4 jobs at a time;
+`figures/delay_sweep_real.json`). In Fly Dash the alarm cells see the game instantly; a real fly takes ~19 ms from
+light to the Giant Fiber, and the model covers only the last ~2 ms. `brain.player --delay-ms D` feeds the alarm cells
+what the game showed D ms earlier. Each delay got the full protocol (alarm tuned on practice seeds 0–5, then the 30
+unseen hard levels once), with the grid extended to r_ref 20 and 30 at every delay. At 0 ms it reproduces Phase 3
+exactly (same practice scores, 29/30).
+
+| added delay | brain, alarm retuned | 95% interval | median takeoff | brain, alarm not retuned (r_ref 5, steep 2) | one-number rule, same delay |
+|---|---|---|---|---|---|
+| 0 ms | r_ref 5, steep 2: **29/30** | 83–99% | 0.41 blocks | 29/30 | 30/30 (θ > 1.14) |
+| **17 ms (real fly)** | r_ref 8, steep 2: **27/30** | 74–97% | 0.36 | 6/30 | 30/30 (θ > 0.98) |
+| 33 ms | r_ref 20, steep 3: **30/30** | 89–100% | 0.31 | 0/30 | 30/30 (θ > 0.82) |
+| 50 ms | r_ref 30, steep 2: **5/30** | 7–34% | 0.44 | 0/30 | 30/30 (θ > 0.74) |
+
+![Win rate vs sensory delay](figures/delay_sweep_real.svg)
+
+- **With the fly's real delay, the brain still plays,** once the alarm is tuned for it (27/30, interval overlaps 0 ms).
+  A late eye needs an earlier alarm: r_ref climbs from 5 to 8 to 20. Without retuning, 17 ms alone drops it to 6/30.
+- **It holds to 33 ms and breaks by 50 ms.** At 50 ms the best setting sits at the top of the grid (r_ref 30) and
+  won 5/6 practice levels but only 5/30 unseen ones. 17 vs 33 ms (27 vs 30) is within noise (one draw each).
+- **The one-number rule shrugs off every delay** by lowering its threshold. It sees the exact angle; the brain sees
+  it through noisy spiking cells, so the brain's timing margin is what runs out.
+- **For the real game:** screen capture and key events add lag on top of the fly's 17 ms. Up to ~33 ms total is
+  fine if the alarm is retuned for it; ~50 ms is not. The lag has to be measured and the alarm tuned to it.
+
+**Slow frames** (`python -m brain.frametime`, idle M1 Pro, 10 unseen hard levels, tuned settings, every frame timed:
+one game frame = 166–167 ticks of simulation, synced back to the CPU; `figures/frametime_*.json`). Budget for live
+play: 16.7 ms per frame.
+
+| brain | frames | p50 | p95 | p99 | max | frames over 16.7 ms |
+|---|---|---|---|---|---|---|
+| **full brain**, all frames | 17,310 | 11.0 ms | 18.7 | 25.4 | 45.7 | 31% |
+| full brain, alarm on | 7,819 | **17.1** | 19.9 | 29.6 | 45.7 | **64%** |
+| full brain, takeoff frame + 2 before | 948 | 11.5 | 18.5 | 24.1 | 37.0 | 8% |
+| direct wire, all frames | 17,310 | 10.9 | 18.2 | 21.3 | 24.0 | 7% |
+
+- **The average hides it, as the review warned.** The median frame fits (11 ms), but while the alarm is on, the full
+  brain needs more than a frame's time on 64% of frames, up to 46 ms. The busiest frames come just *after* takeoff,
+  when the spike passes closest and the alarm peaks; the frames that decide the jump are mostly in budget (8% over).
+- **~11 ms is the engine's floor, not the brain's work:** the direct wire, with all but 316 neurons silenced, also
+  takes 10.9 ms. Most likely the cost of 167 ticks × 2 GPU kernel launches per frame (not profiled yet).
+- **For Stretch B:** live play on the M1 Pro would fall behind exactly while obstacles are close. Options: the game
+  slow-down mod (the honest fallback), batching several ticks per kernel launch, or a faster Mac. A frame running
+  late adds lag, and per the delay sweep, the brain tolerates ~33 ms of retuned lag, not 50.
 
 ## Phase 5 – "Training" (be precise about what learns)
 The connectome's synapse weights are fixed. Learning can live in only two places:

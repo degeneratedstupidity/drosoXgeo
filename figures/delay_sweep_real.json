@@ -1,0 +1,750 @@
+{
+  "setup": "real",
+  "delays_ms": [
+    0,
+    17,
+    33,
+    50
+  ],
+  "r_ref_grid": [
+    2,
+    3,
+    5,
+    8,
+    12,
+    20,
+    30
+  ],
+  "steep_grid": [
+    1,
+    2,
+    3
+  ],
+  "practice_seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "test_seeds": [
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127,
+    128,
+    129
+  ],
+  "difficulty": "hard",
+  "rows": [
+    {
+      "delay_ms": 0,
+      "chosen": {
+        "r_ref": 5,
+        "steep": 2,
+        "progress": 1.0,
+        "won": 6
+      },
+      "practice_grid": [
+        {
+          "r_ref": 2,
+          "steep": 1,
+          "progress": 0.12345185185185185,
+          "won": 0
+        },
+        {
+          "r_ref": 2,
+          "steep": 2,
+          "progress": 0.3200888888888874,
+          "won": 0
+        },
+        {
+          "r_ref": 2,
+          "steep": 3,
+          "progress": 1.0,
+          "won": 6
+        },
+        {
+          "r_ref": 3,
+          "steep": 1,
+          "progress": 0.43879999999999875,
+          "won": 1
+        },
+        {
+          "r_ref": 3,
+          "steep": 2,
+          "progress": 0.9165333333333329,
+          "won": 5
+        },
+        {
+          "r_ref": 3,
+          "steep": 3,
+          "progress": 1.0,
+          "won": 6
+        },
+        {
+          "r_ref": 5,
+          "steep": 1,
+          "progress": 0.6683259259259251,
+          "won": 3
+        },
+        {
+          "r_ref": 5,
+          "steep": 2,
+          "progress": 1.0,
+          "won": 6
+        },
+        {
+          "r_ref": 5,
+          "steep": 3,
+          "progress": 1.0,
+          "won": 6
+        },
+        {
+          "r_ref": 8,
+          "steep": 1,
+          "progress": 0.22802962962962892,
+          "won": 0
+        },
+        {
+          "r_ref": 8,
+          "steep": 2,
+          "progress": 1.0,
+          "won": 6
+        },
+        {
+          "r_ref": 8,
+          "steep": 3,
+          "progress": 1.0,
+          "won": 6
+        },
+        {
+          "r_ref": 12,
+          "steep": 1,
+          "progress": 0.16659259259259235,
+          "won": 0
+        },
+        {
+          "r_ref": 12,
+          "steep": 2,
+          "progress": 0.7262962962962951,
+          "won": 3
+        },
+        {
+          "r_ref": 12,
+          "steep": 3,
+          "progress": 1.0,
+          "won": 6
+        },
+        {
+          "r_ref": 20,
+          "steep": 1,
+          "progress": 0.1369333333333333,
+          "won": 0
+        },
+        {
+          "r_ref": 20,
+          "steep": 2,
+          "progress": 0.2975555555555543,
+          "won": 0
+        },
+        {
+          "r_ref": 20,
+          "steep": 3,
+          "progress": 1.0,
+          "won": 6
+        },
+        {
+          "r_ref": 30,
+          "steep": 1,
+          "progress": 0.11459259259259273,
+          "won": 0
+        },
+        {
+          "r_ref": 30,
+          "steep": 2,
+          "progress": 0.19625185185185137,
+          "won": 0
+        },
+        {
+          "r_ref": 30,
+          "steep": 3,
+          "progress": 0.5964148148148135,
+          "won": 2
+        }
+      ],
+      "brain_tuned": {
+        "won": 29,
+        "levels": 30,
+        "interval": [
+          0.8332924860304112,
+          0.9940915620051425
+        ],
+        "progress": 0.9912414814814822,
+        "median_takeoff": 0.4095
+      },
+      "brain_fixed": {
+        "r_ref": 5,
+        "steep": 2,
+        "won": 29,
+        "levels": 30,
+        "interval": [
+          0.8332924860304112,
+          0.9940915620051425
+        ],
+        "progress": 0.9912414814814822,
+        "median_takeoff": 0.4095
+      },
+      "one_number": {
+        "frames_late": 0,
+        "theta_threshold": 1.14,
+        "won": 30,
+        "levels": 30,
+        "interval": [
+          0.8864829086095221,
+          1.0
+        ],
+        "progress": 1.0,
+        "median_takeoff": 0.6940868586322608
+      }
+    },
+    {
+      "delay_ms": 17,
+      "chosen": {
+        "r_ref": 8,
+        "steep": 2,
+        "progress": 1.0,
+        "won": 6
+      },
+      "practice_grid": [
+        {
+          "r_ref": 2,
+          "steep": 1,
+          "progress": 0.12345185185185185,
+          "won": 0
+        },
+        {
+          "r_ref": 2,
+          "steep": 2,
+          "progress": 0.10573333333333346,
+          "won": 0
+        },
+        {
+          "r_ref": 2,
+          "steep": 3,
+          "progress": 0.15041481481481464,
+          "won": 0
+        },
+        {
+          "r_ref": 3,
+          "steep": 1,
+          "progress": 0.15407407407407386,
+          "won": 0
+        },
+        {
+          "r_ref": 3,
+          "steep": 2,
+          "progress": 0.251525925925925,
+          "won": 0
+        },
+        {
+          "r_ref": 3,
+          "steep": 3,
+          "progress": 0.641866666666665,
+          "won": 2
+        },
+        {
+          "r_ref": 5,
+          "steep": 1,
+          "progress": 0.6895111111111102,
+          "won": 3
+        },
+        {
+          "r_ref": 5,
+          "steep": 2,
+          "progress": 0.7724444444444418,
+          "won": 2
+        },
+        {
+          "r_ref": 5,
+          "steep": 3,
+          "progress": 0.8466666666666646,
+          "won": 3
+        },
+        {
+          "r_ref": 8,
+          "steep": 1,
+          "progress": 0.2592296296296287,
+          "won": 0
+        },
+        {
+          "r_ref": 8,
+          "steep": 2,
+          "progress": 1.0,
+          "won": 6
+        },
+        {
+          "r_ref": 8,
+          "steep": 3,
+          "progress": 1.0,
+          "won": 6
+        },
+        {
+          "r_ref": 12,
+          "steep": 1,
+          "progress": 0.20530370370370316,
+          "won": 0
+        },
+        {
+          "r_ref": 12,
+          "steep": 2,
+          "progress": 1.0,
+          "won": 6
+        },
+        {
+          "r_ref": 12,
+          "steep": 3,
+          "progress": 1.0,
+          "won": 6
+        },
+        {
+          "r_ref": 20,
+          "steep": 1,
+          "progress": 0.13828148148148145,
+          "won": 0
+        },
+        {
+          "r_ref": 20,
+          "steep": 2,
+          "progress": 0.7677037037037022,
+          "won": 3
+        },
+        {
+          "r_ref": 20,
+          "steep": 3,
+          "progress": 1.0,
+          "won": 6
+        },
+        {
+          "r_ref": 30,
+          "steep": 1,
+          "progress": 0.11574814814814828,
+          "won": 0
+        },
+        {
+          "r_ref": 30,
+          "steep": 2,
+          "progress": 0.2975555555555543,
+          "won": 0
+        },
+        {
+          "r_ref": 30,
+          "steep": 3,
+          "progress": 1.0,
+          "won": 6
+        }
+      ],
+      "brain_tuned": {
+        "won": 27,
+        "levels": 30,
+        "interval": [
+          0.7437855868473339,
+          0.9654007400402839
+        ],
+        "progress": 0.9702385185185203,
+        "median_takeoff": 0.359
+      },
+      "brain_fixed": {
+        "r_ref": 5,
+        "steep": 2,
+        "won": 6,
+        "levels": 30,
+        "interval": [
+          0.09504978102401235,
+          0.37306047381027446
+        ],
+        "progress": 0.45069777777777914,
+        "median_takeoff": 0.2375
+      },
+      "one_number": {
+        "frames_late": 1,
+        "theta_threshold": 0.98,
+        "won": 30,
+        "levels": 30,
+        "interval": [
+          0.8864829086095221,
+          1.0
+        ],
+        "progress": 1.0,
+        "median_takeoff": 0.6813794444814221
+      }
+    },
+    {
+      "delay_ms": 33,
+      "chosen": {
+        "r_ref": 20,
+        "steep": 3,
+        "progress": 1.0,
+        "won": 6
+      },
+      "practice_grid": [
+        {
+          "r_ref": 2,
+          "steep": 1,
+          "progress": 0.0959111111111113,
+          "won": 0
+        },
+        {
+          "r_ref": 2,
+          "steep": 2,
+          "progress": 0.0959111111111113,
+          "won": 0
+        },
+        {
+          "r_ref": 2,
+          "steep": 3,
+          "progress": 0.0959111111111113,
+          "won": 0
+        },
+        {
+          "r_ref": 3,
+          "steep": 1,
+          "progress": 0.14213333333333322,
+          "won": 0
+        },
+        {
+          "r_ref": 3,
+          "steep": 2,
+          "progress": 0.10573333333333346,
+          "won": 0
+        },
+        {
+          "r_ref": 3,
+          "steep": 3,
+          "progress": 0.0959111111111113,
+          "won": 0
+        },
+        {
+          "r_ref": 5,
+          "steep": 1,
+          "progress": 0.27887407407407294,
+          "won": 0
+        },
+        {
+          "r_ref": 5,
+          "steep": 2,
+          "progress": 0.21108148148148084,
+          "won": 0
+        },
+        {
+          "r_ref": 5,
+          "steep": 3,
+          "progress": 0.15041481481481464,
+          "won": 0
+        },
+        {
+          "r_ref": 8,
+          "steep": 1,
+          "progress": 0.47346666666666515,
+          "won": 1
+        },
+        {
+          "r_ref": 8,
+          "steep": 2,
+          "progress": 0.4477777777777754,
+          "won": 0
+        },
+        {
+          "r_ref": 8,
+          "steep": 3,
+          "progress": 0.8586074074074052,
+          "won": 3
+        },
+        {
+          "r_ref": 12,
+          "steep": 1,
+          "progress": 0.22802962962962892,
+          "won": 0
+        },
+        {
+          "r_ref": 12,
+          "steep": 2,
+          "progress": 0.888222222222222,
+          "won": 5
+        },
+        {
+          "r_ref": 12,
+          "steep": 3,
+          "progress": 0.9259703703703699,
+          "won": 5
+        },
+        {
+          "r_ref": 20,
+          "steep": 1,
+          "progress": 0.1542666666666665,
+          "won": 0
+        },
+        {
+          "r_ref": 20,
+          "steep": 2,
+          "progress": 0.8701185185185184,
+          "won": 5
+        },
+        {
+          "r_ref": 20,
+          "steep": 3,
+          "progress": 1.0,
+          "won": 6
+        },
+        {
+          "r_ref": 30,
+          "steep": 1,
+          "progress": 0.12537777777777784,
+          "won": 0
+        },
+        {
+          "r_ref": 30,
+          "steep": 2,
+          "progress": 0.7794518518518503,
+          "won": 3
+        },
+        {
+          "r_ref": 30,
+          "steep": 3,
+          "progress": 1.0,
+          "won": 6
+        }
+      ],
+      "brain_tuned": {
+        "won": 30,
+        "levels": 30,
+        "interval": [
+          0.8864829086095221,
+          1.0
+        ],
+        "progress": 1.0,
+        "median_takeoff": 0.307
+      },
+      "brain_fixed": {
+        "r_ref": 5,
+        "steep": 2,
+        "won": 0,
+        "levels": 30,
+        "interval": [
+          0.0,
+          0.113517091390478
+        ],
+        "progress": 0.0932148148148146,
+        "median_takeoff": 0.0775
+      },
+      "one_number": {
+        "frames_late": 2,
+        "theta_threshold": 0.82,
+        "won": 30,
+        "levels": 30,
+        "interval": [
+          0.8864829086095221,
+          1.0
+        ],
+        "progress": 1.0,
+        "median_takeoff": 0.7184467250861815
+      }
+    },
+    {
+      "delay_ms": 50,
+      "chosen": {
+        "r_ref": 30,
+        "steep": 2,
+        "progress": 0.9479259259259252,
+        "won": 5
+      },
+      "practice_grid": [
+        {
+          "r_ref": 2,
+          "steep": 1,
+          "progress": 0.0959111111111113,
+          "won": 0
+        },
+        {
+          "r_ref": 2,
+          "steep": 2,
+          "progress": 0.0959111111111113,
+          "won": 0
+        },
+        {
+          "r_ref": 2,
+          "steep": 3,
+          "progress": 0.0959111111111113,
+          "won": 0
+        },
+        {
+          "r_ref": 3,
+          "steep": 1,
+          "progress": 0.1047703703703705,
+          "won": 0
+        },
+        {
+          "r_ref": 3,
+          "steep": 2,
+          "progress": 0.0959111111111113,
+          "won": 0
+        },
+        {
+          "r_ref": 3,
+          "steep": 3,
+          "progress": 0.0959111111111113,
+          "won": 0
+        },
+        {
+          "r_ref": 5,
+          "steep": 1,
+          "progress": 0.15407407407407386,
+          "won": 0
+        },
+        {
+          "r_ref": 5,
+          "steep": 2,
+          "progress": 0.0959111111111113,
+          "won": 0
+        },
+        {
+          "r_ref": 5,
+          "steep": 3,
+          "progress": 0.0959111111111113,
+          "won": 0
+        },
+        {
+          "r_ref": 8,
+          "steep": 1,
+          "progress": 0.42204444444444333,
+          "won": 1
+        },
+        {
+          "r_ref": 8,
+          "steep": 2,
+          "progress": 0.13308148148148144,
+          "won": 0
+        },
+        {
+          "r_ref": 8,
+          "steep": 3,
+          "progress": 0.0959111111111113,
+          "won": 0
+        },
+        {
+          "r_ref": 12,
+          "steep": 1,
+          "progress": 0.23380740740740663,
+          "won": 0
+        },
+        {
+          "r_ref": 12,
+          "steep": 2,
+          "progress": 0.37651851851851664,
+          "won": 0
+        },
+        {
+          "r_ref": 12,
+          "steep": 3,
+          "progress": 0.12422222222222222,
+          "won": 0
+        },
+        {
+          "r_ref": 20,
+          "steep": 1,
+          "progress": 0.18662222222222183,
+          "won": 0
+        },
+        {
+          "r_ref": 20,
+          "steep": 2,
+          "progress": 0.8041777777777771,
+          "won": 4
+        },
+        {
+          "r_ref": 20,
+          "steep": 3,
+          "progress": 0.449970370370369,
+          "won": 1
+        },
+        {
+          "r_ref": 30,
+          "steep": 1,
+          "progress": 0.15407407407407392,
+          "won": 0
+        },
+        {
+          "r_ref": 30,
+          "steep": 2,
+          "progress": 0.9479259259259252,
+          "won": 5
+        },
+        {
+          "r_ref": 30,
+          "steep": 3,
+          "progress": 0.8604148148148136,
+          "won": 4
+        }
+      ],
+      "brain_tuned": {
+        "won": 5,
+        "levels": 30,
+        "interval": [
+          0.07336434240351683,
+          0.33564705185680177
+        ],
+        "progress": 0.4247792592592629,
+        "median_takeoff": 0.4445
+      },
+      "brain_fixed": {
+        "r_ref": 5,
+        "steep": 2,
+        "won": 0,
+        "levels": 30,
+        "interval": [
+          0.0,
+          0.113517091390478
+        ],
+        "progress": 0.04988148148148156,
+        "median_takeoff": 0.05
+      },
+      "one_number": {
+        "frames_late": 3,
+        "theta_threshold": 0.74,
+        "won": 30,
+        "levels": 30,
+        "interval": [
+          0.8864829086095221,
+          1.0
+        ],
+        "progress": 1.0,
+        "median_takeoff": 0.6850066836556437
+      }
+    }
+  ]
+}
