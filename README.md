@@ -379,6 +379,19 @@ the result still say something about the fly's wiring?
   matters (stage 2/3 against shuffled brains). The claim would be "a trained readout on a fixed connectome-
   constrained brain learns jump timing", not "the fly learns".
 
+**Stage 1 done (2026-10-19): receptive fields and vision input, gate passed.**
+- `python -m brain.receptive`: each LPLC2/LC4 cell looks where its columnar inputs look (FlyWire column map,
+  `codex/column_assignment.csv.gz`; LPLC2 inputs mostly T5, LC4 mostly T2). Up and front of the column grid measured
+  from medulla synapse positions plus the first optic chiasm. The 314 cells tile both eyes
+  (`figures/receptive_fields.svg`); 51 look within 30° of straight ahead, from 48° below to 46° above.
+- `brain/vision.py` (`player`/`delay --vision`): every object ahead drives the cells pointing at it (straight ahead,
+  at its elevation), by how fast it looms; near objects cover more cells. A spike at eye level, a tower above and a pit
+  below drive different cells. The single-rate path is unchanged (30/30 saved plays identical).
+- **Gate:** retuned per delay on practice, the escape pathway with vision input wins 29/30, 28/30, 29/30, 29/30
+  unseen hard levels at 0, 37, 45, 50 ms (r_ref 12, 25, 40, 40, steep 1; 40 is the top of the grid). It still plays.
+- **Vision alone doesn't help on terrain** (10–17% progress vs 18–19% with one rate; best one-number rule 20%):
+  the Giant Fiber still sums everything into one decision. Using the spread pattern is the job of stage 2–3.
+
 **Route M: the mushroom body learns (5B).** Blocked for now: under the looming drive no Kenyon cell fires, so
 there is nothing for dopamine to change. It would need much more of the visual system driven (Stretch A: real
 frames into the optic lobe columns that feed the visual Kenyon cells), and even then its lever on the Giant Fiber is
