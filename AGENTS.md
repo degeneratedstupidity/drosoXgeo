@@ -8,7 +8,7 @@ Geometry Dash clone through its own escape circuit: looming detectors **LPLC2**/
 (DNp01)**, and any DNp01 spike presses jump. For a LinkedIn post, learning, and maybe a term paper. Owner: Rajan,
 an experienced developer **new to computational neuroscience**: explain in plain language, analogies first.
 
-## Where things stand (2026-10-20)
+## Where things stand (2026-10-19, evening)
 Phases 1–4 and 5A are done (results in `README.md`). Headline: real wiring wins 89/90 unseen levels untrained;
 Giant Fiber silenced and 5 scrambled brains win 0/90; trained readouts don't beat the Giant Fiber.
 **Now:** working through `SUGGESTIONS.md` (an external review; local only, Rajan keeps it out of git) before Phase 6. Done: #11, #3, #1, #7 (README
@@ -22,7 +22,14 @@ setup) plays the real game live: 7/9 attempts past Stereo Madness's opening spik
 0/21. The block section after that is a planning problem a looming reflex can't solve (README "The block sections":
 eye and clone now know blocks/pits; best one-number rule and the fly both ~20% of terrain levels). Stretch C (learning
 to time jumps) stopped at its stage-2 gate: receptive-field vision input works, but downstream of the looming cells
-the real wiring carries no more "what's coming" than a gain-matched scramble (README "Stretch C"). Next: Phase 6.
+the real wiring carries no more "what's coming" than a gain-matched scramble (README "Stretch C").
+**Stretch D (paused, waiting for Rajan's go):** Rajan wants it to clear Stereo Madness up to the ship (block 266.5)
+with a *learned decision layer* on the looming cells, labelled honestly (README "Stretch D"). Real level from the
+game's file (read-only), floating blocks in Fly Dash, cross-entropy learning with checkpoints (best from the start:
+7/12 sim attempts reach ~145, `figures/learn_real_gen25.json`), a shadow of the level kept in step with the real
+cube (`brain/shadow.py`), live play with the layer (real game: one attempt past the towers, others died at 33–48),
+and a dopamine-like reward rule (`brain/dopamine.py`; sim: past the towers 8% → ~50%). **Next:** connect the
+dopamine rule to `brain.live` and learn in the real game overnight; Rajan says when he's ready. Phase 6 after.
 
 ## How to run
 - Simulator: sibling checkout `../drosophila-brain-mlx/`; its `.venv/bin/python` runs our modules from this repo
@@ -35,10 +42,19 @@ the real wiring carries no more "what's coming" than a gain-matched scramble (RE
   `"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --screenshot=out.png "file://$PWD/docs/<page>.html"`
 - `flydash.py`: dependency-free clone, lock-step. Speed 10.4 blocks/s, 60 fps, hard-level jump window ~45 ms.
 - IDs (v783): DNp01 `720575940632499757`, `720575940622838154`; LPLC2 210 cells, LC4 104 (`brain/neurons.py`).
-- M1 Pro: 3–4 processes at once ≈ 2× throughput. Background tasks are cut off at 2 h: keep runs shorter or resumable.
+- M1 Pro: 3–4 processes at once ≈ 2× throughput. Background tasks are cut off at 2 h: keep runs shorter or resumable,
+  or start them detached (`nohup caffeinate -i ... &; disown`). Stop runs by PID and its children (`pgrep -P`), never
+  by a broad name match: that once killed a learning run's workers and hung it.
+- Stretch C/D modules: `brain/receptive.py` (receptive fields, needs `codex/`, gitignored, 16 GB of Codex downloads),
+  `brain/vision.py` (per-cell input), `brain/context.py` (stage 2), `brain/stereo.py` (the real level),
+  `brain/learn.py` (decision layer, cross-entropy, checkpoints), `brain/shadow.py`, `brain/dopamine.py`;
+  `brain.live --layer figures/learn_real_gen25.json` plays the real game with the layer. Commands in README "Stretch D".
 
 ## Open decisions (ask Rajan)
-- 5B (mushroom-body learning): future work; the MBON→DNp01 path check showed only weak 2-step routes (README Phase 4b).
+- 5B (mushroom-body learning): future work; the MBON→DNp01 path check showed only weak 2-step routes (README Phase 4b),
+  and the looming signal never reaches the Kenyon cells (Stretch C).
+- Stretch D: overnight real-game dopamine learning (Rajan says when). Learning from a perfect player (the planner)
+  first was offered and not chosen; it would change the post's wording ("watched a perfect player, then practised").
 - Real game (Stretch B): built 2026-10-18/19. Run `python -m brain.live --press --r-ref 20 --steep 2 --countdown 5
   --tap-test` (normal mode; Rajan clicks into the game during the countdown, hands off). Capture and keys live in
   ~/Applications/FlyEye.app (Screen Recording) and FlyJump.app (Accessibility), built from brain/flyeye.swift and
@@ -55,6 +71,10 @@ the real wiring carries no more "what's coming" than a gain-matched scramble (RE
 - Long runs: log to `results/`, wrap in `caffeinate -i`, give Rajan a `tail -f` command and say whether anything
   would disturb the run (reading logs: safe; a second simulation: slower, same results).
 - Ask before publishing artifacts or sending anything to outside services (privacy), including web searches.
+- Pushing: a second GitHub account is now logged in on this Mac, and git's stored credential answers "Repository not
+  found". Push with the GitHub CLI's active account for that one command (no config change):
+  `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin main`.
+  `gh auth setup-git` would fix it permanently but changes global git config: Rajan's call.
 
 ## Rules (don't break these)
 - **Validate before building on the simulation.** Reproduce a published result first.

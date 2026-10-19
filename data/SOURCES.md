@@ -21,6 +21,12 @@ Downloaded by Rajan from https://codex.flywire.ai/api/download (FAFB v783, Googl
   (2.5 GB), cell types, classifications, labels, neuropil synapse counts, and skeletons (`sk_lod1_783_healed.zip`,
   13 GB). Same license as the rest of FlyWire: CC BY-NC 4.0.
 
+## The game's own level file (read-only)
+`brain/stereo.py` reads Stereo Madness from the installed game (`Resources/levels/1.txt` in the Wine prefix under
+`geometrydash.app`, gitignored): base64 + gzip, objects as "key,value" pairs (1 = type, 2/3 = x/y, 30 units per
+block). Only read, never changed; the decoded copy is `results/stereo_madness_level.txt` (gitignored). It is RobTop
+Games' content: don't commit or publish it. Fly Dash's version of the level is built from it on the fly.
+
 ## Cite these when you post
 - Dorkenwald et al. 2024, *Nature*: "Neuronal wiring diagram of an adult brain" (FlyWire connectome)
 - Schlegel et al. 2024, *Nature*: "Whole-brain annotation and multi-connectome cell typing of Drosophila" (cell types)

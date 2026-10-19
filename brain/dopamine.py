@@ -120,7 +120,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("cmd", choices=["sim"])
     ap.add_argument("--attempts", type=int, default=300)
-    ap.add_argument("--init", default="results/learn_real_coarse_gen25.json")
+    ap.add_argument("--init", default="figures/learn_real_gen25.json")
     ap.add_argument("--rate", type=float, default=RATE)
     ap.add_argument("--temp", type=float, default=TEMP)
     ap.add_argument("--seed", type=int, default=0)

@@ -506,3 +506,74 @@ doesn't consider.** The section: two spikes, a 1-block step right after them, th
 - One 60 s (or 30 s) run per brain, one noise seed, one level. More runs before any percentage goes in a post.
 - The real delay varies (press → rise 15–66 ms); the clone tunes for a fixed one.
 - The game is the Windows build in Wine (Sikarugir); never modified.
+
+## Stretch D – Learning to clear Stereo Madness up to the ship (in progress, paused 2026-10-19)
+**Goal (Rajan's call, 2026-10-19):** get as far as possible in Stereo Madness, first to the ship portal (block 266.5,
+~30% of the 879-block level), with a *learned decision layer* on top of the fly's looming cells, labelled honestly.
+**Claim, precisely:** the fly's looming cells (LPLC2/LC4 with FlyWire receptive fields, Stretch C) and its Giant
+Fiber are the eyes and the reflex; ~20–50 learned weights on top decide when to press. The connectome stays fixed;
+only the layer learns (allowed by the project's rules). Not "the fly learned to play".
+
+**Where it stands (2026-10-19):**
+
+| player | in Fly Dash's Stereo Madness, from the start | in the real game |
+|---|---|---|
+| never pressing | dies at the first spike (block 17) | the same |
+| Giant Fiber reflex alone | ~50 blocks (the step and towers) | 52–57 blocks (Stretch B) |
+| learned layer, cross-entropy, generation 25 (`figures/learn_real_gen25.json`) | 7/12 attempts reach blocks 144–148 (55% of the way); 0 reach the ship | 30 s run: 48.7, 47.5, 33.3, 32.5, 33.2, and one still going at block 60 (past the towers) |
+| learned layer + dopamine rule (600 sim attempts from generation 25) | past the towers rose 8% → ~44–56%, past block 145 0% → ~12–20%; 0 reach the ship | not tried yet |
+
+**What was built:**
+- **The real level** (`python -m brain.stereo`): the game ships Stereo Madness as data (`Resources/levels/1.txt`,
+  base64 + gzip, objects "type, x, y" in units of 30 per block). Read-only; the decoded copy stays in `results/`
+  (RobTop's content, not committed). Up to the ship: 34 solid boxes (23 floating: half-block slabs, ceilings), 5 thorn
+  pits, 26 spikes. Fly Dash gained floating blocks (bumping a block from below kills, as in the game) and small spikes;
+  the old levels are unchanged (30/30 saved plays identical). A planner (`flydash.plan`, a search over every jump
+  timing) beats it with 30 jumps; the reflex alone dies ~50 blocks in, as in the real game.
+- **The decision layer** (`brain/learn.py`): every frame, the 314 looming cells' spikes pooled into 8 elevation
+  bands (or 8 × 3 with azimuth, `--fine`), log(1 + count), a fading memory of each (×0.6 per frame), the Giant Fiber's
+  spikes and memory, whether the cube stands, a constant; press while weights · features > 0. Trained with random
+  30–55 ms lag (the real game's).
+- **Cross-entropy learning** (try a population of weight vectors, keep the best quarter, refit): from the start
+  only, every candidate died at block 79 and never practised the rest; with practice-mode **checkpoints** (7 standing
+  spots on the planner's run), the first half got learned. Scoring "share of the remaining way" from each checkpoint
+  made later generations worse from the start (generation 40: mostly 47–57 blocks); scoring each section equally
+  (`_fitness`) fixed that. The richer view (`--fine`, 52 weights) reached ~64% of each section cleared and was stopped.
+- **What the second half needs** (it never cleared these): a half-block staircase over a pit (136–150); running
+  *under* an overhead slab instead of jumping (~172) and the tunnel before the ship (~243): "something overhead, don't
+  jump"; two quick jumps on a small slab with a spike (~200). The looming cells can tell these apart (an overhead
+  slab 2 blocks ahead appears ~30° up, the next staircase step ~7° up); every candidate died at the same spot, so
+  trial and error had nothing to select on.
+- **The shadow** (`brain/shadow.py`): Fly Dash's copy of the level runs alongside the real game: restarts when the
+  cube respawns, moves at the game's speed (10.386 blocks/s), is pinned by the eye's distance to the first spike, and
+  jumps when the screen shows the real cube leaving the ground (rewound along the jump arc). On two recorded real runs
+  its cube height matches the screen within 0.1 blocks on 90% of frames. The fly's looming cells then see the
+  obstacles the shadow reports. **For the post:** the cube's position and jumps come from the screen, the obstacle
+  layout from the game's level file.
+- **Live** (`python -m brain.live --press --layer figures/learn_real_gen25.json --countdown 5 --tap-test --seconds 90
+  --record`): eye → shadow → looming cells → escape pathway → layer → FlyJump. Attempts are counted from the shadow's
+  position (the blink-based count merged two attempts once and reported "152"). Pause other runs first
+  (`kill -STOP` / `-CONT`), or the lag doubles.
+- **Why the real game did worse than the sim:** the layer learned to *hold* the key and bunny-hop; the bounce rhythm
+  is fragile, and with the real game's variable key delay it drifted onto the spikes at block 33 (3 of 6 deaths). The
+  usual fix is training under messier conditions (per-press delay jitter, slight speed/jump variation): not done yet.
+- **Dopamine-like rule** (`brain/dopamine.py`, Rajan's idea): each frame the layer presses with probability
+  sigmoid(w · x); every decision tags the connections that took part (tag = 0.97·tag + (pressed − p)·x, ~0.5 s fade);
+  clearing an obstacle (59 on the way to the ship, from the level file) adds +0.3 × tag to the weights, dying adds
+  −1 × tag. The textbook three-factor rule for dopamine-gated plasticity, on the decision layer only. In words for the
+  post: "a dopamine-like reward rule on a small decision layer", not "the mushroom body learned" (Stretch C: the
+  looming signal never reaches the Kenyon cells).
+
+**Next (waiting for Rajan):**
+1. Connect the dopamine rule to `brain.live` (~20–30 min): reward when the shadow passes an obstacle, punishment at
+   death, weights saved after every attempt. Then learn in the real game overnight, unattended (normal mode, game in
+   front, lid open). ~10–20 attempts/minute; expect more reliability past the towers, probably not the ship (every
+   death restarts at block 0, so the second half gets little practice).
+2. Train under messier timing (per-press delay jitter, speed/jump variation) so it stops relying on bounce rhythms.
+3. For the second half: shorter sections, or (Rajan's call; changes the story) first copying a perfect player (the
+   planner), then refining by trial and error or dopamine.
+
+**Commands:**
+- `python -m brain.stereo` (level), `python -m brain.learn train --setup real [--fine] [--init figures/...json]`
+  (cross-entropy, 4 workers), `python -m brain.dopamine sim --attempts 600` (dopamine rule in Fly Dash),
+  `python -m brain.shadow results/realgame/live_*_press.npz` (check the shadow on a recorded real run).
