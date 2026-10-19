@@ -47,6 +47,26 @@ STD_FLOOR = 0.05
 _W = {}                                    # per worker process: the brain, vision, level
 
 
+class Layer:
+    """The decision layer: from one frame's spikes (LPLC2, LC4, DNp01 order) and whether the cube stands, press?"""
+
+    def __init__(self, weights, vision):
+        self.w = np.asarray(weights, dtype=float)
+        el = np.concatenate([vision.groups["LPLC2"][1], vision.groups["LC4"][1]])
+        self.band = np.digitize(el, BANDS[1:-1])
+        self.nb = len(BANDS) - 1
+        self.mem = np.zeros(self.nb + 1)
+
+    def __call__(self, counts, standing: bool) -> bool:
+        nb = self.nb
+        now = np.log1p(np.bincount(self.band, weights=counts[:314], minlength=nb))
+        gf = np.log1p(counts[314:].sum())
+        self.mem[:nb] = DECAY * self.mem[:nb] + now
+        self.mem[nb] = DECAY * self.mem[nb] + gf
+        x = np.concatenate([now, self.mem[:nb], [gf, self.mem[nb], float(standing), 1.0]])
+        return bool(x @ self.w > 0)
+
+
 def _init(setup: str):
     from brain import neurons, player
     from brain.fastpath import FastPathway
@@ -89,17 +109,11 @@ def attempt(weights, seed: int, delay_ms: float, record: bool = False, start=(0.
     env.reset()
     env.px, env.py = start
     obs, done = env.observe(), False
-    mem, frames = np.zeros(N_FEAT - 1), []
-    nb = len(BANDS) - 1
+    layer, frames = Layer(weights, w["vision"]), []
     while not done:
         bp(obs)
         c = bp.brain.last_counts
-        now = np.log1p(np.bincount(w["band"], weights=c[:314], minlength=nb))
-        gf = np.log1p(c[314:].sum())
-        mem[:nb] = DECAY * mem[:nb] + now
-        mem[nb] = DECAY * mem[nb] + gf
-        x = np.concatenate([now, mem[:nb], [gf, mem[nb], float(env.on_ground), 1.0]])
-        press = bool(x @ weights > 0)
+        press = layer(c, env.on_ground)
         if record:
             frames.append({"x": round(env.px, 2), "y": round(env.py, 2), "press": press, "gf": int(c[314:].sum())})
         obs, _, done = env.step(press)

@@ -34,6 +34,7 @@ import subprocess
 import sys
 import threading
 import time
+from pathlib import Path
 
 import numpy as np
 
@@ -137,6 +138,9 @@ def main() -> int:
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--countdown", type=float, default=0, help="seconds to wait first (to click into the game)")
     ap.add_argument("--tap-test", action="store_true", help="with --press: first check that taps make the cube jump")
+    ap.add_argument("--layer", default=None,
+                    help="a learned decision layer (figures/learn_<setup>.json, brain.learn): the fly's looming cells "
+                         "see the obstacles placed by a shadow of the level (brain.shadow), the layer presses")
     ap.add_argument("--record", action="store_true",
                     help="also save the frames the eye saw (game window only, ~20 MB/s in memory: keep runs short)")
     args = ap.parse_args()
@@ -152,6 +156,18 @@ def main() -> int:
                       seed=args.seed)
     brain.step(167, {"LPLC2": 0.0, "LC4": 0.0})            # warm up (the GPU model compiles its kernels here)
     eye = Eye()
+    layer = shadow = vision = None
+    if args.layer:
+        import json as _json
+        from brain.learn import Layer
+        from brain.shadow import Shadow
+        from brain.vision import Vision
+        if args.brain != "fast":
+            raise SystemExit("--layer needs the fast brain (it was trained on it)")
+        trained = _json.loads(Path(args.layer).read_text())
+        vision = Vision(pack, idx)
+        layer, shadow = Layer(trained["mean"], vision), Shadow()
+        args.r_ref, args.steep = trained["r_ref"], trained["steep"]
 
     stop = []
     signal.signal(signal.SIGINT, lambda *_: stop.append(1))
@@ -173,7 +189,6 @@ def main() -> int:
                           f"changes {front.changes})")
                     return 1
                 print(f"tap test: the cube jumps, the game takes our keys ({seen}; front app {front.name!r})", flush=True)
-                print("tap test: the cube jumps, the game takes our keys", flush=True)
                 eye = Eye()                    # forget the lane the taps made
             print(f"{win.message}\n{mode} · {args.brain} brain · setup {args.setup} · r_ref {args.r_ref:g} "
                   f"steep {args.steep:g} · {args.seconds:g} s, Ctrl+C to stop\n", flush=True)
@@ -198,14 +213,24 @@ def main() -> int:
                 ticks = min(gap, MAX_GAP)
                 last_t = t_cap
                 t0 = time.monotonic()
-                gf = int(brain.step(ticks, {"LPLC2": rate, "LC4": rate}).sum())
+                if layer is None:
+                    gf = int(brain.step(ticks, {"LPLC2": rate, "LC4": rate}).sum())
+                    press = gf > 0
+                else:
+                    env = shadow.frame(t_cap, None if seen is None else seen["cube"], d,
+                                       None if seen is None else seen["block_px"])
+                    rates = vision.rates(env.objects() if env is not None else [], args.r_ref, args.steep)
+                    gf = int(brain.step(ticks, rates).sum())
+                    press = layer(brain.last_counts, env is not None and env.on_ground)
+                    rate = float(np.mean(np.concatenate([rates["LPLC2"], rates["LC4"]])))
                 t_dec = time.monotonic()
                 if button:
-                    button.set(gf > 0)
+                    button.set(press)
                 ms = lambda a, b: round((b - a) * 1000, 2)
                 log.append({"n": n, "skipped": skipped, "t": round(t_cap - t_start, 4),
                             "distance": None if d is None else round(d, 3), "alarm_hz": round(rate, 2),
-                            "cube_top": None if seen is None else seen["cube"][0], "pressed": bool(button and gf > 0),
+                            "cube_top": None if seen is None else seen["cube"][0], "pressed": bool(button and press),
+                            "shadow_x": None if layer is None or shadow.env is None else round(shadow.env.px, 2),
                             "ticks": ticks, "gap_ticks": gap, "gf": gf,
                             "deliver_ms": ms(t_cap, t_recv),   # FlyEye -> pipe -> Python
                             "wait_ms": ms(t_recv, t_got),      # frame sat here while we were busy with the last one
@@ -215,7 +240,7 @@ def main() -> int:
                           f"key presses won't reach it", flush=True)
                     warned = True
                 warned = warned and front.name != "wine"
-                if gf:
+                if gf and layer is None:
                     where = "nothing in view" if d is None else f"next obstacle {d:.2f} blocks"
                     print(f"{t_cap - t_start:7.2f} s  {'JUMP' if button else 'WOULD JUMP'}  {gf} spike{'s' * (gf > 1)}"
                           f"  {where}  lag {log[-1]['lag_ms']:.0f} ms", flush=True)
