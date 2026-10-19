@@ -69,14 +69,17 @@ class Layer:
         self.nb = (len(BANDS) - 1) * n_az
         self.mem = np.zeros(self.nb + 1)
 
-    def __call__(self, counts, standing: bool) -> bool:
+    def features(self, counts, standing: bool) -> np.ndarray:
+        """This frame's input to the layer (and the fading memory updated with it)."""
         nb = self.nb
         now = np.log1p(np.bincount(self.band, weights=counts[:314], minlength=nb))
         gf = np.log1p(counts[314:].sum())
         self.mem[:nb] = DECAY * self.mem[:nb] + now
         self.mem[nb] = DECAY * self.mem[nb] + gf
-        x = np.concatenate([now, self.mem[:nb], [gf, self.mem[nb], float(standing), 1.0]])
-        return bool(x @ self.w > 0)
+        return np.concatenate([now, self.mem[:nb], [gf, self.mem[nb], float(standing), 1.0]])
+
+    def __call__(self, counts, standing: bool) -> bool:
+        return bool(self.features(counts, standing) @ self.w > 0)
 
 
 def _init(setup: str, az_edges=AZ_EDGES):
