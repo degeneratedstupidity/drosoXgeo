@@ -13,9 +13,12 @@ The layer, every frame (1/60 s):
   press     space is held while  weights . features > 0
 
 Learning: the cross-entropy method (try a population of weight vectors, keep the best quarter, refit, repeat), with
-practice-mode checkpoints. Each candidate makes one attempt from each checkpoint (the start, and standing spots on the
-planner's winning run near blocks 40, 80, ..., 240); fitness = the share of the way to the ship it covers from each,
-averaged. Starting only at 0, every candidate died at the first hard spot (block 79) and never practised the rest.
+practice-mode checkpoints. The level is cut into sections at checkpoints (the start, and standing spots on the
+planner's winning run near blocks 40, 80, ..., 240). Each candidate makes 2 attempts at each section, starting at its
+checkpoint and stopping at the next one; fitness = the share of each section it clears, every section weighted
+equally (a real run must clear all of them in a row). Starting only at 0, every candidate died at the first hard
+spot (block 79) and never practised the rest; scoring "share of the remaining way to the ship" instead let late,
+short sections outweigh losing the early ones.
 Every attempt has its own random input spikes and its own delay of 30-55 ms (the real game's lag: capture -> decision ~8 ms, press -> visible ~15-66 ms, median ~37).
 Level: the real Stereo Madness layout in Fly Dash physics (brain.stereo). Scored afterwards on 30 fresh attempts,
 all from the start (block 0), like a normal-mode run.
@@ -38,10 +41,17 @@ from brain.paths import FIGURES, RESULTS
 
 R_REF, STEEP = 25.0, 1.0                   # vision alarm as tuned for the real game's lag (Stretch C stage 1)
 BANDS = np.array([-90, -40, -25, -10, 0, 10, 25, 40, 90])   # elevation band edges (deg), 8 bands
+AZ_EDGES = ()                              # inner azimuth band edges (deg); none = one band (as the first runs)
+AZ_FINE = (25.0, 50.0)                     # --fine: split by how far to the side cells look (near objects reach them)
 DECAY = 0.6
 DELAYS = (30.0, 55.0)                      # ms, drawn per attempt
-N_FEAT = 2 * (len(BANDS) - 1) + 2 + 1 + 1
+def n_features(az_edges=AZ_EDGES):
+    return 2 * (len(BANDS) - 1) * (len(az_edges) + 1) + 2 + 1 + 1
+
+
+N_FEAT = n_features()
 CHECKPOINTS = (0, 40, 80, 120, 160, 200, 240)   # blocks; each becomes the planner's last standing spot before it
+PER_SECTION = 2                                  # attempts per section per candidate
 STD_FLOOR = 0.05
 
 _W = {}                                    # per worker process: the brain, vision, level
@@ -50,11 +60,13 @@ _W = {}                                    # per worker process: the brain, visi
 class Layer:
     """The decision layer: from one frame's spikes (LPLC2, LC4, DNp01 order) and whether the cube stands, press?"""
 
-    def __init__(self, weights, vision):
+    def __init__(self, weights, vision, az_edges=AZ_EDGES):
         self.w = np.asarray(weights, dtype=float)
         el = np.concatenate([vision.groups["LPLC2"][1], vision.groups["LC4"][1]])
-        self.band = np.digitize(el, BANDS[1:-1])
-        self.nb = len(BANDS) - 1
+        az = np.concatenate([vision.groups["LPLC2"][0], vision.groups["LC4"][0]])
+        n_az = len(az_edges) + 1
+        self.band = np.digitize(el, BANDS[1:-1]) * n_az + np.digitize(az, az_edges)
+        self.nb = (len(BANDS) - 1) * n_az
         self.mem = np.zeros(self.nb + 1)
 
     def __call__(self, counts, standing: bool) -> bool:
@@ -67,7 +79,7 @@ class Layer:
         return bool(x @ self.w > 0)
 
 
-def _init(setup: str):
+def _init(setup: str, az_edges=AZ_EDGES):
     from brain import neurons, player
     from brain.fastpath import FastPathway
     from brain.stereo import level
@@ -80,7 +92,7 @@ def _init(setup: str):
     el = np.concatenate([vision.groups["LPLC2"][1], vision.groups["LC4"][1]])
     lv, end = level()
     _W.update(pack=pack, idx=idx, lesion=lesion, vision=vision, band=np.digitize(el, BANDS[1:-1]), level=lv,
-              end=end, player=player, starts=checkpoints(lv, end))
+              end=end, player=player, starts=checkpoints(lv, end), az_edges=tuple(az_edges))
 
 
 def checkpoints(lv, end):
@@ -98,9 +110,10 @@ def checkpoints(lv, end):
     return [max((s for s in spots if s[0] <= c), default=(0.0, 0.0)) for c in CHECKPOINTS]
 
 
-def attempt(weights, seed: int, delay_ms: float, record: bool = False, start=(0.0, 0.0)):
-    """One attempt at Stereo Madness up to the ship, from `start` (x, height; default the level's start).
-    Returns progress (share of the way from start to the ship), won, and optionally the frames."""
+def attempt(weights, seed: int, delay_ms: float, record: bool = False, start=(0.0, 0.0), stop=None):
+    """One attempt at Stereo Madness up to the ship, from `start` (x, height; default the level's start), ending at
+    x = `stop` if given (a section). Returns progress (share of the way from start to stop, or to the ship), won (got
+    there), and optionally the frames."""
     import flydash
     w = _W
     bp = w["player"].BrainPlayer(w["pack"], w["idx"], R_REF, STEEP, w["lesion"], seed=seed, delay_ms=delay_ms,
@@ -109,35 +122,59 @@ def attempt(weights, seed: int, delay_ms: float, record: bool = False, start=(0.
     env.reset()
     env.px, env.py = start
     obs, done = env.observe(), False
-    layer, frames = Layer(weights, w["vision"]), []
-    while not done:
+    layer, frames = Layer(weights, w["vision"], w.get("az_edges", AZ_EDGES)), []
+    goal = w["end"] if stop is None else stop
+    while not done and env.px < goal:
         bp(obs)
         c = bp.brain.last_counts
         press = layer(c, env.on_ground)
         if record:
             frames.append({"x": round(env.px, 2), "y": round(env.py, 2), "press": press, "gf": int(c[314:].sum())})
         obs, _, done = env.step(press)
-    progress = min((env.px - start[0]) / (w["end"] - start[0]), 1.0)
-    return (progress, env.won, frames) if record else (progress, env.won)
+    progress = min((env.px - start[0]) / (goal - start[0]), 1.0)
+    won = env.won or (stop is not None and env.px >= stop)
+    return (progress, won, frames) if record else (progress, won)
 
 
 def _fitness(job):
     weights, seeds, delays = job
-    return float(np.mean([attempt(weights, s, d, start=st)[0] for s, d, st in zip(seeds, delays, _W["starts"])]))
+    starts = _W["starts"]
+    stops = [s[0] for s in starts[1:]] + [_W["end"]]
+    sections = [(st, sp) for st, sp in zip(starts, stops) for _ in range(PER_SECTION)]
+    return float(np.mean([attempt(weights, s, d, start=st, stop=sp)[0]
+                          for s, d, (st, sp) in zip(seeds, delays, sections)]))
 
 
-def train(setup: str, generations: int, pop: int, workers: int, seed: int = 0):
+def expand(weights, az_edges):
+    """Coarse layer weights (one azimuth band) -> a layer with more azimuth bands: each elevation band's weight is
+    copied to all its azimuth sub-bands, so the finer layer starts out doing roughly what the coarse one learned (not
+    exactly: each band's count goes through log(1 + count), so splitting a band changes its sum a little; on 200
+    random spike patterns the two made the same 200 decisions)."""
+    w, nb, k = np.asarray(weights, float), len(BANDS) - 1, len(az_edges) + 1
+    return np.concatenate([np.repeat(w[:nb], k), np.repeat(w[nb:2 * nb], k), w[2 * nb:]])
+
+
+def train(setup: str, generations: int, pop: int, workers: int, seed: int = 0, az_edges=AZ_EDGES, tag: str = "",
+          init: str | None = None):
     rng = np.random.default_rng(seed)
-    mean, std = np.zeros(N_FEAT), np.full(N_FEAT, 1.0)
-    log = {"setup": setup, "r_ref": R_REF, "steep": STEEP, "bands": BANDS.tolist(), "decay": DECAY,
+    nf = n_features(az_edges)
+    mean, std = np.zeros(nf), np.full(nf, 1.0)
+    if init:                                          # warm start from an earlier run's mean (coarse or same size)
+        start = np.array(json.loads(open(init).read())["mean"])
+        mean = start if start.size == nf else expand(start, az_edges)
+        std = np.full(nf, 0.3)
+    out = FIGURES / f"learn_{setup}{tag}.json"
+    log = {"setup": setup, "r_ref": R_REF, "steep": STEEP, "bands": BANDS.tolist(), "az_edges": list(az_edges),
+           "init": init,
+           "decay": DECAY,
            "delays_ms": list(DELAYS), "pop": pop, "generations": []}
     best_w, best_f = None, -1.0
     t0 = time.perf_counter()
-    with Pool(workers, initializer=_init, initargs=(setup,)) as pool:
+    with Pool(workers, initializer=_init, initargs=(setup, az_edges)) as pool:
         for gen in range(generations):
-            cands = mean + std * rng.standard_normal((pop, N_FEAT))
-            seeds = rng.integers(1, 2**31, size=len(CHECKPOINTS))
-            delays = rng.uniform(*DELAYS, size=len(CHECKPOINTS))
+            cands = mean + std * rng.standard_normal((pop, nf))
+            seeds = rng.integers(1, 2**31, size=len(CHECKPOINTS) * PER_SECTION)
+            delays = rng.uniform(*DELAYS, size=len(CHECKPOINTS) * PER_SECTION)
             fit = np.array(pool.map(_fitness, [(c, seeds, delays) for c in cands]))
             elite = cands[np.argsort(-fit)[: max(2, pop // 4)]]
             mean, std = elite.mean(0), elite.std(0) + STD_FLOOR      # a floor keeps it exploring
@@ -146,27 +183,28 @@ def train(setup: str, generations: int, pop: int, workers: int, seed: int = 0):
             log["generations"].append({"gen": gen, "best": float(fit.max()), "mean": float(fit.mean()),
                                        "elite_mean": float(np.sort(fit)[-len(elite):].mean())})
             print(f"[+{(time.perf_counter() - t0) / 60:5.1f} min] gen {gen:3d}: best {fit.max():.0%}, elite "
-                  f"{np.sort(fit)[-len(elite):].mean():.0%}, population {fit.mean():.0%} of the way to the ship "
-                  f"(averaged over the checkpoints)", flush=True)
+                  f"{np.sort(fit)[-len(elite):].mean():.0%}, population {fit.mean():.0%} of each section cleared "
+                  f"(sections weighted equally)", flush=True)
             log["mean"], log["best_weights"], log["best_fitness"] = mean.tolist(), best_w.tolist(), best_f
-            (FIGURES / f"learn_{setup}.json").write_text(json.dumps(log, indent=1) + "\n")
+            out.write_text(json.dumps(log, indent=1) + "\n")
     return log
 
 
-def score(setup: str, n: int, workers: int, which: str = "mean"):
-    log = json.loads((FIGURES / f"learn_{setup}.json").read_text())
+def score(setup: str, n: int, workers: int, which: str = "mean", tag: str = ""):
+    path = FIGURES / f"learn_{setup}{tag}.json"
+    log = json.loads(path.read_text())
     weights = np.array(log[which])
     rng = np.random.default_rng(12345)
     seeds = rng.integers(1, 2**31, size=n)
     delays = rng.uniform(*DELAYS, size=n)
-    with Pool(workers, initializer=_init, initargs=(setup,)) as pool:
+    with Pool(workers, initializer=_init, initargs=(setup, tuple(log.get("az_edges", ())))) as pool:
         res = pool.starmap(attempt, [(weights, int(s), float(d)) for s, d in zip(seeds, delays)])
     prog = [p for p, _ in res]
     won = sum(w for _, w in res)
     print(f"{setup}, {which} weights, {n} fresh attempts: reached the ship {won}/{n}, mean progress "
           f"{np.mean(prog):.0%} (median {np.median(prog):.0%})")
     log.setdefault("scores", {})[which] = {"attempts": n, "won": int(won), "progress": prog}
-    (FIGURES / f"learn_{setup}.json").write_text(json.dumps(log, indent=1) + "\n")
+    path.write_text(json.dumps(log, indent=1) + "\n")
     return won, prog
 
 
@@ -179,11 +217,14 @@ def main() -> int:
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--attempts", type=int, default=30)
     ap.add_argument("--weights", default="mean", choices=["mean", "best_weights"])
+    ap.add_argument("--fine", action="store_true", help="also split the cells by azimuth (3 bands): 52 weights")
+    ap.add_argument("--init", default=None, help="warm start from this run's mean weights (a figures/learn_*.json)")
     a = ap.parse_args()
+    edges, tag = (AZ_FINE, "_fine") if a.fine else (AZ_EDGES, "")
     if a.cmd == "train":
-        train(a.setup, a.generations, a.pop, a.workers)
+        train(a.setup, a.generations, a.pop, a.workers, az_edges=edges, tag=tag, init=a.init)
     else:
-        score(a.setup, a.attempts, a.workers, a.weights)
+        score(a.setup, a.attempts, a.workers, a.weights, tag=tag)
     return 0
 
 

@@ -166,7 +166,7 @@ def main() -> int:
             raise SystemExit("--layer needs the fast brain (it was trained on it)")
         trained = _json.loads(Path(args.layer).read_text())
         vision = Vision(pack, idx)
-        layer, shadow = Layer(trained["mean"], vision), Shadow()
+        layer, shadow = Layer(trained["mean"], vision, tuple(trained.get("az_edges", ()))), Shadow()
         args.r_ref, args.steep = trained["r_ref"], trained["steep"]
 
     stop = []
