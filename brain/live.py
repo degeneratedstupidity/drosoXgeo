@@ -54,6 +54,10 @@ WIDTH = 440                                   # frame width in px, whatever the 
                                               # 2x the size)
 
 
+def layer_edges(trained: dict) -> tuple:
+    return tuple(trained.get("az_edges", ()))
+
+
 class FrontApp:
     """Which app is in front, checked 4 times a second (lsappinfo: built in, no permission). Wine only passes key
     presses to the game while its window is the active one, so a run is only valid while this says "wine"."""
@@ -141,6 +145,11 @@ def main() -> int:
     ap.add_argument("--layer", default=None,
                     help="a learned decision layer (figures/learn_<setup>.json, brain.learn): the fly's looming cells "
                          "see the obstacles placed by a shadow of the level (brain.shadow), the layer presses")
+    ap.add_argument("--dopamine", action="store_true",
+                    help="with --layer: learn while playing (brain.dopamine): reward for each cleared obstacle, "
+                         "punishment at death; weights saved after every attempt to results/realgame/dopamine_*.json")
+    ap.add_argument("--rate", type=float, default=None, help="--dopamine learning rate (default brain.dopamine.RATE)")
+    ap.add_argument("--temp", type=float, default=None, help="--dopamine randomness (default brain.dopamine.TEMP)")
     ap.add_argument("--record", action="store_true",
                     help="also save the frames the eye saw (game window only, ~20 MB/s in memory: keep runs short)")
     args = ap.parse_args()
@@ -168,6 +177,18 @@ def main() -> int:
         vision = Vision(pack, idx)
         layer, shadow = Layer(trained["mean"], vision, tuple(trained.get("az_edges", ()))), Shadow()
         args.r_ref, args.steep = trained["r_ref"], trained["steep"]
+    teacher = None
+    if args.dopamine:
+        from brain import dopamine
+        if layer is None:
+            raise SystemExit("--dopamine needs --layer (the starting weights)")
+        dop = dopamine.Dopamine(layer, args.rate or dopamine.RATE, args.temp or dopamine.TEMP)
+        out = RESULTS / "realgame" / f"dopamine_{time.strftime('%Y%m%d-%H%M%S')}.json"
+        out.parent.mkdir(parents=True, exist_ok=True)
+        teacher = dopamine.LiveTeacher(dop, dopamine.clear_points(shadow.lv), out, {
+            "init": args.layer, "r_ref": args.r_ref, "steep": args.steep, "az_edges": list(layer_edges(trained)),
+            "rate": dop.rate, "temp": dop.temp, "r_clear": dopamine.R_CLEAR, "r_death": dopamine.R_DEATH})
+        print(f"dopamine learning on: rate {dop.rate:g}, randomness {dop.temp:g}; weights saved after every death to {out}")
 
     stop = []
     signal.signal(signal.SIGINT, lambda *_: stop.append(1))
@@ -221,12 +242,18 @@ def main() -> int:
                                        None if seen is None else seen["block_px"])
                     rates = vision.rates(env.objects() if env is not None else [], args.r_ref, args.steep)
                     gf = int(brain.step(ticks, rates).sum())
-                    press = layer(brain.last_counts, env is not None and env.on_ground)
+                    if teacher is None:
+                        press = layer(brain.last_counts, env is not None and env.on_ground)
+                    else:
+                        press = teacher.frame(t_cap, brain.last_counts, shadow, seen is not None,
+                                              learning=front.name == "wine")
                     rate = float(np.mean(np.concatenate([rates["LPLC2"], rates["LC4"]])))
                 t_dec = time.monotonic()
                 if button:
                     button.set(press)
                 ms = lambda a, b: round((b - a) * 1000, 2)
+                if teacher is not None and n % 30:      # long learning runs: keep every 30th frame only
+                    continue
                 log.append({"n": n, "skipped": skipped, "t": round(t_cap - t_start, 4),
                             "distance": None if d is None else round(d, 3), "alarm_hz": round(rate, 2),
                             "cube_top": None if seen is None else seen["cube"][0], "pressed": bool(button and press),

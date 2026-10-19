@@ -29,6 +29,7 @@ from brain.stereo import level
 GD_SPEED = 10.386                 # blocks/s at normal speed (311.58 game units/s); Fly Dash uses 10.4
 FIRST_SPIKE = 17.0                # x of the first spike's left edge (block units)
 RISE_PX = 2                       # the cube's top moving up this many pixels = it left the ground
+SAFE_START = 12.0                 # blocks: nothing can kill the cube before the first spike (17)
 
 
 class Shadow:
@@ -41,6 +42,7 @@ class Shadow:
         self.stand_top = None         # the cube's top in pixels the last time the shadow stood on something
         self.missing_since = None
         self.sync = []                # first-spike position estimates
+        self.attempts = 0             # how many attempts have started (each respawn)
 
     def _game_time(self, t):
         return (t - self.t0) * GD_SPEED / flydash.SPEED          # Fly Dash time that covers the same distance
@@ -49,6 +51,7 @@ class Shadow:
         self.env = flydash.FlyDashTerrain(level=self.lv, length=self.end)
         self.env.reset()
         self.t0, self.history, self.sync, self.stand_top = t, [], [], None
+        self.attempts += 1
 
     def _advance(self, t_game, jump_now=False):
         """Step the shadow to game time t_game; with jump_now, the first step is a jump (at least one step).
@@ -72,8 +75,10 @@ class Shadow:
                 self.missing_since = t
             return self.env
         top = cube[0]
-        if self.missing_since is not None and t - self.missing_since > 0.25:
+        if (self.missing_since is not None and t - self.missing_since > 0.25
+                and (self.env is None or self.env.px > SAFE_START)):
             self.start(t)                                           # back after a death: a new attempt
+            # (a gap before SAFE_START is the respawned cube fading in, not a death: nothing can kill it there)
         elif self.env is None:
             self.start(t)
         self.missing_since = None

@@ -33,6 +33,7 @@ import time
 import numpy as np
 
 from brain.paths import FIGURES, RESULTS
+from brain.shadow import SAFE_START
 
 DECAY_TAG = 0.97                 # per frame: tags fade over ~0.5 s (a jump lasts 0.45 s)
 R_CLEAR, R_DEATH = 0.3, -1.0
@@ -73,6 +74,66 @@ class Dopamine:
     def new_attempt(self):
         self.tag[:] = 0
         self.layer.mem[:] = 0
+
+
+class LiveTeacher:
+    """The dopamine signal in the real game, from the shadow (brain.shadow): +R_CLEAR when the shadow's cube passes
+    an obstacle (half a block past its end, so a death inside it isn't rewarded first), R_DEATH when the real cube
+    vanishes for good (a death; the punishment uses the tags from the moment it vanished, not the respawn pause).
+    No learning while `learning` is False (e.g. the game isn't the front app: presses don't reach it then).
+    Weights and per-attempt results are saved after every death."""
+
+    def __init__(self, dop, points, out, meta):
+        from collections import deque
+        self.dop, self.points, self.out, self.meta = dop, points, out, meta
+        self.recent = deque(maxlen=90)            # (t, tag) for the last ~1.5 s
+        self.seen_attempts, self.next, self.punished = 0, 0, True
+        self.reached, self.cur, self.last_press = [], 0.0, False
+        self.cleared = self.deaths = 0
+
+    def frame(self, t, counts, shadow, visible: bool, learning: bool) -> bool:
+        env = shadow.env
+        if env is None:
+            return False
+        if shadow.attempts != self.seen_attempts:              # a new attempt began (respawn)
+            self.seen_attempts = shadow.attempts
+            self.dop.new_attempt()
+            self.next = int(np.searchsorted(self.points, env.px + 1))
+            self.punished, self.cur = False, env.px
+        if not visible:                                        # cube hidden: a death, or a flicker mid-jump
+            if (not self.punished and shadow.missing_since is not None and t - shadow.missing_since > 0.25
+                    and env.px > SAFE_START):                    # earlier, it's the respawn fading in
+                then = [tag for tt, tag in self.recent if tt <= shadow.missing_since]
+                if learning and then:
+                    self.dop.layer.w = self.dop.layer.w + self.dop.rate * R_DEATH * then[-1]
+                self.punished = True
+                self.deaths += 1
+                self.reached.append(round(self.cur, 1))
+                self.save()
+                return self.report()
+            return self.last_press
+        press = self.dop.step(counts, env.on_ground)
+        self.recent.append((t, self.dop.tag.copy()))
+        while self.next < len(self.points) and env.px + 1 > self.points[self.next] + 0.5:
+            if learning:
+                self.dop.reward(R_CLEAR)
+            self.cleared += 1
+            self.next += 1
+        self.cur = max(self.cur, env.px)
+        self.last_press = press
+        return press
+
+    def report(self) -> bool:
+        r = np.array(self.reached)
+        last = r[-20:]
+        print(f"attempt {len(r):5d}: reached block {r[-1]:6.1f} | best {r.max():6.1f} | last {len(last)}: median "
+              f"{np.median(last):5.1f}, past the towers {np.mean(last > 60):.0%}, past 145 {np.mean(last > 145):.0%}",
+              flush=True)
+        return False
+
+    def save(self):
+        self.out.write_text(json.dumps({**self.meta, "mean": self.dop.layer.w.tolist(), "reached": self.reached,
+                                        "cleared": self.cleared, "deaths": self.deaths}) + "\n")
 
 
 def sim(attempts: int, init: str, rate: float, temp: float, seed: int = 0, report: int = 25):
