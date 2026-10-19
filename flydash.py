@@ -160,9 +160,10 @@ SNAP = 0.25                       # landing tolerance: up to this far below a bl
 
 @dataclass
 class Block:
-    x0: float                     # a solid column from the ground up to `top` (towers, steps, platforms)
-    x1: float
+    x0: float                     # a solid box from `bottom` up to `top` (towers, steps and platforms stand on the
+    x1: float                     # ground, bottom 0; Stereo Madness also has floating slabs and ceilings)
     top: float
+    bottom: float = 0.0
 
 
 @dataclass
@@ -175,6 +176,7 @@ class Thorns:
 class Peak:
     x: float                      # a spike standing on something: left edge and the height of its base
     base: float = 0.0
+    h: float = SPIKE_HIT[2]       # hitbox height above the base (small spikes are lower)
 
 
 def _segment(rng, x):
@@ -278,11 +280,11 @@ class FlyDashTerrain(FlyDash):
         elif not self.grounded and self.vy <= 0 and self.py <= surface:
             self.py, self.vy, self.grounded = surface, 0.0, True
         for b in self._near(self.blocks, self.px, self.px + 1):
-            if self.py < b.top - SNAP:                # ran or jumped into its side
-                self.dead = True
-        x0, x1, h = SPIKE_HIT
+            if self.py < b.top - SNAP and self.py + 1 > b.bottom + SNAP:   # ran into its side, or jumped into it
+                self.dead = True                                          # from below
+        x0, x1, _ = SPIKE_HIT
         for p in self.peaks:
-            if self.px + 1 > p.x + x0 and self.px < p.x + x1 and p.base - 1 < self.py < p.base + h:
+            if self.px + 1 > p.x + x0 and self.px < p.x + x1 and p.base - 1 < self.py < p.base + p.h:
                 self.dead = True
         for th in self._near(self.thorns, self.px + 0.15, self.px + 0.85):
             if self.py < THORN_H:
@@ -297,7 +299,7 @@ class FlyDashTerrain(FlyDash):
         front, lo, hi = self.px + 1, self.py + 0.05, self.py + 0.95
         seen = []
         for b in self.blocks:
-            if b.x1 > front and lo < b.top:
+            if b.x1 > front and lo < b.top and hi > b.bottom:
                 seen.append(b.x0)
         for p in self.peaks:
             if p.x + 1 > front and lo < p.base + 1 and hi > p.base:
@@ -323,7 +325,7 @@ class FlyDashTerrain(FlyDash):
         front, eye, out = self.px + 1, self.py + 0.5, []
         for b in self.blocks:
             if b.x1 > front and b.x0 - front < VIEW and b.top > self.py + 0.05 and b.x0 >= self.px:
-                out.append((max(b.x0 - front, 0.05), (max(self.py, 0.0) + b.top) / 2 - eye, "block"))
+                out.append((max(b.x0 - front, 0.05), (max(self.py, b.bottom) + b.top) / 2 - eye, "block"))
         for p in self.peaks:
             if p.x + 1 > front and p.x - front < VIEW:
                 out.append((max(p.x - front, 0.05), p.base + 0.5 - eye, "spike"))
@@ -343,19 +345,20 @@ class FlyDashTerrain(FlyDash):
 
     def render(self, width=40):
         """One ASCII frame:  ■ = player,  ▲ = spike,  █ = block,  ^ = thorns."""
-        rows = [[" "] * width for _ in range(5)]
+        H = 8
+        rows = [[" "] * width for _ in range(H)]
         for c in range(width):
             x = self.px - 2 + c + 0.5
             for b in self.blocks:
                 if b.x0 <= x < b.x1:
-                    for r in range(int(round(b.top))):
+                    for r in range(int(round(b.bottom)), min(max(int(round(b.top)), int(round(b.bottom)) + 1), H)):
                         rows[r][c] = "█"
             if any(th.x0 <= x < th.x1 for th in self.thorns):
                 rows[0][c] = "^"
             for p in self.peaks:
-                if p.x <= x < p.x + 1:
+                if p.x <= x < p.x + 1 and int(round(p.base)) < H:
                     rows[int(round(p.base))][c] = "▲"
-        rows[min(int(self.py + 0.5), 4)][2] = "■"
+        rows[min(int(self.py + 0.5), H - 1)][2] = "■"
         return "\n".join("".join(row) for row in reversed(rows)) + "\n" + "▔" * width
 
 

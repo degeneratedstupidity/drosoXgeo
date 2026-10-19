@@ -47,32 +47,41 @@ class FastPathway:
         self.n, self.n_targets = n, idx["LPLC2"].size + idx["LC4"].size
         self.groups = {"LPLC2": idx["LPLC2"].size, "LC4": idx["LC4"].size}
         self.gf = np.arange(self.n_targets, n)              # DNp01, in the order given
-        c = core.constants_f32()
-        self.c = c
+        self.c = core.constants_f32()
         # as brain.stepper: the driven cells are never refractory; a lesioned Giant Fiber always is
         self.rfc_reload = np.full(n, core.RFC_TICKS, dtype=np.int32)
         self.rfc_reload[: self.n_targets] = 0
-        self.rfc = np.zeros(n, dtype=np.int32)
         if lesion:
             self.rfc_reload[self.gf] = NEVER
+        self.lesion = lesion
+        self.reset(seed)
+
+    def reset(self, seed: int = 0):
+        """Back to rest (as a fresh FastPathway), with a new input-spike seed. Cheap: no rebuilding of the wiring."""
+        n = self.n
+        self.rfc = np.zeros(n, dtype=np.int32)
+        if self.lesion:
             self.rfc[self.gf] = NEVER
-        self.v = np.full(n, c["v_0"], dtype=np.float32)
+        self.v = np.full(n, self.c["v_0"], dtype=np.float32)
         self.g = np.zeros(n, dtype=np.float32)
         self.ring = np.zeros((core.DELAY_TICKS, n), dtype=bool)
         self.tick = 0
         self.rng = np.random.default_rng(seed)
+        self.last_counts = np.zeros(n, dtype=np.int32)    # spikes per neuron during the last step() call
 
-    def step(self, n_ticks: int, rates: dict[str, float]) -> np.ndarray:
-        """As Brain.step: n_ticks at these rates (Hz); bool[n_ticks, 2], which Giant Fiber spiked when."""
+    def step(self, n_ticks: int, rates: dict[str, float | np.ndarray]) -> np.ndarray:
+        """As Brain.step: n_ticks at these rates (Hz, one number or one per cell); bool[n_ticks, 2], which Giant
+        Fiber spiked when. self.last_counts: every neuron's spikes during this call (LPLC2, LC4, DNp01 order)."""
         p = np.zeros(self.n_targets)
-        p[: self.groups["LPLC2"]] = rates.get("LPLC2", 0.0) * TICK_S
-        p[self.groups["LPLC2"]:] = rates.get("LC4", 0.0) * TICK_S
+        p[: self.groups["LPLC2"]] = np.asarray(rates.get("LPLC2", 0.0)) * TICK_S
+        p[self.groups["LPLC2"]:] = np.asarray(rates.get("LC4", 0.0)) * TICK_S
         return self.step_draws((self.rng.random((n_ticks, self.n_targets)) < p).astype(np.uint8))
 
     def step_draws(self, draws: np.ndarray) -> np.ndarray:
         c, v, g, rfc = self.c, self.v, self.g, self.rfc
         stim = np.zeros(self.n, dtype=bool)
         out = np.zeros((draws.shape[0], self.gf.size), dtype=bool)
+        counts = np.zeros(self.n, dtype=np.int32)
         for j in range(draws.shape[0]):
             s = self.tick % core.DELAY_TICKS
             arrived = self.ring[s]
@@ -91,8 +100,10 @@ class FastPathway:
             rfc = np.where(sp, self.rfc_reload, rfc)
             self.ring[s] = sp
             out[j] = sp[self.gf]
+            counts += sp
             self.tick += 1
         self.v, self.g, self.rfc = v, g, rfc
+        self.last_counts = counts
         return out
 
 
