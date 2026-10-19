@@ -336,9 +336,10 @@ class FlyDashTerrain(FlyDash):
 
     def _support_end(self):
         """Where the surface the player stands on ends (adjacent blocks of the same height count as one)."""
-        end = max(b.x1 for b in self._near(self.blocks, self.px, self.px + 1) if abs(b.top - self.py) < 1e-6)
+        under = [b.x1 for b in self._near(self.blocks, self.px, self.px + 1) if abs(b.top - self.py) < 1e-3]
+        end = max(under, default=self.px + 1)
         while True:
-            nxt = [b.x1 for b in self.blocks if abs(b.top - self.py) < 1e-6 and b.x0 <= end + 1e-6 < b.x1]
+            nxt = [b.x1 for b in self.blocks if abs(b.top - self.py) < 1e-3 and b.x0 <= end + 1e-6 < b.x1]
             if not nxt:
                 return end
             end = max(nxt)

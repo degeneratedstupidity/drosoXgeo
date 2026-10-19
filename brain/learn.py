@@ -8,13 +8,17 @@ learned weights on top decide. The connectome is fixed; only the layer learns (a
 The layer, every frame (1/60 s):
   features  the 314 looming cells' spikes in this frame, pooled into 8 bands by where the cells look (elevation:
             below the horizon ... above), log(1 + count); a fading memory of each band (x 0.6 per frame); the Giant
-            Fiber's spikes and their memory; a constant
+            Fiber's spikes and their memory; whether the cube stands on something (a fly feels that through its
+            legs; without it the layer can't tell "just landed, wait" from "in the air"); a constant
   press     space is held while  weights . features > 0
 
-Learning: the cross-entropy method (try a population of weight vectors, keep the best fifth, refit, repeat). Fitness
-= how far toward the ship an attempt gets, averaged over 2 attempts, each with its own random input spikes and its
-own delay of 30-55 ms (the real game's lag: capture -> decision ~8 ms, press -> visible ~15-66 ms, median ~37).
-Level: the real Stereo Madness layout in Fly Dash physics (brain.stereo). Scored afterwards on 30 fresh attempts.
+Learning: the cross-entropy method (try a population of weight vectors, keep the best quarter, refit, repeat), with
+practice-mode checkpoints. Each candidate makes one attempt from each checkpoint (the start, and standing spots on the
+planner's winning run near blocks 40, 80, ..., 240); fitness = the share of the way to the ship it covers from each,
+averaged. Starting only at 0, every candidate died at the first hard spot (block 79) and never practised the rest.
+Every attempt has its own random input spikes and its own delay of 30-55 ms (the real game's lag: capture -> decision ~8 ms, press -> visible ~15-66 ms, median ~37).
+Level: the real Stereo Madness layout in Fly Dash physics (brain.stereo). Scored afterwards on 30 fresh attempts,
+all from the start (block 0), like a normal-mode run.
 
     python -m brain.learn train --setup real            # ~1 h, 4 attempts at a time; -> figures/learn_<setup>.json
     python -m brain.learn score --setup real            # 30 fresh attempts with the learned weights
@@ -36,7 +40,9 @@ R_REF, STEEP = 25.0, 1.0                   # vision alarm as tuned for the real 
 BANDS = np.array([-90, -40, -25, -10, 0, 10, 25, 40, 90])   # elevation band edges (deg), 8 bands
 DECAY = 0.6
 DELAYS = (30.0, 55.0)                      # ms, drawn per attempt
-N_FEAT = 2 * (len(BANDS) - 1) + 2 + 1
+N_FEAT = 2 * (len(BANDS) - 1) + 2 + 1 + 1
+CHECKPOINTS = (0, 40, 80, 120, 160, 200, 240)   # blocks; each becomes the planner's last standing spot before it
+STD_FLOOR = 0.05
 
 _W = {}                                    # per worker process: the brain, vision, level
 
@@ -54,17 +60,35 @@ def _init(setup: str):
     el = np.concatenate([vision.groups["LPLC2"][1], vision.groups["LC4"][1]])
     lv, end = level()
     _W.update(pack=pack, idx=idx, lesion=lesion, vision=vision, band=np.digitize(el, BANDS[1:-1]), level=lv,
-              end=end, player=player)
+              end=end, player=player, starts=checkpoints(lv, end))
 
 
-def attempt(weights, seed: int, delay_ms: float, record: bool = False):
-    """One attempt at Stereo Madness up to the ship. Returns progress (0-1), won, and optionally the frames."""
+def checkpoints(lv, end):
+    """Standing spots (x, height) on the planner's winning run, the last one at or before each CHECKPOINTS block
+    with nothing ahead within 3 blocks of its front (a fair place to resume, like a practice-mode checkpoint)."""
+    import flydash
+    jumps = flydash.plan(lv, end)
+    env = flydash.FlyDashTerrain(level=lv, length=end)
+    obs, done, frame, spots = env.reset(), False, 0, []
+    while not done:
+        if env.on_ground and obs["distance"] > 3:
+            spots.append((env.px, env.py))
+        obs, _, done = env.step(frame in jumps)
+        frame += 1
+    return [max((s for s in spots if s[0] <= c), default=(0.0, 0.0)) for c in CHECKPOINTS]
+
+
+def attempt(weights, seed: int, delay_ms: float, record: bool = False, start=(0.0, 0.0)):
+    """One attempt at Stereo Madness up to the ship, from `start` (x, height; default the level's start).
+    Returns progress (share of the way from start to the ship), won, and optionally the frames."""
     import flydash
     w = _W
     bp = w["player"].BrainPlayer(w["pack"], w["idx"], R_REF, STEEP, w["lesion"], seed=seed, delay_ms=delay_ms,
                                  vision=w["vision"])
     env = flydash.FlyDashTerrain(level=w["level"], length=w["end"])
-    obs, done = env.reset(), False
+    env.reset()
+    env.px, env.py = start
+    obs, done = env.observe(), False
     mem, frames = np.zeros(N_FEAT - 1), []
     nb = len(BANDS) - 1
     while not done:
@@ -74,17 +98,18 @@ def attempt(weights, seed: int, delay_ms: float, record: bool = False):
         gf = np.log1p(c[314:].sum())
         mem[:nb] = DECAY * mem[:nb] + now
         mem[nb] = DECAY * mem[nb] + gf
-        x = np.concatenate([now, mem[:nb], [gf, mem[nb], 1.0]])
+        x = np.concatenate([now, mem[:nb], [gf, mem[nb], float(env.on_ground), 1.0]])
         press = bool(x @ weights > 0)
         if record:
             frames.append({"x": round(env.px, 2), "y": round(env.py, 2), "press": press, "gf": int(c[314:].sum())})
         obs, _, done = env.step(press)
-    return (min(env.px / w["end"], 1.0), env.won, frames) if record else (min(env.px / w["end"], 1.0), env.won)
+    progress = min((env.px - start[0]) / (w["end"] - start[0]), 1.0)
+    return (progress, env.won, frames) if record else (progress, env.won)
 
 
 def _fitness(job):
     weights, seeds, delays = job
-    return float(np.mean([attempt(weights, s, d)[0] for s, d in zip(seeds, delays)]))
+    return float(np.mean([attempt(weights, s, d, start=st)[0] for s, d, st in zip(seeds, delays, _W["starts"])]))
 
 
 def train(setup: str, generations: int, pop: int, workers: int, seed: int = 0):
@@ -97,18 +122,18 @@ def train(setup: str, generations: int, pop: int, workers: int, seed: int = 0):
     with Pool(workers, initializer=_init, initargs=(setup,)) as pool:
         for gen in range(generations):
             cands = mean + std * rng.standard_normal((pop, N_FEAT))
-            seeds = rng.integers(1, 2**31, size=2)
-            delays = rng.uniform(*DELAYS, size=2)
+            seeds = rng.integers(1, 2**31, size=len(CHECKPOINTS))
+            delays = rng.uniform(*DELAYS, size=len(CHECKPOINTS))
             fit = np.array(pool.map(_fitness, [(c, seeds, delays) for c in cands]))
-            elite = cands[np.argsort(-fit)[: max(2, pop // 5)]]
-            mean, std = elite.mean(0), elite.std(0) + 0.02           # a little floor keeps it exploring
+            elite = cands[np.argsort(-fit)[: max(2, pop // 4)]]
+            mean, std = elite.mean(0), elite.std(0) + STD_FLOOR      # a floor keeps it exploring
             if fit.max() > best_f:
                 best_f, best_w = float(fit.max()), cands[int(np.argmax(fit))]
             log["generations"].append({"gen": gen, "best": float(fit.max()), "mean": float(fit.mean()),
                                        "elite_mean": float(np.sort(fit)[-len(elite):].mean())})
             print(f"[+{(time.perf_counter() - t0) / 60:5.1f} min] gen {gen:3d}: best {fit.max():.0%}, elite "
-                  f"{np.sort(fit)[-len(elite):].mean():.0%}, population {fit.mean():.0%} of the way to the ship",
-                  flush=True)
+                  f"{np.sort(fit)[-len(elite):].mean():.0%}, population {fit.mean():.0%} of the way to the ship "
+                  f"(averaged over the checkpoints)", flush=True)
             log["mean"], log["best_weights"], log["best_fitness"] = mean.tolist(), best_w.tolist(), best_f
             (FIGURES / f"learn_{setup}.json").write_text(json.dumps(log, indent=1) + "\n")
     return log
