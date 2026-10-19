@@ -41,7 +41,7 @@ class Vision:
 
     def rates(self, objects, r_ref: float, steep: float) -> dict[str, np.ndarray]:
         out = {t: np.zeros(len(az)) for t, (az, _, _) in self.groups.items()}
-        for d, height in objects:
+        for d, height, *_ in objects:
             loom = r_ref * ((flydash.SPEED / (d * d + 0.25)) / REF_LOOM) ** steep
             if loom < 1e-3:
                 continue

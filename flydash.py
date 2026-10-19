@@ -126,13 +126,13 @@ class FlyDash:
 
     def objects(self):
         """Everything ahead the fly could see looming, as (distance from the player's front, height of the object's
-        centre above the player's centre), in blocks. Used by the vision input (brain.vision); not by the score."""
+        centre above the player's centre, kind), in blocks. Used by the vision input (brain.vision); not by the score."""
         out = []
         for sp in self.spikes[self._i:self._i + 20]:
             if sp.x - (self.px + 1) > VIEW:
                 break
             if sp.x + SPIKE_HIT[1] > self.px:
-                out.append((max(sp.x - (self.px + 1), 0.05), -self.py))
+                out.append((max(sp.x - (self.px + 1), 0.05), -self.py, "spike"))
         return out
 
     def render(self, width=40):
@@ -318,18 +318,18 @@ class FlyDashTerrain(FlyDash):
 
     def objects(self):
         """Everything ahead that could loom: block faces higher than the player's feet, spikes, thorn pits, as
-        (distance from the player's front, height of the object's centre above the player's centre), in blocks.
+        (distance from the player's front, height of the object's centre above the player's centre, kind), in blocks.
         A block the player stands on or runs over shows no face, so it doesn't loom."""
         front, eye, out = self.px + 1, self.py + 0.5, []
         for b in self.blocks:
             if b.x1 > front and b.x0 - front < VIEW and b.top > self.py + 0.05 and b.x0 >= self.px:
-                out.append((max(b.x0 - front, 0.05), (max(self.py, 0.0) + b.top) / 2 - eye))
+                out.append((max(b.x0 - front, 0.05), (max(self.py, 0.0) + b.top) / 2 - eye, "block"))
         for p in self.peaks:
             if p.x + 1 > front and p.x - front < VIEW:
-                out.append((max(p.x - front, 0.05), p.base + 0.5 - eye))
+                out.append((max(p.x - front, 0.05), p.base + 0.5 - eye, "spike"))
         for th in self.thorns:
             if th.x1 > front and th.x0 - front < VIEW:
-                out.append((max(th.x0 - front, 0.05), THORN_VIS / 2 - eye))
+                out.append((max(th.x0 - front, 0.05), THORN_VIS / 2 - eye, "pit"))
         return out
 
     def _support_end(self):
@@ -359,28 +359,36 @@ class FlyDashTerrain(FlyDash):
         return "\n".join("".join(row) for row in reversed(rows)) + "\n" + "▔" * width
 
 
-def solvable(level, length=300.0):
-    """Can some sequence of jumps beat this terrain level? Searches every frame at which a standing player could
-    jump (the only choice the game offers). States are (frame, height) while standing, so the search is small."""
+def plan(level, length=300.0):
+    """A winning sequence of jumps for a terrain level, as the set of frames to jump on, or None if there is none.
+    Searches every frame at which a standing player could jump (the only choice the game offers). States are
+    (frame, height) while standing, so the search is small. Waiting is tried before jumping."""
     import copy
     env = FlyDashTerrain(level=level, length=length)
-    todo, seen = [env], set()
+    todo, seen = [(env, frozenset())], set()
     while todo:
-        e = todo.pop()
-        key = (round(e.px / (SPEED * DT)), round(e.py, 3))
+        e, jumps = todo.pop()
+        frame = round(e.px / (SPEED * DT))
+        key = (frame, round(e.py, 3))
         if key in seen:
             continue
         seen.add(key)
         for jump in (True, False):
             f = copy.copy(e)
             f.step(jump)
+            path = jumps | {frame} if jump else jumps
             while not (f.dead or f.won or f.grounded):
                 f.step(False)
             if f.won:
-                return True
+                return set(path)
             if not f.dead:
-                todo.append(f)
-    return False
+                todo.append((f, path))
+    return None
+
+
+def solvable(level, length=300.0):
+    """Can some sequence of jumps beat this terrain level?"""
+    return plan(level, length) is not None
 
 
 LEVELS = list(DIFFICULTY) + ["terrain"]

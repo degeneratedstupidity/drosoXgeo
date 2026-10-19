@@ -338,7 +338,7 @@ the input fools the controls.** `python -m brain.readout run --setups real,lesio
   "something is coming" by themselves. It's harder, and much more impressive if it works.
 - First check: does a looming square on screen drive LPLC2 in the model at all?
 
-## Stretch C – Learning to time jumps (plan, not started; 2026-10-19)
+## Stretch C – Learning to time jumps (stopped at stage 2, 2026-10-20)
 **Question.** The escape reflex can't do Stereo Madness's block sections: the right takeoff depends on where the cube
 will land (README "The block sections"). Can the fly *learn* that timing by trial and error, with learning only
 where the rules allow it (a readout with the brain fixed, or dopamine-gated Kenyon cell → MBON synapses)? And would
@@ -391,6 +391,30 @@ the result still say something about the fly's wiring?
   unseen hard levels at 0, 37, 45, 50 ms (r_ref 12, 25, 40, 40, steep 1; 40 is the top of the grid). It still plays.
 - **Vision alone doesn't help on terrain** (10–17% progress vs 18–19% with one rate; best one-number rule 20%):
   the Giant Fiber still sums everything into one decision. Using the spread pattern is the job of stage 2–3.
+
+**Stage 2 done (2026-10-20): gate failed, so Stretch C stops here.** (`python -m brain.context run`, then `equal`;
+`figures/stretchc_context*.json`.) Every brain watched the same 20 terrain levels along the same winning path (a
+planner plays, `flydash.plan`), with the same input spikes; a linear reader of the downstream neurons only (no
+LPLC2/LC4) learned what is coming within 4 blocks (clear / spike / block / pit) on practice levels 0–9 and was
+scored once on levels 100–109 (balanced accuracy on standing frames, chance 25%):
+
+| brain | reader with each brain's 69 most active downstream neurons | with 318 |
+|---|---|---|
+| real wiring | **45%** (95% 43–48%) | **44%** (42–46%) |
+| scrambled, gain-matched (shuffled0 ×2.83) | 44% (41–46%) | 45% (42–48%) |
+| scrambled, plain (shuffled0) | 37% | 37% |
+| the input itself (314 rates; ceiling) | 69% | |
+
+- **Some context gets downstream** (well above chance), but **the real wiring carries no more of it than a scramble
+  at the same activity**: per level, real minus gain-matched is +1.2% (69 neurons) and −1.1% (318). Any wiring that
+  receives the looming cells' outputs relays it. And most of it is lost on the way (45% vs 69% in the input).
+- With all neurons that fire often enough, the readers were real 42% (318 neurons), plain scramble 36% (69), gain-
+  matched 44% (9,771: under vision input the ×2.83 scramble is far more active than the real brain, hence the equal-
+  size comparison).
+- **Decision (the plan's rule):** a trained reader could still learn jump timing, but it would learn it from our
+  input, not from the fly's wiring (the Phase 5A lesson again). The claim stays: the escape pathway plays the escape
+  part of Geometry Dash, untrained, and the block sections need planning it doesn't have.
+- Limits: one scramble seed (gain-matched only for seed 0), a linear reader, one label design, 10 test levels.
 
 **Route M: the mushroom body learns (5B).** Blocked for now: under the looming drive no Kenyon cell fires, so
 there is nothing for dopamine to change. It would need much more of the visual system driven (Stretch A: real

@@ -8,7 +8,7 @@ Geometry Dash clone through its own escape circuit: looming detectors **LPLC2**/
 (DNp01)**, and any DNp01 spike presses jump. For a LinkedIn post, learning, and maybe a term paper. Owner: Rajan,
 an experienced developer **new to computational neuroscience**: explain in plain language, analogies first.
 
-## Where things stand (2026-10-19)
+## Where things stand (2026-10-20)
 Phases 1–4 and 5A are done (results in `README.md`). Headline: real wiring wins 89/90 unseen levels untrained;
 Giant Fiber silenced and 5 scrambled brains win 0/90; trained readouts don't beat the Giant Fiber.
 **Now:** working through `SUGGESTIONS.md` (an external review; local only, Rajan keeps it out of git) before Phase 6. Done: #11, #3, #1, #7 (README
@@ -20,7 +20,9 @@ Headline wording: "the fly's escape pathway", not "the whole brain".
 **Stretch B works** (README "Stretch B"): the escape pathway (`brain/fastpath.py`, CPU, identical to the GPU "wire"
 setup) plays the real game live: 7/9 attempts past Stereo Madness's opening spikes, silenced and scrambled 0/22 and
 0/21. The block section after that is a planning problem a looming reflex can't solve (README "The block sections":
-eye and clone now know blocks/pits; best one-number rule and the fly both ~20% of terrain levels). Next: Phase 6.
+eye and clone now know blocks/pits; best one-number rule and the fly both ~20% of terrain levels). Stretch C (learning
+to time jumps) stopped at its stage-2 gate: receptive-field vision input works, but downstream of the looming cells
+the real wiring carries no more "what's coming" than a gain-matched scramble (README "Stretch C"). Next: Phase 6.
 
 ## How to run
 - Simulator: sibling checkout `../drosophila-brain-mlx/`; its `.venv/bin/python` runs our modules from this repo
