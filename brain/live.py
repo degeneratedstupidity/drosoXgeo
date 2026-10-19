@@ -263,6 +263,19 @@ def main() -> int:
     parts = ", ".join(f"{k[:-3]} {np.median([r[k] for r in log]):.1f}" for k in ("deliver_ms", "wait_ms", "eye_ms", "brain_ms"))
     print(f"where the lag goes (median ms): {parts}")
     reached = attempts(log)
+    if args.layer:                     # the shadow knows where the cube is: each attempt's furthest x
+        reached, cur = [], None
+        for r in log:
+            x = r.get("shadow_x")
+            if x is None:
+                continue
+            if cur is not None and x < cur - 5:      # back near the start: a new attempt
+                reached.append(round(cur, 1))
+                cur = x
+            else:
+                cur = x if cur is None else max(cur, x)
+        if cur is not None:
+            print(f"attempt still going when the run ended: block {cur:.1f}")
     if reached:
         print(f"complete attempts: {len(reached)}; blocks reached: {reached}; past the first spike (> 20 blocks): "
               f"{sum(r > 20 for r in reached)}/{len(reached)}")
