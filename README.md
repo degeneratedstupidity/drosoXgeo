@@ -599,6 +599,23 @@ unchanged) and reproduces the wall (overnight weights: 6/20 die at 101.9–102.3
   25%, the ~1 s-tag weights (`figures/dopamine_tag1s_sim.json`) **55%** (past 145: 10%, median 144). The cross-
   entropy search from the overnight weights didn't help (15%). The next wall is the half-block staircase (144–148).
 
+**The shadow was out of step (fixed 2026-10-21).** Its first-spike correction was applied twice (it moved the cube
+and, through the start time, made it catch up again): usually 0.5–0.85 blocks ahead of the real cube (the fly saw
+every obstacle too close), sometimes 8–15 behind after a late respawn (twice it saw no first spike and died before
+block 17). Every real-game run with the layer, including the overnight learning, had this. Fixed, and the game speed
+fitted to 10.41 blocks/s: the shadow now matches the eye within ~0.1 blocks at the first spike, ±0.2 by block 180.
+Same weights (`figures/dopamine_tag1s_sim.json`, learning off), 90 s each:
+
+| | before the fix (14 attempts) | after (6 complete) | Fly Dash, same weights |
+|---|---|---|---|
+| past the towers (60) | 8/14 | **6/6** | 70% |
+| past block 102 | 1/14 | **3/6** | 55% |
+| past block 145 | 1/14 | **3/6** (153, 153, 161) | 10% |
+| deaths before block 17 (impossible) | 2 | 0 | |
+
+The real game now does what Fly Dash predicts; best 161 blocks (60% of the way to the ship). Next wall: the
+half-block staircase and the spiked platform (145–165).
+
 **Next (waiting for Rajan):**
 1. Connect the dopamine rule to `brain.live` (~20–30 min): reward when the shadow passes an obstacle, punishment at
    death, weights saved after every attempt. Then learn in the real game overnight, unattended (normal mode, game in
