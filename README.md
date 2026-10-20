@@ -581,8 +581,12 @@ mode, game in front the whole time, 8 ms capture → decision), starting from th
 - **Then it stalled for ~7 h at block 101–102** (1,574 + 273 of 2,990 deaths): a spike on a low platform right after
   a small pit. Likely cause: the jump that clears the pit is the jump that lands on the spike, so the reward for the
   pit and the punishment for the death hit the same tags and cancel.
-- **Next fix:** reward only once the cube has *survived* the jump (hold each clear-reward ~0.5 s; drop it if the
-  cube dies first), as Rajan first described it. Test in Fly Dash, then continue in the real game from these weights.
+- **Tested fix (2026-10-20): reward a clear only once the cube has survived 0.5 s after it.** Fly Dash, 600
+  attempts each from the overnight weights: no better (past 60: 55% vs 62%, past 102: 53% vs 58%, past 145: 18% vs
+  28%; best 172 vs 173; none reached the ship). And in Fly Dash block 102 is no wall (past 102 ≈ past 60); its wall
+  is the half-block staircase at 144–148. So the real game's stall at 101–102 is a sim-vs-real difference at that
+  spot (variable key delay upsetting the bounce timing? the shadow out of step by block 100?), not the cancelling
+  rewards. Next: record real attempts there (learning off) and look.
 
 **Next (waiting for Rajan):**
 1. Connect the dopamine rule to `brain.live` (~20–30 min): reward when the shadow passes an obstacle, punishment at

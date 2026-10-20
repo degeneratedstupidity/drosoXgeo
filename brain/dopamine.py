@@ -8,9 +8,12 @@ negative one when it dies. This is the textbook three-factor rule for dopamine-g
   2. tag      every connection that took part leaves a fading tag (an eligibility trace, ~0.5 s):
                 tag = 0.97 * tag + (pressed - p) * features      (per frame; 0.97 per frame = a 0.5 s fade)
               "pressed - p" says whether this frame did more or less pressing than the layer usually would
-  3. dopamine  when the cube clears an obstacle:  weights += rate * R_CLEAR * tag
-              when it dies:                       weights += rate * R_DEATH * tag   (R_DEATH < 0)
-              so recent choices that led to clearing get stronger, those that led to death weaker
+  3. dopamine  when the cube clears an obstacle and is still alive 0.5 s later ("survived the jump"):
+                weights += rate * R_CLEAR * tag_at_the_clear
+              when it dies:  weights += rate * R_DEATH * tag   (R_DEATH < 0), and clears from the last 0.5 s are
+              not rewarded. Tested 2026-10-20 (Fly Dash, 600 attempts each from the overnight weights): waiting
+              0.5 s was no better (past block 145: 18% vs 28% rewarding at once), and Fly Dash doesn't show the real
+              game's wall at block 101-102 at all, so that wall is a sim-vs-real difference, not this. Default 0.
 
 The plasticity is in the decision layer only (allowed by the project's rules); the fly's connectome is fixed. In
 words for the post: "a dopamine-like reward rule on a small decision layer on top of the fly's looming cells", not
@@ -37,6 +40,7 @@ from brain.shadow import SAFE_START
 
 DECAY_TAG = 0.97                 # per frame: tags fade over ~0.5 s (a jump lasts 0.45 s)
 R_CLEAR, R_DEATH = 0.3, -1.0
+CONFIRM_S = 0.0                  # >0: reward a clear only if the cube is still alive this long after it (0.5 s tested: no better)
 RATE = 0.02
 TEMP = 1.0
 
@@ -71,6 +75,10 @@ class Dopamine:
     def reward(self, r: float):
         self.layer.w = self.layer.w + self.rate * r * self.tag
 
+    def reward_with(self, r: float, tag):
+        """A reward on an earlier snapshot of the tags (a clear confirmed by surviving after it)."""
+        self.layer.w = self.layer.w + self.rate * r * tag
+
     def new_attempt(self):
         self.tag[:] = 0
         self.layer.mem[:] = 0
@@ -78,7 +86,7 @@ class Dopamine:
 
 class LiveTeacher:
     """The dopamine signal in the real game, from the shadow (brain.shadow): +R_CLEAR when the shadow's cube passes
-    an obstacle (half a block past its end, so a death inside it isn't rewarded first), R_DEATH when the real cube
+    an obstacle (half a block past its end) and is still alive CONFIRM_S later, R_DEATH when the real cube
     vanishes for good (a death; the punishment uses the tags from the moment it vanished, not the respawn pause).
     No learning while `learning` is False (e.g. the game isn't the front app: presses don't reach it then).
     Weights and per-attempt results are saved after every death."""
@@ -90,6 +98,7 @@ class LiveTeacher:
         self.seen_attempts, self.next, self.punished = 0, 0, True
         self.reached, self.cur, self.last_press = [], 0.0, False
         self.cleared = self.deaths = 0
+        self.pending = []                         # (time it's confirmed, tags when cleared)
 
     def frame(self, t, counts, shadow, visible: bool, learning: bool) -> bool:
         env = shadow.env
@@ -99,14 +108,14 @@ class LiveTeacher:
             self.seen_attempts = shadow.attempts
             self.dop.new_attempt()
             self.next = int(np.searchsorted(self.points, env.px + 1))
-            self.punished, self.cur = False, env.px
+            self.punished, self.cur, self.pending = False, env.px, []
         if not visible:                                        # cube hidden: a death, or a flicker mid-jump
             if (not self.punished and shadow.missing_since is not None and t - shadow.missing_since > 0.25
                     and env.px > SAFE_START):                    # earlier, it's the respawn fading in
                 then = [tag for tt, tag in self.recent if tt <= shadow.missing_since]
                 if learning and then:
                     self.dop.layer.w = self.dop.layer.w + self.dop.rate * R_DEATH * then[-1]
-                self.punished = True
+                self.punished, self.pending = True, []            # clears not yet confirmed: no reward
                 self.deaths += 1
                 self.reached.append(round(self.cur, 1))
                 self.save()
@@ -115,10 +124,13 @@ class LiveTeacher:
         press = self.dop.step(counts, env.on_ground)
         self.recent.append((t, self.dop.tag.copy()))
         while self.next < len(self.points) and env.px + 1 > self.points[self.next] + 0.5:
-            if learning:
-                self.dop.reward(R_CLEAR)
-            self.cleared += 1
+            self.pending.append((t + CONFIRM_S, self.dop.tag.copy()))
             self.next += 1
+        while self.pending and self.pending[0][0] <= t:           # still alive: the jump is survived
+            if learning:
+                self.dop.reward_with(R_CLEAR, self.pending[0][1])
+            self.pending.pop(0)
+            self.cleared += 1
         self.cur = max(self.cur, env.px)
         self.last_press = press
         return press
@@ -136,7 +148,8 @@ class LiveTeacher:
                                         "cleared": self.cleared, "deaths": self.deaths}) + "\n")
 
 
-def sim(attempts: int, init: str, rate: float, temp: float, seed: int = 0, report: int = 25):
+def sim(attempts: int, init: str, rate: float, temp: float, seed: int = 0, report: int = 25, confirm: bool = True,
+        out=None):
     """The rule in Fly Dash's Stereo Madness, attempts from the start (as normal mode), random 30-55 ms lag."""
     import flydash
     from brain import learn
@@ -148,23 +161,27 @@ def sim(attempts: int, init: str, rate: float, temp: float, seed: int = 0, repor
     points = clear_points(W["level"])
     rng = np.random.default_rng(seed + 1)
     log, reached, t0 = {"init": init, "rate": rate, "temp": temp, "r_clear": R_CLEAR, "r_death": R_DEATH,
-                        "attempts": []}, [], time.perf_counter()
+                        "confirm_s": CONFIRM_S if confirm else 0, "attempts": []}, [], time.perf_counter()
+    wait = round(CONFIRM_S / flydash.DT) if confirm else 0
     for k in range(attempts):
         bp = W["player"].BrainPlayer(W["pack"], W["idx"], learn.R_REF, learn.STEEP, W["lesion"],
                                      seed=int(rng.integers(1, 2**31)), delay_ms=float(rng.uniform(*learn.DELAYS)),
                                      vision=W["vision"])
         env = flydash.FlyDashTerrain(level=W["level"], length=W["end"])
-        obs, done, nxt = env.reset(), False, 0
+        obs, done, nxt, frame, pending = env.reset(), False, 0, 0, []
         dop.new_attempt()
         while not done:
             bp(obs)
             press = dop.step(bp.brain.last_counts, env.on_ground)
             obs, _, done = env.step(press)
+            frame += 1
             while nxt < len(points) and env.px + 1 > points[nxt] and not env.dead:
-                dop.reward(R_CLEAR)
+                pending.append((frame + wait, dop.tag.copy()))      # paid once the cube has survived `wait`
                 nxt += 1
+            while pending and pending[0][0] <= frame and not env.dead:
+                dop.reward_with(R_CLEAR, pending.pop(0)[1])
         if env.dead:
-            dop.reward(R_DEATH)
+            dop.reward(R_DEATH)                                     # unpaid clears are dropped
         reached.append(env.px)
         log["attempts"].append(round(env.px, 1))
         if (k + 1) % report == 0:
@@ -173,7 +190,7 @@ def sim(attempts: int, init: str, rate: float, temp: float, seed: int = 0, repor
                   f"{np.median(last):.0f}, past the towers (60) {np.mean(last > 60):.0%}, past 145 "
                   f"{np.mean(last > 145):.0%}, reached the ship {np.mean(last >= W['end'] - 0.5):.0%}", flush=True)
             log["weights"] = layer.w.tolist()
-            (RESULTS / "dopamine_sim.json").write_text(json.dumps(log) + "\n")
+            (out or RESULTS / "dopamine_sim.json").write_text(json.dumps(log) + "\n")
     return log
 
 
@@ -185,8 +202,11 @@ def main() -> int:
     ap.add_argument("--rate", type=float, default=RATE)
     ap.add_argument("--temp", type=float, default=TEMP)
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--no-confirm", action="store_true", help="the old rule: reward a clear at once")
+    ap.add_argument("--out", default=None, help="where to save (default results/dopamine_sim.json)")
     a = ap.parse_args()
-    sim(a.attempts, a.init, a.rate, a.temp, a.seed)
+    from pathlib import Path
+    sim(a.attempts, a.init, a.rate, a.temp, a.seed, confirm=not a.no_confirm, out=Path(a.out) if a.out else None)
     return 0
 
 
