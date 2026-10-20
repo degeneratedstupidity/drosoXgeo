@@ -26,10 +26,11 @@ import numpy as np
 import flydash
 from brain.stereo import level
 
-GD_SPEED = 10.386                 # blocks/s at normal speed (311.58 game units/s); Fly Dash uses 10.4
+GD_SPEED = 10.41                  # blocks/s, fitted on two recorded real runs (least drift vs the eye; 10.386 drifted 0.4 blocks by block 145)
 FIRST_SPIKE = 17.0                # x of the first spike's left edge (block units)
 RISE_PX = 2                       # the cube's top moving up this many pixels = it left the ground
 SAFE_START = 12.0                 # blocks: nothing can kill the cube before the first spike (17)
+SYNC_FRAMES = 3                   # frames of the eye's first-spike distance that agree before the shadow moves
 
 
 class Shadow:
@@ -105,11 +106,14 @@ class Shadow:
         if eye_distance is not None and self.env.px < FIRST_SPIKE - 2 and self.env.grounded and 1.0 < eye_distance < 8:
             measured = FIRST_SPIKE - 1 - eye_distance
             self.sync.append(measured - self.env.px)
-            if len(self.sync) >= 5:
+            if len(self.sync) >= SYNC_FRAMES:
+                # the attempt started earlier/later than we thought: move the cube AND the clock together (moving
+                # only the start time would make the shadow step to catch up on top of the move: twice the shift)
                 shift = float(np.median(self.sync))
-                self.t0 -= shift / GD_SPEED                         # the attempt started a bit earlier/later
+                self.t0 -= shift / GD_SPEED
                 self.env.px += shift
-                self.sync = []
+                self.env.t += shift / flydash.SPEED
+                self.history, self.sync = [], []
         return self.env
 
 
