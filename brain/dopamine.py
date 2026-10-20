@@ -60,8 +60,8 @@ def clear_points(lv) -> np.ndarray:
 class Dopamine:
     """The decision layer with dopamine-like plasticity. Use step() every frame, reward() at events."""
 
-    def __init__(self, layer, rate=RATE, temp=TEMP, seed=0):
-        self.layer, self.rate, self.temp = layer, rate, temp
+    def __init__(self, layer, rate=RATE, temp=TEMP, seed=0, tag_decay=DECAY_TAG):
+        self.layer, self.rate, self.temp, self.tag_decay = layer, rate, temp, tag_decay
         self.tag = np.zeros_like(layer.w)
         self.rng = np.random.default_rng(seed)
 
@@ -69,7 +69,7 @@ class Dopamine:
         x = self.layer.features(counts, standing)
         p = 1.0 / (1.0 + np.exp(-np.clip(x @ self.layer.w / self.temp, -30, 30)))
         press = bool(self.rng.random() < p)
-        self.tag = DECAY_TAG * self.tag + (float(press) - p) * x / self.temp
+        self.tag = self.tag_decay * self.tag + (float(press) - p) * x / self.temp
         return press
 
     def reward(self, r: float):
@@ -149,7 +149,7 @@ class LiveTeacher:
 
 
 def sim(attempts: int, init: str, rate: float, temp: float, seed: int = 0, report: int = 25, confirm: bool = True,
-        out=None):
+        out=None, tag_decay: float = DECAY_TAG):
     """The rule in Fly Dash's Stereo Madness, attempts from the start (as normal mode), random 30-55 ms lag."""
     import flydash
     from brain import learn
@@ -157,11 +157,12 @@ def sim(attempts: int, init: str, rate: float, temp: float, seed: int = 0, repor
     w0 = np.array(json.loads(open(init).read())["mean"])
     W = learn._W
     layer = learn.Layer(w0, W["vision"])
-    dop = Dopamine(layer, rate, temp, seed)
+    dop = Dopamine(layer, rate, temp, seed, tag_decay)
     points = clear_points(W["level"])
     rng = np.random.default_rng(seed + 1)
     log, reached, t0 = {"init": init, "rate": rate, "temp": temp, "r_clear": R_CLEAR, "r_death": R_DEATH,
-                        "confirm_s": CONFIRM_S if confirm else 0, "attempts": []}, [], time.perf_counter()
+                        "confirm_s": CONFIRM_S if confirm else 0, "tag_decay": tag_decay, "attempts": []}, [], \
+        time.perf_counter()
     wait = round(CONFIRM_S / flydash.DT) if confirm else 0
     for k in range(attempts):
         bp = W["player"].BrainPlayer(W["pack"], W["idx"], learn.R_REF, learn.STEEP, W["lesion"],
@@ -204,9 +205,11 @@ def main() -> int:
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--no-confirm", action="store_true", help="the old rule: reward a clear at once")
     ap.add_argument("--out", default=None, help="where to save (default results/dopamine_sim.json)")
+    ap.add_argument("--tag-decay", type=float, default=DECAY_TAG, help="per frame (0.97 = ~0.5 s, 0.985 = ~1 s)")
     a = ap.parse_args()
     from pathlib import Path
-    sim(a.attempts, a.init, a.rate, a.temp, a.seed, confirm=not a.no_confirm, out=Path(a.out) if a.out else None)
+    sim(a.attempts, a.init, a.rate, a.temp, a.seed, confirm=not a.no_confirm, out=Path(a.out) if a.out else None,
+        tag_decay=a.tag_decay)
     return 0
 
 

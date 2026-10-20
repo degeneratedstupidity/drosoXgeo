@@ -588,6 +588,17 @@ mode, game in front the whole time, 8 ms capture → decision), starting from th
   spot (variable key delay upsetting the bounce timing? the shadow out of step by block 100?), not the cancelling
   rewards. Next: record real attempts there (learning off) and look.
 
+**Why block 102 (2026-10-20, recorded real run):** the real game jumps on landing after a press up to ~80–90 ms
+before (108 real landings: bounced 50/56 with the key down within 90 ms before, 2/52 later); Fly Dash only re-jumped
+if the key was still down. The layer let go 17–50 ms before landing on the platform at 97, the cube bounced anyway
+and came down on the spike at 102. Fly Dash now has the rule (`buffer`, 0.08 s for Stereo Madness; old levels
+unchanged) and reproduces the wall (overnight weights: 6/20 die at 101.9–102.3; without the rule 0/20).
+- In the corrected Fly Dash, dopamine with the usual ~0.5 s tags stays stuck (past 102: 11–19% over 1,500 attempts):
+  the fatal let-go comes ~0.5–0.8 s before the death. With ~1 s tags (`--tag-decay 0.985`) it learns: past 102
+  21% → 32% over 1,500 attempts. Fixed weights from the start, 20 attempts with the rule: overnight weights past 102
+  25%, the ~1 s-tag weights (`figures/dopamine_tag1s_sim.json`) **55%** (past 145: 10%, median 144). The cross-
+  entropy search from the overnight weights didn't help (15%). The next wall is the half-block staircase (144–148).
+
 **Next (waiting for Rajan):**
 1. Connect the dopamine rule to `brain.live` (~20–30 min): reward when the shadow passes an obstacle, punishment at
    death, weights saved after every attempt. Then learn in the real game overnight, unattended (normal mode, game in

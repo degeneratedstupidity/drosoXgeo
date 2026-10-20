@@ -150,6 +150,8 @@ def main() -> int:
                          "punishment at death; weights saved after every attempt to results/realgame/dopamine_*.json")
     ap.add_argument("--rate", type=float, default=None, help="--dopamine learning rate (default brain.dopamine.RATE)")
     ap.add_argument("--temp", type=float, default=None, help="--dopamine randomness (default brain.dopamine.TEMP)")
+    ap.add_argument("--tag-decay", type=float, default=None,
+                    help="--dopamine tag fade per frame (default brain.dopamine.DECAY_TAG; 0.985 = ~1 s)")
     ap.add_argument("--record", action="store_true",
                     help="also save the frames the eye saw (game window only, ~20 MB/s in memory: keep runs short)")
     args = ap.parse_args()
@@ -182,12 +184,14 @@ def main() -> int:
         from brain import dopamine
         if layer is None:
             raise SystemExit("--dopamine needs --layer (the starting weights)")
-        dop = dopamine.Dopamine(layer, args.rate or dopamine.RATE, args.temp or dopamine.TEMP)
+        dop = dopamine.Dopamine(layer, args.rate or dopamine.RATE, args.temp or dopamine.TEMP,
+                                tag_decay=args.tag_decay or dopamine.DECAY_TAG)
         out = RESULTS / "realgame" / f"dopamine_{time.strftime('%Y%m%d-%H%M%S')}.json"
         out.parent.mkdir(parents=True, exist_ok=True)
         teacher = dopamine.LiveTeacher(dop, dopamine.clear_points(shadow.lv), out, {
             "init": args.layer, "r_ref": args.r_ref, "steep": args.steep, "az_edges": list(layer_edges(trained)),
-            "rate": dop.rate, "temp": dop.temp, "r_clear": dopamine.R_CLEAR, "r_death": dopamine.R_DEATH})
+            "rate": dop.rate, "temp": dop.temp, "tag_decay": dop.tag_decay, "r_clear": dopamine.R_CLEAR,
+            "r_death": dopamine.R_DEATH})
         print(f"dopamine learning on: rate {dop.rate:g}, randomness {dop.temp:g}; weights saved after every death to {out}")
 
     stop = []
