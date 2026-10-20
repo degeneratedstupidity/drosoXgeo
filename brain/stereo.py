@@ -32,6 +32,7 @@ GAME_LEVEL = (ROOT / "geometrydash.app/Contents/SharedSupport/prefix/drive_c/Pro
 DECODED = RESULTS / "stereo_madness_level.txt"
 SOLID, SLAB, SPIKE, SMALL_SPIKE, THORNS, SHIP = {1, 2, 3, 4, 5, 6, 7}, 40, 8, 39, 9, 13
 SMALL_SPIKE_H = 0.4
+REAL_BUFFER = 0.08                # s: the real game still jumps on landing after a press this recent (flydash buffer)
 
 
 def objects() -> list[dict]:
@@ -107,9 +108,9 @@ def level(end: float | None = None):
     return (merged, [flydash.Thorns(a, b) for a, b in runs], peaks), end
 
 
-def make_env():
+def make_env(buffer=REAL_BUFFER):
     lv, end = level()
-    return flydash.FlyDashTerrain(level=lv, length=end)
+    return flydash.FlyDashTerrain(level=lv, length=end, buffer=buffer)
 
 
 def main() -> int:

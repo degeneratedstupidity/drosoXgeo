@@ -82,10 +82,11 @@ class Layer:
         return bool(self.features(counts, standing) @ self.w > 0)
 
 
-def _init(setup: str, az_edges=AZ_EDGES):
+def _init(setup: str, az_edges=AZ_EDGES, buffer=None):
+    """buffer: the real game's jump-on-landing window (s); default brain.stereo.REAL_BUFFER."""
     from brain import neurons, player
     from brain.fastpath import FastPathway
-    from brain.stereo import level
+    from brain.stereo import REAL_BUFFER, level
     from brain.vision import Vision
     pack, lesion = player.load(setup)
     idx = neurons.indices(pack)
@@ -95,7 +96,8 @@ def _init(setup: str, az_edges=AZ_EDGES):
     el = np.concatenate([vision.groups["LPLC2"][1], vision.groups["LC4"][1]])
     lv, end = level()
     _W.update(pack=pack, idx=idx, lesion=lesion, vision=vision, band=np.digitize(el, BANDS[1:-1]), level=lv,
-              end=end, player=player, starts=checkpoints(lv, end), az_edges=tuple(az_edges))
+              end=end, player=player, starts=checkpoints(lv, end), az_edges=tuple(az_edges),
+              buffer=REAL_BUFFER if buffer is None else buffer)
 
 
 def checkpoints(lv, end):
@@ -121,7 +123,7 @@ def attempt(weights, seed: int, delay_ms: float, record: bool = False, start=(0.
     w = _W
     bp = w["player"].BrainPlayer(w["pack"], w["idx"], R_REF, STEEP, w["lesion"], seed=seed, delay_ms=delay_ms,
                                  vision=w["vision"])
-    env = flydash.FlyDashTerrain(level=w["level"], length=w["end"])
+    env = flydash.FlyDashTerrain(level=w["level"], length=w["end"], buffer=w.get("buffer", 0.0))
     env.reset()
     env.px, env.py = start
     obs, done = env.observe(), False

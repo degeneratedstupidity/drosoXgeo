@@ -235,8 +235,11 @@ def make_terrain(seed=0, length=300.0):
 class FlyDashTerrain(FlyDash):
     """Fly Dash with blocks, towers and thorn pits. Same interface and observation as FlyDash."""
 
-    def __init__(self, seed=0, difficulty="terrain", length=300.0, level=None):
-        self.length = length
+    def __init__(self, seed=0, difficulty="terrain", length=300.0, level=None, buffer=0.0):
+        """buffer (s): a press this recent still makes the cube jump when it lands. The real game does that: measured
+        on 108 real landings, the cube bounced on 50/56 landings with the key down within 90 ms before, 2/52 after
+        longer (brain.stereo uses REAL_BUFFER). 0 = only a key still held at landing jumps (all earlier results)."""
+        self.length, self.buffer = length, buffer
         self.blocks, self.thorns, self.peaks = level if level is not None else make_terrain(seed, length)
         self.spikes = []                              # FlyDash's spike list stays empty; peaks replace it
         self.reset()
@@ -246,6 +249,7 @@ class FlyDashTerrain(FlyDash):
         self.grounded = True
         self.dead = self.won = False
         self.jumps = 0
+        self.last_press = -1e9
         return self.observe()
 
     @property
@@ -265,9 +269,12 @@ class FlyDashTerrain(FlyDash):
     def step(self, jump: bool):
         if self.dead or self.won:
             return self.observe(), 0.0, True
-        if jump and self.grounded:                    # holding the button re-jumps on landing, like GD
-            self.vy, self.grounded = JUMP_V, False
+        if jump:
+            self.last_press = self.t
+        if self.grounded and (jump or self.t - self.last_press < self.buffer - 1e-9):
+            self.vy, self.grounded = JUMP_V, False    # holding the button (or a recent press) re-jumps on landing
             self.jumps += 1
+            self.last_press = -1e9
         was = self.py
         if not self.grounded:
             self.py += self.vy * DT

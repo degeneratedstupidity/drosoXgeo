@@ -167,7 +167,7 @@ def sim(attempts: int, init: str, rate: float, temp: float, seed: int = 0, repor
         bp = W["player"].BrainPlayer(W["pack"], W["idx"], learn.R_REF, learn.STEEP, W["lesion"],
                                      seed=int(rng.integers(1, 2**31)), delay_ms=float(rng.uniform(*learn.DELAYS)),
                                      vision=W["vision"])
-        env = flydash.FlyDashTerrain(level=W["level"], length=W["end"])
+        env = flydash.FlyDashTerrain(level=W["level"], length=W["end"], buffer=W["buffer"])
         obs, done, nxt, frame, pending = env.reset(), False, 0, 0, []
         dop.new_attempt()
         while not done:
