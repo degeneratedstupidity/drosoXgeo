@@ -564,6 +564,26 @@ only the layer learns (allowed by the project's rules). Not "the fly learned to 
   post: "a dopamine-like reward rule on a small decision layer", not "the mushroom body learned" (Stretch C: the
   looming signal never reaches the Kenyon cells).
 
+**Overnight in the real game (2026-10-19/20), dopamine rule:** `brain.live --dopamine`, 8 h, 2,990 attempts (normal
+mode, game in front the whole time, 8 ms capture → decision), starting from the sim-trained weights
+(`figures/dopamine_sim_weights.json`); learned weights in `figures/dopamine_overnight_20261020.json`.
+
+| attempts | median block | past the towers (60) | past 102 | past 145 | best |
+|---|---|---|---|---|---|
+| 1–250 | 83 | 59% | 8% | 2% | 161 |
+| 251–500 | 101 | 77% | 12% | 3% | 161 |
+| 1,001–1,250 | 101 | 84% | 13% | 4% | 173 |
+| 2,251–2,500 | 101 | 87% | 10% | 4% | **173.1** |
+| 2,751–2,990 | 101 | 81% | 10% | 3% | 162 |
+
+- **It learned the first part in the real game:** past the towers 59% → ~85%; best attempt 173 blocks, the furthest
+  yet (65% of the way to the ship; the reflex alone: 57).
+- **Then it stalled for ~7 h at block 101–102** (1,574 + 273 of 2,990 deaths): a spike on a low platform right after
+  a small pit. Likely cause: the jump that clears the pit is the jump that lands on the spike, so the reward for the
+  pit and the punishment for the death hit the same tags and cancel.
+- **Next fix:** reward only once the cube has *survived* the jump (hold each clear-reward ~0.5 s; drop it if the
+  cube dies first), as Rajan first described it. Test in Fly Dash, then continue in the real game from these weights.
+
 **Next (waiting for Rajan):**
 1. Connect the dopamine rule to `brain.live` (~20–30 min): reward when the shadow passes an obstacle, punishment at
    death, weights saved after every attempt. Then learn in the real game overnight, unattended (normal mode, game in
