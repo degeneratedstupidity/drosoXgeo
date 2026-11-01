@@ -7,6 +7,7 @@ an illustration.
 
     /Applications/Blender.app/Contents/MacOS/Blender -b -P docs/build_clip.py -- --still 250      # one preview frame
     /Applications/Blender.app/Contents/MacOS/Blender -b -P docs/build_clip.py -- --render          # all frames
+    ... -- --wide --render                                                                       # 16:9 version
     /Applications/Blender.app/Contents/MacOS/Blender -P docs/build_clip.py                          # open it in Blender
 Output in results/clip/ (gitignored): scene .blend, preview PNGs, render/####.png.
 """
@@ -22,6 +23,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CLIP = os.path.join(ROOT, "results", "clip")
 argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 STAGES = argv[argv.index("--stages") + 1].split(",") if "--stages" in argv else ["room", "rig", "deco", "fly"]
+WIDE = "--wide" in argv                          # 16:9 (1920x1080) instead of the square 1080x1080
+TAG = "_wide" if WIDE else ""
 
 timeline = json.load(open(os.path.join(CLIP, "timeline.json")))
 PRESSED = timeline["pressed"]
@@ -32,7 +35,7 @@ bpy.ops.wm.read_factory_settings(use_empty=True)
 scene = bpy.context.scene
 scene.render.fps = FPS
 scene.frame_start, scene.frame_end = 1, N
-scene.render.resolution_x = scene.render.resolution_y = 1080
+scene.render.resolution_x, scene.render.resolution_y = (1920, 1080) if WIDE else (1080, 1080)
 for engine in ("BLENDER_EEVEE", "BLENDER_EEVEE_NEXT"):
     try:
         scene.render.engine = engine
@@ -272,6 +275,8 @@ if "room" in STAGES:
     cam = bpy.context.object
     scene.camera = cam
     cam.data.lens = 32
+    if WIDE:                                     # same height of view as the square, more room left and right
+        cam.data.sensor_fit, cam.data.sensor_height = "VERTICAL", cam.data.sensor_width
     bpy.ops.object.empty_add(location=(-0.1, 0.17, 0.9))
     target = bpy.context.object
     target.name = "cam_target"
@@ -705,14 +710,14 @@ if "fly" in STAGES:
                (0.7, 0.3, 1.0))
 
 # ---------------------------------------------------------------- output
-blend = os.path.join(CLIP, "scene.blend")
+blend = os.path.join(CLIP, f"scene{TAG}.blend")
 bpy.ops.wm.save_as_mainfile(filepath=blend)
 if "--still" in argv:
     f = int(argv[argv.index("--still") + 1])
     scene.frame_set(f)
-    scene.render.filepath = os.path.join(CLIP, f"preview_{'_'.join(STAGES)}_{f:04d}.png")
+    scene.render.filepath = os.path.join(CLIP, f"preview_{'_'.join(STAGES)}{TAG}_{f:04d}.png")
     bpy.ops.render.render(write_still=True)
 if "--render" in argv:
-    os.makedirs(os.path.join(CLIP, "render"), exist_ok=True)
-    scene.render.filepath = os.path.join(CLIP, "render", "")
+    os.makedirs(os.path.join(CLIP, f"render{TAG}"), exist_ok=True)
+    scene.render.filepath = os.path.join(CLIP, f"render{TAG}", "")
     bpy.ops.render.render(animation=True)

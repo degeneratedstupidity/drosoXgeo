@@ -337,7 +337,12 @@ the input fools the controls.** `python -m brain.readout run --setups real,lesio
   fly's leg presses the space bar, which glows cyan, on exactly the frames the model pressed. Everything else is
   illustration, and the caption says so. Recipe: frames and press timeline from the npz/json into `results/clip/`
   (screen_crop/, timeline.json), then `Blender -b -P docs/build_clip.py -- --render` (476 frames, ~4.3 s each on
-  the M1 Pro), then ffmpeg (`fly_gaming_captioned.mp4`, 1080×1080, 30 fps).
+  the M1 Pro), then ffmpeg (`fly_gaming_captioned.mp4`, 1080×1080, 30 fps). `-- --wide` renders a 16:9 version
+  (1920×1080, same height of view, more room either side; caption `build_caption.py -- --wide`).
+- **Walls chart** (`docs/build_walls_chart.py` → `results/clip/walls.png`, 2400×1350): where the 203 real-game
+  attempts of 2026-11-01 ended (attempts with another app in front left out, 31 of 234), over a silhouette of the
+  level. Slab 1 (153) 88, slab 2 (160–161) 31, after the pit (101) 17; best 173.9. The page and image stay in
+  results/ because the silhouette is the level's layout (RobTop's content).
 
 ## Stretch A – Full vision (the fly actually sees the screen)
 - Instead of handing the brain a ready-made looming number, map downscaled game frames onto the fly's
