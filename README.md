@@ -557,7 +557,6 @@ doesn't consider.** The section: two spikes, a 1-block step right after them, th
 **Other limits:**
 - One 60 s (or 30 s) run per brain, one noise seed, one level. More runs before any percentage goes in a post.
 - The real delay varies (press → rise 15–66 ms); the clone tunes for a fixed one.
-- The game is the Windows build in Wine (Sikarugir); never modified.
 
 ## Stretch D – Learning to clear Stereo Madness up to the ship (stopped 2026-11-01: block 173 real, staircases unsolved)
 **Goal (Rajan's call, 2026-10-19):** get as far as possible in Stereo Madness, first to the ship portal (block 266.5,
