@@ -23,7 +23,7 @@ setup) plays the real game live: 7/9 attempts past Stereo Madness's opening spik
 eye and clone now know blocks/pits; best one-number rule and the fly both ~20% of terrain levels). Stretch C (learning
 to time jumps) stopped at its stage-2 gate: receptive-field vision input works, but downstream of the looming cells
 the real wiring carries no more "what's coming" than a gain-matched scramble (README "Stretch C").
-**Stretch D (in progress):** Rajan wants it to clear Stereo Madness up to the ship (block 266.5)
+**Stretch D (stopped 2026-11-01):** Rajan wanted it to clear Stereo Madness up to the ship (block 266.5)
 with a *learned decision layer* on the looming cells, labelled honestly (README "Stretch D"). Real level from the
 game's file (read-only), floating blocks in Fly Dash, cross-entropy learning with checkpoints (best from the start:
 7/12 sim attempts reach ~145, `figures/learn_real_gen25.json`), a shadow of the level kept in step with the real
@@ -32,8 +32,11 @@ and a dopamine-like reward rule (`brain/dopamine.py`; sim: past the towers 8% �
 real-game dopamine learning (`brain.live --dopamine`), the real game's jump-on-landing rule in Fly Dash, ~1 s tags,
 the shadow sync fix (real game now matches Fly Dash; best 161). **2026-11-01:** practice mode (`--practice`) taught
 the second half nothing (0% in all 4 late sections, 0/80 runs to the ship): there the eye would need "where does
-the ground end", which looming cells don't signal (README "Practice mode"). **Next: Rajan's call** between adding a
-ground-edge cue to the layer (changes the wording) and stopping Stretch D at ~60–65% of the way. Phase 6 after.
+the ground end", which looming cells don't signal (README "Practice mode"). Then, with Rajan's OK, two layout cues
+(`--ground`, `--headroom`; named in each weight file as `"cues"`): set by hand they clear both ceilings (157–191
+70%, 240→ship 100%), but no setting or search clears the two staircases (114–157, 191–240) and the towers at once:
+0/20 complete runs (README "Headroom cue and the last round", "Where Stretch D ends"). Real-game best stays 173.
+Wording: "looming pathway + learned decision layer: block 173 of 266 in the real game". **Next: Phase 6 post.**
 
 ## How to run
 - Simulator: sibling checkout `../drosophila-brain-mlx/`; its `.venv/bin/python` runs our modules from this repo
@@ -57,8 +60,9 @@ ground-edge cue to the layer (changes the wording) and stopping Stretch D at ~60
 ## Open decisions (ask Rajan)
 - 5B (mushroom-body learning): future work; the MBON→DNp01 path check showed only weak 2-step routes (README Phase 4b),
   and the looming signal never reaches the Kenyon cells (Stretch C).
-- Stretch D: overnight real-game dopamine learning (Rajan says when). Learning from a perfect player (the planner)
-  first was offered and not chosen; it would change the post's wording ("watched a perfect player, then practised").
+- Stretch D is stopped. Ideas left (Rajan's call, none started): other visual projection neurons instead of layout
+  cues (FlyEM optic lobe; flyvis, to be checked), the jump via the nerve cord's jump motor neuron (FlyEM male CNS;
+  means rebuilding the model), a non-linear layer, learning from a perfect player first (changes the wording).
 - Real game (Stretch B): built 2026-10-18/19. Run `python -m brain.live --press --r-ref 20 --steep 2 --countdown 5
   --tap-test` (normal mode; Rajan clicks into the game during the countdown, hands off). Capture and keys live in
   ~/Applications/FlyEye.app (Screen Recording) and FlyJump.app (Accessibility), built from brain/flyeye.swift and

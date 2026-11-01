@@ -507,7 +507,7 @@ doesn't consider.** The section: two spikes, a 1-block step right after them, th
 - The real delay varies (press → rise 15–66 ms); the clone tunes for a fixed one.
 - The game is the Windows build in Wine (Sikarugir); never modified.
 
-## Stretch D – Learning to clear Stereo Madness up to the ship (in progress, paused 2026-10-19)
+## Stretch D – Learning to clear Stereo Madness up to the ship (stopped 2026-11-01: block 173 real, staircases unsolved)
 **Goal (Rajan's call, 2026-10-19):** get as far as possible in Stereo Madness, first to the ship portal (block 266.5,
 ~30% of the 879-block level), with a *learned decision layer* on top of the fly's looming cells, labelled honestly.
 **Claim, precisely:** the fly's looming cells (LPLC2/LC4 with FlyWire receptive fields, Stretch C) and its Giant
@@ -660,16 +660,54 @@ shadow provides it in the real game). Its weights start at 0, and with them at 0
 - **157–191:** still nothing past 173. The death isn't an edge: the cube lands under the slab, stands, and presses
   because the slab looms right overhead (all looming weights are positive; a near object covers most of the eye,
   so "above me" blurs). The ceiling at 242.7 is the same. A "headroom" cue (a ceiling within 2 blocks above) would
-  be a second layout cue; asked Rajan before adding it.
+  be a second layout cue (Rajan agreed; below).
 
-**Next (Rajan's call):**
-1. Give the layer one non-looming cue, "the ground ends ahead (and how far down)", from the level layout like the
-   other obstacles (a real fly sees the ground edge, but not with LPLC2/LC4). Post wording would change to "looming
-   cells plus a ground-edge cue". Then practice again in Fly Dash, then the real game.
-2. Stop Stretch D here and report the honest result: the looming pathway and a learned layer get ~60–65% of the way
-   (best 173 blocks); the rest needs vision the looming cells don't have.
-3. Earlier ideas still open: messier timing in training (per-press delay jitter); copying a perfect player first
-   (changes the story; doesn't fix the missing information).
+**Headroom cue and the last round (2026-11-01, Rajan agreed to one last round).** `--headroom` adds 8 inputs: the
+nearest ceiling a jump would reach (Fly Dash `headroom()`), *low* (< 1 block above the head: a floating slab to hop
+onto from far enough, as the planner does at 152.7 and 160.7) or *high* (a jump bumps into it), by how far ahead it
+starts (under it, 0–1, 1–2, 2–4 blocks). The layer's cues are now named in each weight file (`"cues"`); with their
+weights at 0 it plays exactly as before (checked). Set by hand (low ceiling under/0–1 ahead and every high ceiling:
+−200; ±20 was too weak, a ceiling close overhead drives looming sums of ~100):
+- **157–191: 7/8 clear** (all died at 172.3 before); scored on 20: 70%, the next wall at 179.1.
+- **240 → ship: 8/8, then 20/20 reach the ship** (all died at 242.7 before).
+
+Hand-set gap timing then showed what the staircases need: pressing once the gap is within 1 block (the 30–55 ms lag
+carries the press another 0.3–0.6 blocks) passes the first staircase at 148 (death at 154.1 instead) and 200.5
+(207.3 instead), but breaks the towers (40–75: 60% → 1/8, deaths at 47.3). Each stretch wants a slightly different
+take-off point relative to the edge (the planner: 0.76, 0.43, 0.09 blocks before it on the first staircase; 0.04 at
+194), and every hand fix moved a wall rather than removing it. So the timing went back to the search: two
+cross-entropy runs over all sections at once (32 candidates × 20 generations, 2 attempts per section each; cue
+weights with their own spread of ±20, `--cue-std`), from the hand-set cues (`_r1`, stopped at 12 generations) and
+from the corrected gap timing (`_r2`, `figures/learn_real_ground_headroom_r2.json`). Its final weights, scored on 20
+attempts per section and 20 complete runs:
+
+| section | before the cues | cues set by hand | after the search (`_r2` mean) |
+|---|---|---|---|
+| 0 → 40 | 85% | 85% | 80% |
+| 40 → 75 | 60% | 40% | 30% (47.3) |
+| 75 → 114 | 60% | 65% | 45% (85.1, 101.6) |
+| 114 → 157 | 0% | 0% (148.0) | 0% (154.1) |
+| 157 → 191 | 0% | 70% | 70% (179.1) |
+| 191 → 240 | 0% | 0% (200.5) | 0% (207.3) |
+| 240 → ship | 0% | 100% | 100% |
+| **complete runs to the ship** | 0/80 | 0/20 | **0/20** (best 154) |
+
+(The search's per-generation "best" swung 69–91% with the luck of each generation's attempts; both runs draw the
+same attempts per generation, so both peaked at generations 7 and 11. The table is what counts.)
+
+**Where Stretch D ends.** The ceilings were a missing-information problem, and the headroom cue solved them. The
+staircases are a different kind of wall: with the information there, a 38-weight linear layer still can't fit the
+take-off timing of every stretch at once, and the search, given the sections together, trades one stretch for
+another. That's planning (where exactly to leave this platform, given the next three), not reacting. Honest
+summary for the post: the fly's looming pathway with a learned decision layer reaches block 173 in the real game
+(65% of the way to the ship); in Fly Dash, two layout cues (where the ground ends, how much room is overhead) let
+it clear the ceilings and the last section, but the staircases need a planner, not a reflex with a learned readout.
+
+**Possible future work** (none started): drive other visual projection neurons from the game picture instead of
+layout cues (FlyEM optic-lobe connectome, Nern et al. 2025; possibly the flyvis model of the fly's visual system,
+Lappalainen et al. 2024, to be checked); route the jump through the Giant Fiber's real target, the jump motor
+neuron in the nerve cord (FlyEM male CNS connectome, 2026; would mean rebuilding and re-validating the model);
+messier timing in training; a layer that isn't linear (it would no longer be "a small readout").
 
 **Commands:**
 - `python -m brain.stereo` (level), `python -m brain.learn train --setup real [--fine] [--init figures/...json]`
