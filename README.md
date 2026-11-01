@@ -330,6 +330,14 @@ the input fools the controls.** `python -m brain.readout run --setups real,lesio
 - Side-by-side video: game | spike raster of LPLC2 → DNp01 | jump presses.
 - Post the controls; most fly-brain game demos don't have them.
 - Credit FlyWire / Shiu et al. Connectome data is CC BY-NC 4.0: fine for a personal post, not for commercial use.
+- **Illustration clip (2026-11-01, Rajan's idea):** a cartoon fruit fly at an RGB gaming rig (Blender 5.2,
+  `docs/build_clip.py`, all geometry and materials from the script; caption `docs/build_caption.py`). Honest
+  parts: the monitor plays a real recorded attempt (`brain.live --press --layer figures/dopamine_slab_practice.json
+  --record --seconds 90`, learning off: 6 attempts, 5 reached block 153; attempt 2 used, title bar cropped), and the
+  fly's leg presses the space bar, which glows cyan, on exactly the frames the model pressed. Everything else is
+  illustration, and the caption says so. Recipe: frames and press timeline from the npz/json into `results/clip/`
+  (screen_crop/, timeline.json), then `Blender -b -P docs/build_clip.py -- --render` (476 frames, ~4.3 s each on
+  the M1 Pro), then ffmpeg (`fly_gaming_captioned.mp4`, 1080×1080, 30 fps).
 
 ## Stretch A – Full vision (the fly actually sees the screen)
 - Instead of handing the brain a ready-made looming number, map downscaled game frames onto the fly's
