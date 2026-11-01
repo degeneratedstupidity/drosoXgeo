@@ -1,10 +1,33 @@
 # drosoXgeo — a fruit-fly brain plays Geometry Dash
 
-**Core idea:** Geometry Dash is a one-button *jump* game. Fruit flies already have a jump circuit:
-looming-detector neurons (**LPLC2**, **LC4**) see something growing fast on the retina, drive the
-**Giant Fiber** neuron (**DNp01**), and the fly jumps away. So the plan is to wire an approaching
-spike to the fly's own escape circuit, run it on the real connectome, and see whether that circuit
-can time jumps well enough to clear levels.
+> A connectome-constrained spiking model of the fruit-fly brain (FlyWire, Shiu et al. 2024) plays Geometry Dash
+> through the fly's own escape circuit. A personal project, done for fun.
+
+**The short version**
+- **The fly's escape reflex plays, untrained.** Looming detectors (LPLC2, LC4) drive the Giant Fiber (DNp01), and any
+  Giant Fiber spike presses jump. In a Geometry Dash clone (`flydash.py`) it wins 96% of 90 unseen levels (5 repeats);
+  with the Giant Fiber silenced, 0%; with the wiring scrambled at random (5 times), 0% (Phases 3–4b).
+- **It plays the real game live** (Stereo Madness, macOS): past the opening spikes on 7 of 9 attempts; silenced and
+  scrambled wiring never get past the first spike (0/22, 0/21) (Stretch B).
+- **With a small learned decision layer** on the looming cells (the connectome stays fixed; cross-entropy search and a
+  dopamine-like reward rule), its best real-game run reaches block 173.9 of 266. Where it stops (ceilings, floating
+  slabs, staircases) is the interesting part (Stretch D).
+
+**What it is and isn't.** A leaky integrate-and-fire model constrained by the FlyWire connectome (Shiu et al. 2024),
+not an "uploaded fly brain". The fly gets a computed looming signal measured from the game window (~40 ms from
+picture to jump), not raw pixels; in Stretch D the obstacle layout comes from the level file, kept in step with the
+cube on screen. Every result has its controls next to it.
+
+**Running it.** `python3 flydash.py` runs the clone and its baselines with no dependencies. The brain needs the MLX
+port of the Shiu et al. model (sibling checkout `../drosophila-brain-mlx/`) and the FlyWire v783 packs (not included;
+see `data/SOURCES.md`). The real-game parts need macOS, your own copy of the game, and two small helper apps built on
+first use (`brain/flyapps.py`; game window only). No game files, footage or level data are in this repository.
+
+**Licenses and credits.** Code: MIT (`LICENSE`). `shiu_model/`: MIT (Shiu & Spiller). FlyWire data and anything
+derived from it: CC BY-NC 4.0, non-commercial; cite Dorkenwald et al. 2024 and Schlegel et al. 2024 (Nature) and Shiu
+et al. 2024 (Nature). Geometry Dash is © RobTop Games; this project isn't affiliated with it.
+
+The rest of this README is the full research log, phase by phase.
 
 ## Status
 - [x] **Phase 1 – Fly Dash game** (`flydash.py`): headless GD-style runner, lock-step, looming signals
@@ -13,9 +36,14 @@ can time jumps well enough to clear levels.
 - [x] **Phase 3 – Wire the escape reflex (no training)** (`brain/player.py`, results below)
 - [x] **Phase 4 – Controls (the part that makes it science, not a meme)** (`brain/phase4.py`, results below)
 - [ ] Phase 5 – Learning (**5A done**, `brain/readout.py`; 5B not started)
-- [ ] Phase 6 – Demo video + LinkedIn post
+- [x] **Phase 6 – Demo video + LinkedIn post** (assets 2026-11-01: illustration clip, story video, walls chart)
+- Stretches: A not started; B done (real game live); C stopped at stage 2; D stopped (block 173.9 of 266)
 
-**Next:** Phase 6 (demo + post). The review's checks are done: scrambled-brain activity and targeted lesion (Phase 4c), sensory delay and slow frames (Phase 4d). 5B is future work (see Phase 4b).
+**Core idea:** Geometry Dash is a one-button *jump* game. Fruit flies already have a jump circuit:
+looming-detector neurons (**LPLC2**, **LC4**) see something growing fast on the retina, drive the
+**Giant Fiber** neuron (**DNp01**), and the fly jumps away. So the plan is to wire an approaching
+spike to the fly's own escape circuit, run it on the real connectome, and see whether that circuit
+can time jumps well enough to clear levels.
 
 Baselines from `python3 flydash.py` (30 levels each):
 
