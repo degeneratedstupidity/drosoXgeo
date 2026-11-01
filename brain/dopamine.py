@@ -149,19 +149,20 @@ class LiveTeacher:
 
 
 def sim(attempts: int, init: str, rate: float, temp: float, seed: int = 0, report: int = 25, confirm: bool = True,
-        out=None, tag_decay: float = DECAY_TAG, practice: bool = False, ground: bool = False):
+        out=None, tag_decay: float = DECAY_TAG, practice: bool = False, cues=()):
     """The rule in Fly Dash's Stereo Madness, random 30-55 ms lag. Attempts from the start (as normal mode), or with
     `practice` from the practice checkpoints (brain.learn.checkpoints): each attempt starts at one, weak sections
     more often (chance ~ 1 - its recent clear rate, + 0.15 so none is dropped), and runs until death or the ship.
-    `ground`: the layer also gets the ground-edge cue (brain.learn; its weights start at 0 if `init` has none)."""
+    `cues`: layout cues the layer gets besides those `init` has (brain.learn.CUES; added ones start at 0)."""
     import flydash
     from brain import learn
     saved = json.loads(open(init).read())
-    ground = ground or saved.get("ground_edge", False)
-    learn._init("real", ground=ground)
+    have = learn.cues_of(saved)
+    cues = tuple(c for c in learn.CUES if c in cues or c in have)
+    learn._init("real", cues=cues)
     w0 = np.array(saved.get("mean", saved.get("weights")))
     W = learn._W
-    layer = learn.Layer(learn.with_ground(w0) if ground else w0, W["vision"], ground=ground)
+    layer = learn.Layer(learn.with_cues(w0, cues=cues, have=have), W["vision"], cues=cues)
     dop = Dopamine(layer, rate, temp, seed, tag_decay)
     points = clear_points(W["level"])
     rng = np.random.default_rng(seed + 1)
@@ -170,7 +171,7 @@ def sim(attempts: int, init: str, rate: float, temp: float, seed: int = 0, repor
     rate_ema = np.full(len(starts), 0.5)          # each section's recent clear rate (practice mode)
     log, reached, t0 = {"init": init, "rate": rate, "temp": temp, "r_clear": R_CLEAR, "r_death": R_DEATH,
                         "confirm_s": CONFIRM_S if confirm else 0, "tag_decay": tag_decay, "practice": practice,
-                        "ground_edge": ground,
+                        "cues": list(cues),
                         "starts": [round(s[0], 1) for s in starts], "attempts": []}, [], time.perf_counter()
     wait = round(CONFIRM_S / flydash.DT) if confirm else 0
     for k in range(attempts):
@@ -229,10 +230,12 @@ def main() -> int:
     ap.add_argument("--practice", action="store_true", help="start attempts at the practice checkpoints, weak "
                                                             "sections more often (as the game's practice mode)")
     ap.add_argument("--ground", action="store_true", help="add the ground-edge cue to the layer (brain.learn)")
+    ap.add_argument("--headroom", action="store_true", help="add the headroom cue to the layer (brain.learn)")
     a = ap.parse_args()
     from pathlib import Path
     sim(a.attempts, a.init, a.rate, a.temp, a.seed, confirm=not a.no_confirm, out=Path(a.out) if a.out else None,
-        tag_decay=a.tag_decay, practice=a.practice, ground=a.ground)
+        tag_decay=a.tag_decay, practice=a.practice,
+        cues=tuple(c for c, on in zip(("ground", "headroom"), (a.ground, a.headroom)) if on))
     return 0
 
 

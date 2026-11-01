@@ -14,6 +14,9 @@ The layer, every frame (1/60 s):
             a step down or a gap, in 5 distance bins), from the level layout like the obstacles. Not a looming
             signal: a ledge falling away doesn't loom, and without it the second half can't be learned (README
             "Practice mode"). Said plainly: "looming cells plus a ground-edge cue".
+            optional (--headroom): a ceiling a jump would reach, low or high, by how far ahead it starts (flydash
+            headroom(); 2 x 4 bins). Close overhead a ceiling covers most of the eye and drives every band, so the looming cells
+            can't tell "under a slab, stay down" from "obstacle ahead, jump" (blocks 172, 242).
   press     space is held while  weights . features > 0
 
 Learning: the cross-entropy method (try a population of weight vectors, keep the best quarter, refit, repeat), with
@@ -49,32 +52,68 @@ AZ_EDGES = ()                              # inner azimuth band edges (deg); non
 AZ_FINE = (25.0, 50.0)                     # --fine: split by how far to the side cells look (near objects reach them)
 DECAY = 0.6
 DELAYS = (30.0, 55.0)                      # ms, drawn per attempt
-EDGE_BINS = np.array([-1.0, 0.0, 0.5, 1.0, 2.0, 4.0])   # --ground: blocks from the cube's front to the ground's end
+CUES = ("ground", "headroom")             # optional layout cues, in this order after the looming features
+EDGE_BINS = np.array([-1.0, 0.0, 0.5, 1.0, 2.0, 4.0])   # ground: blocks from the cube's front to the ground's end
 EDGE_KINDS = ("step", "gap")
+HEAD_BINS = np.array([-1.0, 0.0, 1.0, 2.0, 4.0])        # headroom: blocks from the cube's front to a low ceiling
+HEAD_LOW = 1.0                             # headroom: less space than this above the head = "low" (hop onto it)
 
 
-def n_features(az_edges=AZ_EDGES, ground=False):
-    return 2 * (len(BANDS) - 1) * (len(az_edges) + 1) + 2 + 1 + 1 + (len(EDGE_KINDS) * (len(EDGE_BINS) - 1)
-                                                                      if ground else 0)
+def cue_size(cue: str) -> int:
+    return len(EDGE_KINDS) * (len(EDGE_BINS) - 1) if cue == "ground" else 2 * (len(HEAD_BINS) - 1)
 
 
-def edge_features(env) -> np.ndarray:
-    """The ground-edge cue: one-hot (kind, distance bin) of env.ground_edge(), all zero in the air or with no edge."""
-    nb = len(EDGE_BINS) - 1
-    x = np.zeros(len(EDGE_KINDS) * nb)
-    e = env.ground_edge() if env is not None else None
-    if e is not None:
-        i = int(np.digitize(e[0], EDGE_BINS)) - 1
-        if 0 <= i < nb:
-            x[EDGE_KINDS.index(e[1]) * nb + i] = 1.0
+def cues_of(saved: dict) -> tuple:
+    """The cues a saved layer used (files from before the headroom cue say "ground_edge": true)."""
+    named = saved.get("cues", ["ground"] if saved.get("ground_edge") else [])
+    return tuple(c for c in CUES if c in named)
+
+
+def n_features(az_edges=AZ_EDGES, cues=()):
+    return 2 * (len(BANDS) - 1) * (len(az_edges) + 1) + 2 + 1 + 1 + sum(cue_size(c) for c in cues)
+
+
+def _one_hot(d, bins, n, offset=0) -> np.ndarray:
+    x = np.zeros(n)
+    i = int(np.digitize(d, bins)) - 1
+    if 0 <= i < len(bins) - 1:
+        x[offset + i] = 1.0
     return x
 
 
-def with_ground(weights, az_edges=AZ_EDGES):
-    """Weights without the ground-edge cue -> with it (its weights start at 0: the same decisions as before)."""
+def cue_features(env, cues) -> np.ndarray:
+    """The layout cues, one-hot by distance bin; all zero where there's nothing to report.
+    ground    env.ground_edge(): (kind, distance) while standing
+    headroom  env.headroom(): a ceiling a jump would reach, low (< HEAD_LOW above the head: a slab to hop onto
+              from far enough) or high (a jump bumps into it), by how far ahead it starts (under it: the first bin)"""
+    parts = []
+    for c in cues:
+        if c == "ground":
+            e = env.ground_edge() if env is not None else None
+            nb = len(EDGE_BINS) - 1
+            parts.append(np.zeros(2 * nb) if e is None else _one_hot(e[0], EDGE_BINS, 2 * nb,
+                                                                       EDGE_KINDS.index(e[1]) * nb))
+        else:
+            h = env.headroom() if env is not None else None
+            nb = len(HEAD_BINS) - 1
+            parts.append(np.zeros(2 * nb) if h is None else _one_hot(max(h[0], -1.0), HEAD_BINS, 2 * nb,
+                                                                       0 if h[1] < HEAD_LOW else nb))
+    return np.concatenate(parts) if parts else np.zeros(0)
+
+
+def with_cues(weights, az_edges=AZ_EDGES, cues=(), have=()):
+    """Weights of a layer with the cues `have` -> with the cues `cues` (an added cue's weights start at 0, so the
+    layer makes the same decisions as before)."""
     w = np.asarray(weights, float)
-    return w if w.size == n_features(az_edges, True) else np.concatenate([w, np.zeros(n_features(az_edges, True) -
-                                                                                      w.size)])
+    i = n_features(az_edges)
+    parts = [w[:i]]
+    for c in CUES:
+        part = np.zeros(cue_size(c))
+        if c in have:
+            part, i = w[i:i + cue_size(c)], i + cue_size(c)
+        if c in cues:
+            parts.append(part)
+    return np.concatenate(parts)
 
 
 N_FEAT = n_features()
@@ -88,9 +127,9 @@ _W = {}                                    # per worker process: the brain, visi
 class Layer:
     """The decision layer: from one frame's spikes (LPLC2, LC4, DNp01 order) and whether the cube stands, press?"""
 
-    def __init__(self, weights, vision, az_edges=AZ_EDGES, ground=False):
+    def __init__(self, weights, vision, az_edges=AZ_EDGES, cues=()):
         self.w = np.asarray(weights, dtype=float)
-        self.ground = ground
+        self.cues = tuple(cues)
         el = np.concatenate([vision.groups["LPLC2"][1], vision.groups["LC4"][1]])
         az = np.concatenate([vision.groups["LPLC2"][0], vision.groups["LC4"][0]])
         n_az = len(az_edges) + 1
@@ -100,22 +139,22 @@ class Layer:
 
     def features(self, counts, standing: bool, env=None) -> np.ndarray:
         """This frame's input to the layer (and the fading memory updated with it). env: the Fly Dash level (or the
-        shadow's), for the ground-edge cue."""
+        shadow's), for the layout cues."""
         nb = self.nb
         now = np.log1p(np.bincount(self.band, weights=counts[:314], minlength=nb))
         gf = np.log1p(counts[314:].sum())
         self.mem[:nb] = DECAY * self.mem[:nb] + now
         self.mem[nb] = DECAY * self.mem[nb] + gf
         x = np.concatenate([now, self.mem[:nb], [gf, self.mem[nb], float(standing), 1.0]])
-        return np.concatenate([x, edge_features(env)]) if self.ground else x
+        return np.concatenate([x, cue_features(env, self.cues)]) if self.cues else x
 
     def __call__(self, counts, standing: bool, env=None) -> bool:
         return bool(self.features(counts, standing, env) @ self.w > 0)
 
 
-def _init(setup: str, az_edges=AZ_EDGES, buffer=None, ground=False):
-    """buffer: the real game's jump-on-landing window (s); default brain.stereo.REAL_BUFFER. ground: the layer gets
-    the ground-edge cue."""
+def _init(setup: str, az_edges=AZ_EDGES, buffer=None, cues=()):
+    """buffer: the real game's jump-on-landing window (s); default brain.stereo.REAL_BUFFER. cues: the layout cues
+    the layer gets (CUES)."""
     from brain import neurons, player
     from brain.fastpath import FastPathway
     from brain.stereo import REAL_BUFFER, level
@@ -129,7 +168,7 @@ def _init(setup: str, az_edges=AZ_EDGES, buffer=None, ground=False):
     lv, end = level()
     _W.update(pack=pack, idx=idx, lesion=lesion, vision=vision, band=np.digitize(el, BANDS[1:-1]), level=lv,
               end=end, player=player, starts=checkpoints(lv, end), az_edges=tuple(az_edges),
-              buffer=REAL_BUFFER if buffer is None else buffer, ground=ground)
+              buffer=REAL_BUFFER if buffer is None else buffer, cues=tuple(cues))
 
 
 def checkpoints(lv, end):
@@ -159,7 +198,7 @@ def attempt(weights, seed: int, delay_ms: float, record: bool = False, start=(0.
     env.reset()
     env.px, env.py = start
     obs, done = env.observe(), False
-    layer, frames = Layer(weights, w["vision"], w.get("az_edges", AZ_EDGES), w.get("ground", False)), []
+    layer, frames = Layer(weights, w["vision"], w.get("az_edges", AZ_EDGES), w.get("cues", ())), []
     goal = w["end"] if stop is None else stop
     while not done and env.px < goal:
         bp(obs)
@@ -192,25 +231,27 @@ def expand(weights, az_edges):
 
 
 def train(setup: str, generations: int, pop: int, workers: int, seed: int = 0, az_edges=AZ_EDGES, tag: str = "",
-          init: str | None = None, ground: bool = False):
+          init: str | None = None, cues=(), cue_std: float = 20.0):
     rng = np.random.default_rng(seed)
-    nf = n_features(az_edges, ground)
+    nf = n_features(az_edges, cues)
     mean, std = np.zeros(nf), np.full(nf, 1.0)
     if init:                                          # warm start from an earlier run's mean (coarse or same size)
         saved = json.loads(open(init).read())
         start = np.array(saved.get("mean", saved.get("weights")))
-        if start.size != n_features(az_edges, saved.get("ground_edge", False)):
+        have = cues_of(saved)
+        if start.size != n_features(az_edges, have):
             start = expand(start, az_edges)
-        mean = with_ground(start, az_edges) if ground else start
+        mean = with_cues(start, az_edges, cues, have)
         std = np.full(nf, 0.3)
+    std[n_features(az_edges):] = cue_std          # the cues are 0/1 against looming sums of ~10-100: wider steps
     out = FIGURES / f"learn_{setup}{tag}.json"
     log = {"setup": setup, "r_ref": R_REF, "steep": STEEP, "bands": BANDS.tolist(), "az_edges": list(az_edges),
-           "ground_edge": ground, "init": init,
+           "cues": list(cues), "cue_std": cue_std, "init": init,
            "decay": DECAY,
            "delays_ms": list(DELAYS), "pop": pop, "generations": []}
     best_w, best_f = None, -1.0
     t0 = time.perf_counter()
-    with Pool(workers, initializer=_init, initargs=(setup, az_edges, None, ground)) as pool:
+    with Pool(workers, initializer=_init, initargs=(setup, az_edges, None, cues)) as pool:
         for gen in range(generations):
             cands = mean + std * rng.standard_normal((pop, nf))
             seeds = rng.integers(1, 2**31, size=len(CHECKPOINTS) * PER_SECTION)
@@ -238,7 +279,7 @@ def score(setup: str, n: int, workers: int, which: str = "mean", tag: str = ""):
     seeds = rng.integers(1, 2**31, size=n)
     delays = rng.uniform(*DELAYS, size=n)
     with Pool(workers, initializer=_init, initargs=(setup, tuple(log.get("az_edges", ())), None,
-                                                    log.get("ground_edge", False))) as pool:
+                                                    cues_of(log))) as pool:
         res = pool.starmap(attempt, [(weights, int(s), float(d)) for s, d in zip(seeds, delays)])
     prog = [p for p, _ in res]
     won = sum(w for _, w in res)
@@ -261,11 +302,16 @@ def main() -> int:
     ap.add_argument("--fine", action="store_true", help="also split the cells by azimuth (3 bands): 52 weights")
     ap.add_argument("--init", default=None, help="warm start from this run's mean weights (a figures/learn_*.json)")
     ap.add_argument("--ground", action="store_true", help="add the ground-edge cue (10 more weights, start at 0)")
+    ap.add_argument("--headroom", action="store_true", help="add the headroom cue (8 more weights, start at 0)")
+    ap.add_argument("--cue-std", type=float, default=20.0, help="starting spread of the cue weights")
+    ap.add_argument("--tag", default="", help="appended to the output name (figures/learn_<setup><tag>.json)")
     a = ap.parse_args()
     edges, tag = (AZ_FINE, "_fine") if a.fine else (AZ_EDGES, "")
-    tag += "_ground" if a.ground else ""
+    cues = tuple(c for c, on in zip(CUES, (a.ground, a.headroom)) if on)
+    tag += "".join(f"_{c}" for c in cues) + a.tag
     if a.cmd == "train":
-        train(a.setup, a.generations, a.pop, a.workers, az_edges=edges, tag=tag, init=a.init, ground=a.ground)
+        train(a.setup, a.generations, a.pop, a.workers, az_edges=edges, tag=tag, init=a.init, cues=cues,
+              cue_std=a.cue_std)
     else:
         score(a.setup, a.attempts, a.workers, a.weights, tag=tag)
     return 0

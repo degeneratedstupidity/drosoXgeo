@@ -376,6 +376,17 @@ class FlyDashTerrain(FlyDash):
             return end - front, "gap"
         return end - front, "step"                            # down to the floor
 
+    def headroom(self):
+        """The nearest low ceiling: a block above the player's head that a jump from here would reach (its underside
+        less than a jump height above the head), as (how far ahead of the player's front it starts, negative if
+        already under it; the space between head and underside). None if there's none within VIEW. Like
+        ground_edge(), a layout cue for brain.learn's layer: a ceiling close overhead covers most of the eye, so
+        the looming cells can't tell it from an obstacle ahead."""
+        front, head = self.px + 1, self.py + 1
+        ahead = [(b.x0 - front, b.bottom - head) for b in self.blocks
+                 if b.x1 > self.px and b.x0 - front < VIEW and head - SNAP < b.bottom < head + APEX]
+        return min(ahead, default=None)
+
     def render(self, width=40):
         """One ASCII frame:  ■ = player,  ▲ = spike,  █ = block,  ^ = thorns."""
         H = 8

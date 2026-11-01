@@ -170,7 +170,7 @@ def main() -> int:
     layer = shadow = vision = None
     if args.layer:
         import json as _json
-        from brain.learn import Layer
+        from brain.learn import Layer, cues_of
         from brain.shadow import Shadow
         from brain.vision import Vision
         if args.brain != "fast":
@@ -178,7 +178,7 @@ def main() -> int:
         trained = _json.loads(Path(args.layer).read_text())
         vision = Vision(pack, idx)
         layer, shadow = Layer(trained["mean"], vision, tuple(trained.get("az_edges", ())),
-                              trained.get("ground_edge", False)), Shadow()
+                              cues_of(trained)), Shadow()
         args.r_ref, args.steep = trained["r_ref"], trained["steep"]
     teacher = None
     if args.dopamine:
@@ -191,7 +191,7 @@ def main() -> int:
         out.parent.mkdir(parents=True, exist_ok=True)
         teacher = dopamine.LiveTeacher(dop, dopamine.clear_points(shadow.lv), out, {
             "init": args.layer, "r_ref": args.r_ref, "steep": args.steep, "az_edges": list(layer_edges(trained)),
-            "ground_edge": layer.ground,
+            "cues": list(layer.cues),
             "rate": dop.rate, "temp": dop.temp, "tag_decay": dop.tag_decay, "r_clear": dopamine.R_CLEAR,
             "r_death": dopamine.R_DEATH})
         print(f"dopamine learning on: rate {dop.rate:g}, randomness {dop.temp:g}; weights saved after every death to {out}")
