@@ -23,13 +23,17 @@ setup) plays the real game live: 7/9 attempts past Stereo Madness's opening spik
 eye and clone now know blocks/pits; best one-number rule and the fly both ~20% of terrain levels). Stretch C (learning
 to time jumps) stopped at its stage-2 gate: receptive-field vision input works, but downstream of the looming cells
 the real wiring carries no more "what's coming" than a gain-matched scramble (README "Stretch C").
-**Stretch D (paused, waiting for Rajan's go):** Rajan wants it to clear Stereo Madness up to the ship (block 266.5)
+**Stretch D (in progress):** Rajan wants it to clear Stereo Madness up to the ship (block 266.5)
 with a *learned decision layer* on the looming cells, labelled honestly (README "Stretch D"). Real level from the
 game's file (read-only), floating blocks in Fly Dash, cross-entropy learning with checkpoints (best from the start:
 7/12 sim attempts reach ~145, `figures/learn_real_gen25.json`), a shadow of the level kept in step with the real
 cube (`brain/shadow.py`), live play with the layer (real game: one attempt past the towers, others died at 33–48),
-and a dopamine-like reward rule (`brain/dopamine.py`; sim: past the towers 8% → ~50%). **Next:** connect the
-dopamine rule to `brain.live` and learn in the real game overnight; Rajan says when he's ready. Phase 6 after.
+and a dopamine-like reward rule (`brain/dopamine.py`; sim: past the towers 8% → ~50%). Done since: overnight
+real-game dopamine learning (`brain.live --dopamine`), the real game's jump-on-landing rule in Fly Dash, ~1 s tags,
+the shadow sync fix (real game now matches Fly Dash; best 161). **2026-11-01:** practice mode (`--practice`) taught
+the second half nothing (0% in all 4 late sections, 0/80 runs to the ship): there the eye would need "where does
+the ground end", which looming cells don't signal (README "Practice mode"). **Next: Rajan's call** between adding a
+ground-edge cue to the layer (changes the wording) and stopping Stretch D at ~60–65% of the way. Phase 6 after.
 
 ## How to run
 - Simulator: sibling checkout `../drosophila-brain-mlx/`; its `.venv/bin/python` runs our modules from this repo

@@ -149,27 +149,38 @@ class LiveTeacher:
 
 
 def sim(attempts: int, init: str, rate: float, temp: float, seed: int = 0, report: int = 25, confirm: bool = True,
-        out=None, tag_decay: float = DECAY_TAG):
-    """The rule in Fly Dash's Stereo Madness, attempts from the start (as normal mode), random 30-55 ms lag."""
+        out=None, tag_decay: float = DECAY_TAG, practice: bool = False):
+    """The rule in Fly Dash's Stereo Madness, random 30-55 ms lag. Attempts from the start (as normal mode), or with
+    `practice` from the practice checkpoints (brain.learn.checkpoints): each attempt starts at one, weak sections
+    more often (chance ~ 1 - its recent clear rate, + 0.15 so none is dropped), and runs until death or the ship."""
     import flydash
     from brain import learn
     learn._init("real")
-    w0 = np.array(json.loads(open(init).read())["mean"])
+    saved = json.loads(open(init).read())
+    w0 = np.array(saved.get("mean", saved.get("weights")))
     W = learn._W
     layer = learn.Layer(w0, W["vision"])
     dop = Dopamine(layer, rate, temp, seed, tag_decay)
     points = clear_points(W["level"])
     rng = np.random.default_rng(seed + 1)
+    starts = W["starts"] if practice else [(0.0, 0.0)]
+    stops = [s[0] for s in starts[1:]] + [W["end"]]
+    rate_ema = np.full(len(starts), 0.5)          # each section's recent clear rate (practice mode)
     log, reached, t0 = {"init": init, "rate": rate, "temp": temp, "r_clear": R_CLEAR, "r_death": R_DEATH,
-                        "confirm_s": CONFIRM_S if confirm else 0, "tag_decay": tag_decay, "attempts": []}, [], \
-        time.perf_counter()
+                        "confirm_s": CONFIRM_S if confirm else 0, "tag_decay": tag_decay, "practice": practice,
+                        "starts": [round(s[0], 1) for s in starts], "attempts": []}, [], time.perf_counter()
     wait = round(CONFIRM_S / flydash.DT) if confirm else 0
     for k in range(attempts):
         bp = W["player"].BrainPlayer(W["pack"], W["idx"], learn.R_REF, learn.STEEP, W["lesion"],
                                      seed=int(rng.integers(1, 2**31)), delay_ms=float(rng.uniform(*learn.DELAYS)),
                                      vision=W["vision"])
         env = flydash.FlyDashTerrain(level=W["level"], length=W["end"], buffer=W["buffer"])
-        obs, done, nxt, frame, pending = env.reset(), False, 0, 0, []
+        env.reset()
+        chance = 1 - rate_ema + 0.15
+        s = int(rng.choice(len(starts), p=chance / chance.sum())) if practice else 0   # (same draws as before)
+        env.px, env.py = starts[s]
+        obs, done, frame, pending = env.observe(), False, 0, []
+        nxt = int(np.searchsorted(points, env.px + 1, side="right"))    # obstacles behind the start don't count
         dop.new_attempt()
         while not done:
             bp(obs)
@@ -183,13 +194,19 @@ def sim(attempts: int, init: str, rate: float, temp: float, seed: int = 0, repor
                 dop.reward_with(R_CLEAR, pending.pop(0)[1])
         if env.dead:
             dop.reward(R_DEATH)                                     # unpaid clears are dropped
+        rate_ema[s] = 0.9 * rate_ema[s] + 0.1 * float(env.px >= stops[s] or env.won)
         reached.append(env.px)
-        log["attempts"].append(round(env.px, 1))
+        log["attempts"].append([s, round(env.px, 1)] if practice else round(env.px, 1))
         if (k + 1) % report == 0:
             last = np.array(reached[-report:])
-            print(f"[+{(time.perf_counter() - t0) / 60:5.1f} min] attempts {k + 1 - report + 1}-{k + 1}: median block "
-                  f"{np.median(last):.0f}, past the towers (60) {np.mean(last > 60):.0%}, past 145 "
-                  f"{np.mean(last > 145):.0%}, reached the ship {np.mean(last >= W['end'] - 0.5):.0%}", flush=True)
+            if practice:
+                print(f"[+{(time.perf_counter() - t0) / 60:5.1f} min] attempt {k + 1}: sections cleared lately "
+                      + " ".join(f"{st[0]:.0f}:{r:.0%}" for st, r in zip(starts, rate_ema))
+                      + f", reached the ship {np.mean(last >= W['end'] - 0.5):.0%}", flush=True)
+            else:
+                print(f"[+{(time.perf_counter() - t0) / 60:5.1f} min] attempts {k + 1 - report + 1}-{k + 1}: median "
+                      f"block {np.median(last):.0f}, past the towers (60) {np.mean(last > 60):.0%}, past 145 "
+                      f"{np.mean(last > 145):.0%}, reached the ship {np.mean(last >= W['end'] - 0.5):.0%}", flush=True)
             log["weights"] = layer.w.tolist()
             (out or RESULTS / "dopamine_sim.json").write_text(json.dumps(log) + "\n")
     return log
@@ -206,10 +223,12 @@ def main() -> int:
     ap.add_argument("--no-confirm", action="store_true", help="the old rule: reward a clear at once")
     ap.add_argument("--out", default=None, help="where to save (default results/dopamine_sim.json)")
     ap.add_argument("--tag-decay", type=float, default=DECAY_TAG, help="per frame (0.97 = ~0.5 s, 0.985 = ~1 s)")
+    ap.add_argument("--practice", action="store_true", help="start attempts at the practice checkpoints, weak "
+                                                            "sections more often (as the game's practice mode)")
     a = ap.parse_args()
     from pathlib import Path
     sim(a.attempts, a.init, a.rate, a.temp, a.seed, confirm=not a.no_confirm, out=Path(a.out) if a.out else None,
-        tag_decay=a.tag_decay)
+        tag_decay=a.tag_decay, practice=a.practice)
     return 0
 
 

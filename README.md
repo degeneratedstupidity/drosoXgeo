@@ -616,16 +616,50 @@ Same weights (`figures/dopamine_tag1s_sim.json`, learning off), 90 s each:
 The real game now does what Fly Dash predicts; best 161 blocks (60% of the way to the ship). Next wall: the
 half-block staircase and the spiked platform (145–165).
 
-**Next (waiting for Rajan):**
-1. Connect the dopamine rule to `brain.live` (~20–30 min): reward when the shadow passes an obstacle, punishment at
-   death, weights saved after every attempt. Then learn in the real game overnight, unattended (normal mode, game in
-   front, lid open). ~10–20 attempts/minute; expect more reliability past the towers, probably not the ship (every
-   death restarts at block 0, so the second half gets little practice).
-2. Train under messier timing (per-press delay jitter, speed/jump variation) so it stops relying on bounce rhythms.
-3. For the second half: shorter sections, or (Rajan's call; changes the story) first copying a perfect player (the
-   planner), then refining by trial and error or dopamine.
+**Practice mode (2026-11-01): the second half doesn't learn, because the looming cells can't see it.** Every
+real-game death restarts at block 0, so the second half got almost no practice (overnight: 4% of attempts past 145).
+`brain.dopamine sim --practice` starts each attempt at a practice checkpoint (0, 40, …, 240; weak sections more
+often) instead. Four runs × 2,000 attempts from `figures/dopamine_tag1s_sim.json`, ~1 s tags, then each run's
+weights scored (learning off, 20 attempts per section from its checkpoint, 20 complete runs):
+
+| section (blocks) | before | after practice (4 runs) | where it dies |
+|---|---|---|---|
+| 0 → 40 | 85% | 80–85% | 16.5 |
+| 40 → 75 | 60% | 65% | 56 (towers) |
+| 75 → 114 | 60% | 35–75% | 85, 102 |
+| 114 → 157 | 0% | 0% | 143.5–143.7 (half-block staircase over thorns) |
+| 157 → 191 | 0% | 0% | 172.3 |
+| 191 → 240 | 0% | 0% | 200.5 |
+| 240 → 266.5 (ship) | 0% | 0% | 242.5–242.7 |
+| complete runs reaching the ship | | **0/80** (past 145: 5–20%) | |
+
+A cross-entropy search on the 157–191 section alone (24 candidates × 10 generations, 4 attempts each) never got past
+block 172.5 either. What the simulated eye shows there (Fly Dash `objects()`, which the shadow also uses):
+- **172.3:** on the high block (150–170), the slab the cube must run *under* after the step down at 170 shows as a
+  block face at eye level, spikes one block above it: the same picture as a step to jump onto. The step down shows
+  nothing (a block below the feet has no face). The layer holds the key, the cube bounces on landing at ~172, hits
+  the slab.
+- **191–243 (dies at 200.5):** one long thorn pit, seen as "a pit right below" the whole way; the next platforms are
+  level with this one, so they show no face either. At 192–194 the input is constant, so nothing in it can time the
+  jump the planner makes at 194.
+- **242.7:** the ceiling (243–248) does show, 5 blocks up and close, so "don't jump" is visible; it wasn't learned
+  (the same high bands drive jumps onto towers earlier). The staircase (143.7) is jump timing on 1-block steps over
+  a pit; not analysed further.
+
+In plain words: looming cells answer "is something coming at me?"; the second half of Stereo Madness asks "where
+does the ground end?". A ledge falling away doesn't loom. Same lesson as Stretch C, from the other side: more
+practice can't add information the input doesn't carry.
+
+**Next (Rajan's call):**
+1. Give the layer one non-looming cue, "the ground ends ahead (and how far down)", from the level layout like the
+   other obstacles (a real fly sees the ground edge, but not with LPLC2/LC4). Post wording would change to "looming
+   cells plus a ground-edge cue". Then practice again in Fly Dash, then the real game.
+2. Stop Stretch D here and report the honest result: the looming pathway and a learned layer get ~60–65% of the way
+   (best 173 blocks); the rest needs vision the looming cells don't have.
+3. Earlier ideas still open: messier timing in training (per-press delay jitter); copying a perfect player first
+   (changes the story; doesn't fix the missing information).
 
 **Commands:**
 - `python -m brain.stereo` (level), `python -m brain.learn train --setup real [--fine] [--init figures/...json]`
-  (cross-entropy, 4 workers), `python -m brain.dopamine sim --attempts 600` (dopamine rule in Fly Dash),
+  (cross-entropy, 4 workers), `python -m brain.dopamine sim --attempts 600 [--practice]` (dopamine rule in Fly Dash),
   `python -m brain.shadow results/realgame/live_*_press.npz` (check the shadow on a recorded real run).
