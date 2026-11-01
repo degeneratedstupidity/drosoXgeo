@@ -39,7 +39,12 @@ the ground end", which looming cells don't signal (README "Practice mode"). Then
 runs (looming only, dopamine on) and Fly Dash slab practice (`brain/slab_practice.py`): **real-game best 173.9**;
 practice made the first half more reliable but slab 1 (153) didn't transfer (README "Back in the real game").
 Wording: "looming pathway + learned decision layer: block 173.9 of 266 in the real game". Rajan: no more training
-for now. **Next: Phase 6 post** (a short real-game demo clip with `--record`, then update `docs/post_draft.md`).
+for now. **Phase 6 (2026-11-01 evening): assets ready, not posted.** Illustration clip (Blender: cartoon fruit fly at
+an RGB rig; the screen is a real recorded run, presses synced; `docs/build_clip.py`, caption `docs/build_caption.py`)
+→ `results/clip/fly_gaming_captioned.mp4` (1080×1080, 15.9 s) and a 16:9 `fly_gaming_wide_captioned.mp4`; walls chart
+`docs/build_walls_chart.py` → `results/clip/walls.png`; post draft 2 in `docs/post_draft.md` (local, untracked).
+Clip footage and the chart's level silhouette are RobTop's content: kept in results/; Rajan OK'd using them in the
+post. **Next:** Rajan rewrites the draft in his voice and posts (his call; ask before anything goes outside).
 
 ## How to run
 - Simulator: sibling checkout `../drosophila-brain-mlx/`; its `.venv/bin/python` runs our modules from this repo
