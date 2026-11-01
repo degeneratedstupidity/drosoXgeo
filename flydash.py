@@ -351,6 +351,31 @@ class FlyDashTerrain(FlyDash):
                 return end
             end = max(nxt)
 
+    def ground_edge(self):
+        """Where the ground under a standing player ends, as (distance from the player's front, kind): "step" if a
+        lower surface goes on right past it (walk down), "gap" if thorns or nothing do (a jump is needed). None in
+        the air, at a wall (its face looms instead) or if the ground goes on beyond VIEW. Looming cells don't see
+        this; it's the optional ground-edge cue of brain.learn's decision layer."""
+        if not self.grounded:
+            return None
+        front = self.px + 1
+        if self.py < 0.05:                                    # the floor ends where thorns begin
+            ahead = [th.x0 for th in self.thorns if th.x0 > self.px]
+            if not ahead or min(ahead) - front > VIEW:
+                return None
+            return min(ahead) - front, "gap"
+        end = self._support_end()
+        if end - front > VIEW:
+            return None
+        x = end + 0.5
+        if any(b.x0 <= x < b.x1 and b.top > self.py + 0.05 and b.bottom < self.py + 0.95 for b in self.blocks):
+            return None
+        if any(b.x0 <= x < b.x1 and b.top < self.py - 0.05 for b in self.blocks):
+            return end - front, "step"
+        if any(th.x0 <= x < th.x1 for th in self.thorns):
+            return end - front, "gap"
+        return end - front, "step"                            # down to the floor
+
     def render(self, width=40):
         """One ASCII frame:  ■ = player,  ▲ = spike,  █ = block,  ^ = thorns."""
         H = 8

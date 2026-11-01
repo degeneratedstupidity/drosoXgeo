@@ -650,6 +650,18 @@ In plain words: looming cells answer "is something coming at me?"; the second ha
 does the ground end?". A ledge falling away doesn't loom. Same lesson as Stretch C, from the other side: more
 practice can't add information the input doesn't carry.
 
+**Ground-edge cue (2026-11-01, Rajan chose option 1 below):** `--ground` (`brain.learn`, `brain.dopamine`,
+`brain.live`) adds 10 inputs to the layer: while the cube stands, where its ground ends (Fly Dash `ground_edge()`:
+a step down or a gap, in 5 distance bins from the cube's front), from the level layout like the obstacles (the
+shadow provides it in the real game). Its weights start at 0, and with them at 0 the layer plays exactly as before
+(same deaths, checked). Cross-entropy searches on single sections (32 candidates × 16 generations, 4 attempts each):
+- **191–240:** the cue passes the old wall at 200.5 (8/10 attempts of the best weights reach 217.5+). New wall:
+  the second staircase of 1-block steps over thorns (217.5–217.7), like the first one at 143.7.
+- **157–191:** still nothing past 173. The death isn't an edge: the cube lands under the slab, stands, and presses
+  because the slab looms right overhead (all looming weights are positive; a near object covers most of the eye,
+  so "above me" blurs). The ceiling at 242.7 is the same. A "headroom" cue (a ceiling within 2 blocks above) would
+  be a second layout cue; asked Rajan before adding it.
+
 **Next (Rajan's call):**
 1. Give the layer one non-looming cue, "the ground ends ahead (and how far down)", from the level layout like the
    other obstacles (a real fly sees the ground edge, but not with LPLC2/LC4). Post wording would change to "looming

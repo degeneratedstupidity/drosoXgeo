@@ -177,7 +177,8 @@ def main() -> int:
             raise SystemExit("--layer needs the fast brain (it was trained on it)")
         trained = _json.loads(Path(args.layer).read_text())
         vision = Vision(pack, idx)
-        layer, shadow = Layer(trained["mean"], vision, tuple(trained.get("az_edges", ()))), Shadow()
+        layer, shadow = Layer(trained["mean"], vision, tuple(trained.get("az_edges", ())),
+                              trained.get("ground_edge", False)), Shadow()
         args.r_ref, args.steep = trained["r_ref"], trained["steep"]
     teacher = None
     if args.dopamine:
@@ -190,6 +191,7 @@ def main() -> int:
         out.parent.mkdir(parents=True, exist_ok=True)
         teacher = dopamine.LiveTeacher(dop, dopamine.clear_points(shadow.lv), out, {
             "init": args.layer, "r_ref": args.r_ref, "steep": args.steep, "az_edges": list(layer_edges(trained)),
+            "ground_edge": layer.ground,
             "rate": dop.rate, "temp": dop.temp, "tag_decay": dop.tag_decay, "r_clear": dopamine.R_CLEAR,
             "r_death": dopamine.R_DEATH})
         print(f"dopamine learning on: rate {dop.rate:g}, randomness {dop.temp:g}; weights saved after every death to {out}")
@@ -247,7 +249,7 @@ def main() -> int:
                     rates = vision.rates(env.objects() if env is not None else [], args.r_ref, args.steep)
                     gf = int(brain.step(ticks, rates).sum())
                     if teacher is None:
-                        press = layer(brain.last_counts, env is not None and env.on_ground)
+                        press = layer(brain.last_counts, env is not None and env.on_ground, env)
                     else:
                         press = teacher.frame(t_cap, brain.last_counts, shadow, seen is not None,
                                               learning=front.name == "wine")
