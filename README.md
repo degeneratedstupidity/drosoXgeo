@@ -339,6 +339,13 @@ the input fools the controls.** `python -m brain.readout run --setups real,lesio
   (screen_crop/, timeline.json), then `Blender -b -P docs/build_clip.py -- --render` (476 frames, ~4.3 s each on
   the M1 Pro), then ffmpeg (`fly_gaming_captioned.mp4`, 1080×1080, 30 fps). `-- --wide` renders a 16:9 version
   (1920×1080, same height of view, more room either side; caption `build_caption.py -- --wide`).
+- **Story video** (`docs/build_story.py` → `results/clip/fly_story.mp4`, 47 s, 1080×1080): the illustration; "What
+  the model actually saw" (the same attempt as the 440-px eye picture, with the run's own log scrolling underneath:
+  looming input to LPLC2/LC4, Giant Fiber spikes, space bar pressed by the learned layer); the control (reflex alone,
+  shuffled0, same eye and alarm r_ref 20 steep 2, `live_20261101-191852`: 10 attempts, 0 past the first spike, 0
+  Giant Fiber spikes, 0 presses); an end card. The control must be the reflex: the learned layer reads the looming
+  cells, which the picture drives whatever the wiring, so scrambling wouldn't test it. (A first control run was in
+  another level, with jump pads: the frame check caught it.)
 - **Sharp gameplay recording** (`brain/flyrec.swift`, built by `brain.flyapps` as `FlyRec.app`, its own Screen
   Recording permission): the game window only, at its full size, H.264, run alongside `brain.live`. Window size
   matters: at 2047×1181 points the game (under Wine) drew only ~36 fps, so the recording stutters; a medium window
