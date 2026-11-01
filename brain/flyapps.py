@@ -2,6 +2,7 @@
 
   FlyEye.app   (brain/flyeye.swift)   Screen Recording   streams the Geometry Dash window, nothing else
   FlyJump.app  (brain/flyjump.swift)  Accessibility      presses/releases space in the game's process, nothing else
+  FlyRec.app   (brain/flyrec.swift)   Screen Recording   records the Geometry Dash window to an MP4 (for the post)
 
 Why apps, and why `open`: macOS gives a permission to whoever is "responsible" for a process. A program started
 directly from Python counts as part of the terminal or IDE running Python, so it would use (and need) that app's

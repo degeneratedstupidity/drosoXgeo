@@ -339,6 +339,10 @@ the input fools the controls.** `python -m brain.readout run --setups real,lesio
   (screen_crop/, timeline.json), then `Blender -b -P docs/build_clip.py -- --render` (476 frames, ~4.3 s each on
   the M1 Pro), then ffmpeg (`fly_gaming_captioned.mp4`, 1080×1080, 30 fps). `-- --wide` renders a 16:9 version
   (1920×1080, same height of view, more room either side; caption `build_caption.py -- --wide`).
+- **Sharp gameplay recording** (`brain/flyrec.swift`, built by `brain.flyapps` as `FlyRec.app`, its own Screen
+  Recording permission): the game window only, at its full size, H.264, run alongside `brain.live`. Window size
+  matters: at 2047×1181 points the game (under Wine) drew only ~36 fps, so the recording stutters; a medium window
+  should keep 60 fps. Rajan preferred the rendered illustration for the post; the HD files stay in results/clip/.
 - **Walls chart** (`docs/build_walls_chart.py` → `results/clip/walls.png`, 2400×1350): where the 203 real-game
   attempts of 2026-11-01 ended (attempts with another app in front left out, 31 of 234), over a silhouette of the
   level. Slab 1 (153) 88, slab 2 (160–161) 31, after the pit (101) 17; best 173.9. The page and image stay in
