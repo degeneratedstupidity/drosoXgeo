@@ -703,6 +703,44 @@ summary for the post: the fly's looming pathway with a learned decision layer re
 (65% of the way to the ship); in Fly Dash, two layout cues (where the ground ends, how much room is overhead) let
 it clear the ceilings and the last section, but the staircases need a planner, not a reflex with a learned readout.
 
+**Back in the real game (2026-11-01 afternoon, Rajan's call, looming only, no cues).** `brain.live --press --layer
+<weights> --dopamine --tag-decay 0.985 --countdown 60 --tap-test --seconds 10800`, normal mode.
+- **Run 1**, from `figures/dopamine_tag1s_sim.json`: 85 attempts before the Mac was needed again. **Best 173.9
+  blocks, the real-game record** (attempt 5). Deaths: slab 1 (153–154) 20, slab 2 (161–162) 21, block 102 19,
+  ceiling (172–174) 3; 13 at the first spike were while another app was in front (keys don't reach the game).
+- **The slab walls** (Fly Dash recordings from the planner's mid-air state at 146.5): two floating slabs, 2 blocks up
+  over rows of 4 spikes (155–157 over 154–157, 163–165 over 162–165); the cube must land on top (a jump reaches
+  2.1). Both deaths are the layer *holding the key*: coming down off the staircase it still presses within 80 ms of
+  landing at ~150.3, so the landing rule bounces it at once, 2.4 blocks early, onto the spikes (dies at 153–154); or
+  it gets onto slab 1 but bounces off it instead of walking off, and lands on the second row (161–162).
+- **Slab practice** (`brain.slab_practice`): the dopamine rule in Fly Dash on five sections (the four checkpoints up
+  to the staircase, plus 146.5 → 170 starting mid-air), weak ones more often; 2 rounds × 4 runs × 1,500 attempts.
+  The best weights (`figures/dopamine_slab_practice.json`), scored with the random presses a `--dopamine` run plays
+  with (40 attempts per section, learning off):
+
+  | weights | 0–40 | 40–75 | 75–114 | 114–146 (staircase) | 147–170 (slabs) |
+  |---|---|---|---|---|---|
+  | after run 1 (start) | 88% | 45% | 68% | 0% | 0% |
+  | practice round 1 (best of 4) | 88% | 60% | 75% | 22% | 8% |
+  | practice round 2 (best of 4) | 80% | 65% | 80% | 12% | 32% |
+
+  (A standing start at 148.5, tried first, taught nothing: from a standstill the layer jumps at once, which never
+  happens in the real game.)
+- **Run 2**, from the practised weights, 143 attempts (about 25 min with the game in front, then the screen locked
+  and other apps came to the front; `caffeinate -i` doesn't stop the display sleeping, `caffeinate -d -i` does):
+
+  | attempts | past block 145 | past slab 1, of those reaching it | best |
+  |---|---|---|---|
+  | 1–50 | 58% | 7/29 (24%) | 172.4 |
+  | 51–100 | 86% | 6/43 (14%) | 161.3 |
+  | 101–143 (focus lost often) | 42% | 3/18 (17%) | 162.4 |
+
+  The practice made the first part much more reliable in the real game (past 145: about 50% in run 1 → 86%), but
+  slab 1 didn't transfer (about 18% passed vs 32% in Fly Dash; the release-then-jump is a timing race the real
+  game's variable key delay keeps losing), and ~5 real attempts a minute was too slow to learn it live. And a perfect
+  slab 1 would only lead to the ceiling at 172, which looming-only weights can't pass. Stretch D stays stopped;
+  real-game best **173.9 blocks (65% of the way to the ship)**.
+
 **Possible future work** (none started): drive other visual projection neurons from the game picture instead of
 layout cues (FlyEM optic-lobe connectome, Nern et al. 2025; possibly the flyvis model of the fly's visual system,
 Lappalainen et al. 2024, to be checked); route the jump through the Giant Fiber's real target, the jump motor

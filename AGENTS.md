@@ -35,8 +35,11 @@ the second half nothing (0% in all 4 late sections, 0/80 runs to the ship): ther
 the ground end", which looming cells don't signal (README "Practice mode"). Then, with Rajan's OK, two layout cues
 (`--ground`, `--headroom`; named in each weight file as `"cues"`): set by hand they clear both ceilings (157–191
 70%, 240→ship 100%), but no setting or search clears the two staircases (114–157, 191–240) and the towers at once:
-0/20 complete runs (README "Headroom cue and the last round", "Where Stretch D ends"). Real-game best stays 173.
-Wording: "looming pathway + learned decision layer: block 173 of 266 in the real game". **Next: Phase 6 post.**
+0/20 complete runs (README "Headroom cue and the last round", "Where Stretch D ends"). Afternoon: two more real-game
+runs (looming only, dopamine on) and Fly Dash slab practice (`brain/slab_practice.py`): **real-game best 173.9**;
+practice made the first half more reliable but slab 1 (153) didn't transfer (README "Back in the real game").
+Wording: "looming pathway + learned decision layer: block 173.9 of 266 in the real game". Rajan: no more training
+for now. **Next: Phase 6 post** (a short real-game demo clip with `--record`, then update `docs/post_draft.md`).
 
 ## How to run
 - Simulator: sibling checkout `../drosophila-brain-mlx/`; its `.venv/bin/python` runs our modules from this repo
@@ -67,7 +70,8 @@ Wording: "looming pathway + learned decision layer: block 173 of 266 in the real
   --tap-test` (normal mode; Rajan clicks into the game during the countdown, hands off). Capture and keys live in
   ~/Applications/FlyEye.app (Screen Recording) and FlyJump.app (Accessibility), built from brain/flyeye.swift and
   brain/flyjump.swift; rebuilding changes their ad-hoc signature, so macOS asks Rajan for the permission again.
-  Capture only the game window, never the screen (Rajan's rule). Keys only reach the game while it's the front app.
+  Capture only the game window, never the screen (Rajan's rule). Long runs: the Mac must stay untouched (another app
+  in front pauses it; every attempt then dies at the first spike), and add `caffeinate -d` or the screen locks. Keys only reach the game while it's the front app.
   Rajan's local copy is the Windows build, run through the Sikarugir (Wine) wrapper `geometrydash.app` in the repo root
   (gitignored; game copied into its C:\Program Files; `open geometrydash.app`). It must start from its own folder,
   or it can't find Resources and crashes in CCNode::addChild. Never modify the game's own files;
